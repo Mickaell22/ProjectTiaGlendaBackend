@@ -231,3 +231,101 @@
 2025-07-19 13:30:02 - INFO - EspecialidadService.delete_especialidad - Especialidad 42 desactivada
 2025-07-19 13:30:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
 2025-07-19 13:30:04 - INFO - EspecialidadService.delete_especialidad - ID: 1
+2025-07-19 13:47:21 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 13:47:29 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 13:48:22 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 13:48:31 - INFO - LoginService.login - Intento de autenticacion
+2025-07-19 13:48:31 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-19 13:48:32 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-19 13:48:32 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-19 13:48:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:34 - INFO - PersonaService.create_persona - Iniciando
+2025-07-19 13:48:34 - INFO - PersonaComponent.get_persona_by_id - Persona 16 encontrada
+2025-07-19 13:48:34 - INFO - PersonaComponent.create_persona - Persona creada con ID: 16
+2025-07-19 13:48:34 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-19 13:48:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:36 - INFO - EspecialidadService.get_especialidades_activas - Iniciando
+2025-07-19 13:48:36 - INFO - EspecialidadComponent.get_especialidades_activas - 41 especialidades activas encontradas
+2025-07-19 13:48:36 - INFO - EspecialidadService.get_especialidades_activas - Especialidades activas obtenidas
+2025-07-19 13:48:38 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:48:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:25 - INFO - LoginService.login - Intento de autenticacion
+2025-07-19 13:51:25 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-19 13:51:26 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-19 13:51:26 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-19 13:51:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:28 - INFO - PersonaService.create_persona - Iniciando
+2025-07-19 13:51:28 - INFO - PersonaComponent.get_persona_by_id - Persona 17 encontrada
+2025-07-19 13:51:28 - INFO - PersonaComponent.create_persona - Persona creada con ID: 17
+2025-07-19 13:51:28 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-19 13:51:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:30 - INFO - EspecialidadService.get_especialidades_activas - Iniciando
+2025-07-19 13:51:30 - INFO - EspecialidadComponent.get_especialidades_activas - 41 especialidades activas encontradas
+2025-07-19 13:51:30 - INFO - EspecialidadService.get_especialidades_activas - Especialidades activas obtenidas
+2025-07-19 13:51:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:32 - INFO - PersonalService.get_personal - Iniciando
+2025-07-19 13:51:32 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-19 13:51:32 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-19 13:51:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:34 - INFO - PersonalService.create_personal - Iniciando
+2025-07-19 13:51:35 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-19 13:51:35 - INFO - PersonalComponent.create_personal - Personal creado con ID: 7
+2025-07-19 13:51:35 - INFO - PersonalService.create_personal - Personal creado exitosamente
+2025-07-19 13:51:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:37 - INFO - PersonalService.get_personal_by_id - ID: 7
+2025-07-19 13:51:37 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-19 13:51:37 - INFO - PersonalService.get_personal_by_id - Personal 7 encontrado
+2025-07-19 13:51:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:39 - INFO - PersonalService.update_personal - ID: 7
+2025-07-19 13:51:39 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-19 13:51:39 - INFO - PersonalComponent.update_personal - Personal 7 actualizado
+2025-07-19 13:51:39 - INFO - PersonalService.update_personal - Personal 7 actualizado
+2025-07-19 13:51:41 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:41 - INFO - PersonalService.get_personal_especialidades - Personal ID: 7
+2025-07-19 13:51:42 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-19 13:51:42 - INFO - PersonalService.get_personal_especialidades - 0 especialidades encontradas
+2025-07-19 13:51:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:44 - INFO - PersonalService.assign_especialidad - Personal ID: 7
+2025-07-19 13:51:44 - INFO - PersonalComponent.assign_especialidad - Especialidad 36 asignada a personal 7
+2025-07-19 13:51:44 - INFO - PersonalService.assign_especialidad - Especialidad 36 asignada a personal 7
+2025-07-19 13:51:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:46 - INFO - PersonalService.get_personal_especialidades - Personal ID: 7
+2025-07-19 13:51:46 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-19 13:51:46 - INFO - PersonalService.get_personal_especialidades - 1 especialidades encontradas
+2025-07-19 13:51:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:48 - INFO - PersonalService.assign_especialidad - Personal ID: 7
+2025-07-19 13:51:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:51 - INFO - PersonalService.remove_especialidad - Personal ID: 7, Especialidad ID: 36
+2025-07-19 13:51:51 - INFO - PersonalComponent.remove_especialidad - Especialidad 36 removida del personal 7
+2025-07-19 13:51:51 - INFO - PersonalService.remove_especialidad - Especialidad 36 removida del personal 7
+2025-07-19 13:51:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:53 - INFO - PersonalService.get_personal_by_area - Área: terapeutico
+2025-07-19 13:51:53 - INFO - PersonalComponent.get_personal_by_area - 3 personal de área terapeutico encontrado
+2025-07-19 13:51:53 - INFO - PersonalService.get_personal_by_area - Personal de terapeutico obtenido
+2025-07-19 13:51:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:55 - INFO - PersonalService.get_personal_by_area - Área: pedagogico
+2025-07-19 13:51:55 - INFO - PersonalComponent.get_personal_by_area - 3 personal de área pedagogico encontrado
+2025-07-19 13:51:55 - INFO - PersonalService.get_personal_by_area - Personal de pedagogico obtenido
+2025-07-19 13:51:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:57 - INFO - PersonalService.get_estadisticas - Iniciando
+2025-07-19 13:51:57 - INFO - PersonalComponent.get_estadisticas_personal - Estadísticas obtenidas
+2025-07-19 13:51:57 - INFO - PersonalService.get_estadisticas - Estadísticas obtenidas
+2025-07-19 13:51:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:51:59 - INFO - PersonalService.create_personal - Iniciando
+2025-07-19 13:52:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:52:01 - INFO - PersonalService.create_personal - Iniciando
+2025-07-19 13:52:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:52:04 - INFO - PersonalService.create_personal - Iniciando
+2025-07-19 13:52:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:52:06 - INFO - PersonalService.get_personal_by_area - Área: area_inexistente
+2025-07-19 13:52:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 13:52:08 - INFO - PersonalService.delete_personal - ID: 7
+2025-07-19 13:52:08 - INFO - PersonalComponent.deactivate_personal - Personal 7 desactivado
+2025-07-19 13:52:08 - INFO - PersonalService.delete_personal - Personal 7 desactivado

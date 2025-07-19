@@ -54,3 +54,14 @@ LINE 2:                 INSERT INTO especialidad (nombre, area, esta...
 2025-07-19 13:28:04 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
 2025-07-19 13:29:58 - ERROR - EspecialidadService.create_especialidad - Error: Ya existe una especialidad con ese nombre en el área terapeutico
 2025-07-19 13:30:04 - ERROR - EspecialidadService.delete_especialidad - Error: No se puede desactivar la especialidad porque tiene 1 miembro(s) del personal asignado(s)
+2025-07-19 13:48:38 - ERROR - auth_middleware.token_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:40 - ERROR - auth_middleware.admin_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:42 - ERROR - auth_middleware.token_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:44 - ERROR - auth_middleware.token_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:47 - ERROR - auth_middleware.token_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:49 - ERROR - auth_middleware.admin_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:51 - ERROR - auth_middleware.admin_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:53 - ERROR - auth_middleware.admin_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:48:55 - ERROR - auth_middleware.token_required - Error: unmatched ')' (PersonalService.py, line 66)
+2025-07-19 13:51:48 - ERROR - PersonalService.assign_especialidad - Error: Esta especialidad ya está asignada a este personal
+2025-07-19 13:52:04 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal

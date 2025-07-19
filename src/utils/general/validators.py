@@ -344,3 +344,69 @@ class Validators:
             }
 
         return {'valid': True, 'message': 'Área valida'}
+
+    @staticmethod
+    def validate_personal_data(data, is_update=False):
+        """Validar datos completos de personal"""
+        errors = []
+
+        # Campos requeridos para crear personal
+        if not is_update:
+            required_validation = Validators.validate_required_fields(
+                data, ['persona_id']
+            )
+            if not required_validation['valid']:
+                errors.append(required_validation['message'])
+
+        # Validar persona_id si está presente
+        if 'persona_id' in data and data['persona_id']:
+            try:
+                persona_id = int(data['persona_id'])
+                if persona_id <= 0:
+                    errors.append("ID de persona debe ser un numero positivo")
+            except (ValueError, TypeError):
+                errors.append("ID de persona debe ser un numero entero")
+
+        # Validar titulo_profesional si está presente
+        if 'titulo_profesional' in data and data['titulo_profesional']:
+            titulo_validation = Validators.validate_titulo_profesional(data['titulo_profesional'])
+            if not titulo_validation['valid']:
+                errors.append(titulo_validation['message'])
+
+        # Validar estado si está presente
+        if 'estado' in data and data['estado']:
+            valid_states = ['activo', 'inactivo']
+            if data['estado'] not in valid_states:
+                errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
+
+        # Validar IDs numéricos
+        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        for field in numeric_fields:
+            if field in data and data[field]:
+                try:
+                    int(data[field])
+                except (ValueError, TypeError):
+                    errors.append(f"{field} debe ser un numero entero")
+
+        if errors:
+            return {'valid': False, 'message': '; '.join(errors)}
+
+        return {'valid': True, 'message': 'Datos de personal validos'}
+
+    @staticmethod
+    def validate_titulo_profesional(titulo):
+        """Validar título profesional"""
+        if not titulo:
+            return {'valid': True, 'message': 'Título profesional es opcional'}
+
+        if len(titulo.strip()) > 200:
+            return {'valid': False, 'message': 'Título profesional no puede tener mas de 200 caracteres'}
+
+        # Permitir letras, números, espacios, paréntesis, puntos, comas y algunos caracteres especiales
+        if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\(\)\-\.\,\/\:]+$", titulo):
+            return {
+                'valid': False,
+                'message': 'Título profesional contiene caracteres no permitidos'
+            }
+
+        return {'valid': True, 'message': 'Título profesional valido'}

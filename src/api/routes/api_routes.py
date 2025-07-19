@@ -197,6 +197,70 @@ def register_routes(app):
         return EspecialidadService.get_estadisticas()
 
     # ============================================
+    # RUTAS DE PERSONAL (Protegidas)
+    # ============================================
+    @app.route('/api/personal', methods=['GET'])
+    @token_required
+    def get_personal():
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_personal()
+
+    @app.route('/api/personal/<int:personal_id>', methods=['GET'])
+    @token_required
+    def get_personal_by_id(personal_id):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_personal_by_id(personal_id)
+
+    @app.route('/api/personal', methods=['POST'])
+    @admin_required
+    def create_personal():
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.create_personal()
+
+    @app.route('/api/personal/<int:personal_id>', methods=['PUT'])
+    @admin_required
+    def update_personal(personal_id):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.update_personal(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>', methods=['DELETE'])
+    @admin_required
+    def delete_personal(personal_id):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.delete_personal(personal_id)
+
+    @app.route('/api/personal/area/<area>', methods=['GET'])
+    @token_required
+    def get_personal_by_area(area):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_personal_by_area(area)
+
+    @app.route('/api/personal/estadisticas', methods=['GET'])
+    @token_required
+    def get_personal_estadisticas():
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_estadisticas()
+
+    # Gestión de especialidades del personal
+    @app.route('/api/personal/<int:personal_id>/especialidades', methods=['GET'])
+    @token_required
+    def get_personal_especialidades(personal_id):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_personal_especialidades(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>/especialidades', methods=['POST'])
+    @admin_required
+    def assign_especialidad_to_personal(personal_id):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.assign_especialidad(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>/especialidades/<int:especialidad_id>', methods=['DELETE'])
+    @admin_required
+    def remove_especialidad_from_personal(personal_id, especialidad_id):
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.remove_especialidad(personal_id, especialidad_id)
+
+    # ============================================
     # RUTAS DE USUARIOS (Protegidas)
     # ============================================
     @app.route('/api/usuarios', methods=['GET'])
