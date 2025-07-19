@@ -87,6 +87,65 @@ def register_routes(app):
         return response_success(None, "Sesion cerrada exitosamente")
 
     # ============================================
+    # RUTAS DE INFORMACIÓN DEL USUARIO ACTUAL
+    # ============================================
+    @app.route('/api/me', methods=['GET'])
+    @token_required
+    def get_current_user():
+        from flask import request
+        HandleLogs.write_log(f"Información solicitada para usuario: {request.current_user['usuario']}")
+        return response_success(request.current_user, "Informacion del usuario actual")
+
+    # ============================================
+    # RUTAS DE ROLES (Protegidas - Solo lectura)
+    # ============================================
+    @app.route('/api/roles', methods=['GET'])
+    @token_required
+    def get_roles():
+        from src.api.Service.RolService import RolService
+        return RolService.get_roles()
+
+    # ============================================
+    # RUTAS DE PERSONAS (Protegidas)
+    # ============================================
+    @app.route('/api/personas', methods=['GET'])
+    @token_required
+    def get_personas():
+        from src.api.Service.PersonaService import PersonaService
+        return PersonaService.get_personas()
+
+    @app.route('/api/personas/<int:persona_id>', methods=['GET'])
+    @token_required
+    def get_persona(persona_id):
+        from src.api.Service.PersonaService import PersonaService
+        return PersonaService.get_persona(persona_id)
+
+    @app.route('/api/personas', methods=['POST'])
+    @token_required
+    def create_persona():
+        from src.api.Service.PersonaService import PersonaService
+        return PersonaService.create_persona()
+
+    @app.route('/api/personas/<int:persona_id>', methods=['PUT'])
+    @token_required
+    def update_persona(persona_id):
+        from src.api.Service.PersonaService import PersonaService
+        return PersonaService.update_persona(persona_id)
+
+    @app.route('/api/personas/<int:persona_id>', methods=['DELETE'])
+    @admin_required
+    def delete_persona(persona_id):
+        from src.api.Service.PersonaService import PersonaService
+        return PersonaService.delete_persona(persona_id)
+
+    @app.route('/api/personas/disponibles', methods=['GET'])
+    @admin_required
+    def get_personas_disponibles():
+        """Endpoint específico para obtener personas sin usuario (útil para crear usuarios)"""
+        from src.api.Service.PersonaService import PersonaService
+        return PersonaService.get_personas_disponibles()
+
+    # ============================================
     # RUTAS DE USUARIOS (Protegidas)
     # ============================================
     @app.route('/api/usuarios', methods=['GET'])
@@ -118,14 +177,3 @@ def register_routes(app):
     def delete_usuario(usuario_id):
         from src.api.Service.UsuarioService import UsuarioService
         return UsuarioService.delete_usuario(usuario_id)
-
-    # ============================================
-    # RUTAS DE INFORMACIÓN DEL USUARIO ACTUAL
-    # ============================================
-    @app.route('/api/me', methods=['GET'])
-    @token_required
-    def get_current_user():
-        from flask import request
-        HandleLogs.write_log(f"Información solicitada para usuario: {request.current_user['usuario']}")
-        return response_success(request.current_user, "Informacion del usuario actual")
-

@@ -1,5 +1,6 @@
 import re
 from email_validator import validate_email, EmailNotValidError
+from datetime import datetime, date
 from src.utils.general.logs import HandleLogs
 
 
@@ -96,6 +97,65 @@ class Validators:
         return {'valid': True, 'message': 'Telefono valido'}
 
     @staticmethod
+    def validate_name(name, field_name="nombre"):
+        """Validar nombres y apellidos"""
+        if not name or len(name.strip()) < 2:
+            return {'valid': False, 'message': f'{field_name} debe tener al menos 2 caracteres'}
+
+        if len(name.strip()) > 100:
+            return {'valid': False, 'message': f'{field_name} no puede tener mas de 100 caracteres'}
+
+        # Solo letras, espacios, acentos y apostrofes
+        if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s']+$", name):
+            return {
+                'valid': False,
+                'message': f'{field_name} solo puede contener letras, espacios y apostrofes'
+            }
+
+        return {'valid': True, 'message': f'{field_name} valido'}
+
+    @staticmethod
+    def validate_date(date_string, field_name="fecha"):
+        """Validar formato de fecha"""
+        if not date_string:
+            return {'valid': True, 'message': f'{field_name} es opcional'}
+
+        try:
+            # Intentar parsear la fecha en formato YYYY-MM-DD
+            if isinstance(date_string, str):
+                parsed_date = datetime.strptime(date_string, '%Y-%m-%d').date()
+            elif isinstance(date_string, date):
+                parsed_date = date_string
+            else:
+                return {'valid': False, 'message': f'{field_name} debe estar en formato YYYY-MM-DD'}
+
+            # Verificar que la fecha no sea futura para fecha de nacimiento
+            if field_name.lower() == 'fecha_nacimiento' and parsed_date > date.today():
+                return {'valid': False, 'message': 'Fecha de nacimiento no puede ser futura'}
+
+            # Verificar que la fecha de nacimiento no sea muy antigua (más de 120 años)
+            if field_name.lower() == 'fecha_nacimiento':
+                min_date = date.today().replace(year=date.today().year - 120)
+                if parsed_date < min_date:
+                    return {'valid': False, 'message': 'Fecha de nacimiento no puede ser anterior a 120 años'}
+
+            return {'valid': True, 'message': f'{field_name} valida'}
+
+        except ValueError:
+            return {'valid': False, 'message': f'{field_name} debe estar en formato YYYY-MM-DD'}
+
+    @staticmethod
+    def validate_direccion(direccion):
+        """Validar direccion"""
+        if not direccion:
+            return {'valid': True, 'message': 'Direccion es opcional'}
+
+        if len(direccion.strip()) > 255:
+            return {'valid': False, 'message': 'Direccion no puede tener mas de 255 caracteres'}
+
+        return {'valid': True, 'message': 'Direccion valida'}
+
+    @staticmethod
     def validate_usuario_data(data, is_update=False):
         """Validar datos completos de usuario"""
         errors = []
@@ -133,3 +193,78 @@ class Validators:
             return {'valid': False, 'message': '; '.join(errors)}
 
         return {'valid': True, 'message': 'Datos de usuario validos'}
+
+    @staticmethod
+    def validate_persona_data(data, is_update=False):
+        """Validar datos completos de persona"""
+        errors = []
+
+        # Campos requeridos para crear persona
+        if not is_update:
+            required_validation = Validators.validate_required_fields(
+                data, ['nombre', 'apellido', 'cedula']
+            )
+            if not required_validation['valid']:
+                errors.append(required_validation['message'])
+
+        # Validar nombre si está presente
+        if 'nombre' in data and data['nombre']:
+            name_validation = Validators.validate_name(data['nombre'], 'Nombre')
+            if not name_validation['valid']:
+                errors.append(name_validation['message'])
+
+        # Validar apellido si está presente
+        if 'apellido' in data and data['apellido']:
+            lastname_validation = Validators.validate_name(data['apellido'], 'Apellido')
+            if not lastname_validation['valid']:
+                errors.append(lastname_validation['message'])
+
+        # Validar cedula si está presente
+        if 'cedula' in data and data['cedula']:
+            cedula_validation = Validators.validate_cedula(data['cedula'])
+            if not cedula_validation['valid']:
+                errors.append(cedula_validation['message'])
+
+        # Validar telefono si está presente
+        if 'telefono' in data and data['telefono']:
+            phone_validation = Validators.validate_phone(data['telefono'])
+            if not phone_validation['valid']:
+                errors.append(phone_validation['message'])
+
+        # Validar correo si está presente
+        if 'correo' in data and data['correo']:
+            email_validation = Validators.validate_email(data['correo'])
+            if not email_validation['valid']:
+                errors.append(email_validation['message'])
+
+        # Validar direccion si está presente
+        if 'direccion' in data and data['direccion']:
+            address_validation = Validators.validate_direccion(data['direccion'])
+            if not address_validation['valid']:
+                errors.append(address_validation['message'])
+
+        # Validar fecha de nacimiento si está presente
+        if 'fecha_nacimiento' in data and data['fecha_nacimiento']:
+            date_validation = Validators.validate_date(data['fecha_nacimiento'], 'fecha_nacimiento')
+            if not date_validation['valid']:
+                errors.append(date_validation['message'])
+
+        # Validar estado si está presente
+        if 'estado' in data and data['estado']:
+            valid_states = ['activo', 'inactivo']
+            if data['estado'] not in valid_states:
+                errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
+
+        # Validar IDs numéricos
+        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        for field in numeric_fields:
+            if field in data and data[field]:
+                try:
+                    int(data[field])
+                except (ValueError, TypeError):
+                    errors.append(f"{field} debe ser un numero entero")
+
+        if errors:
+            return {'valid': False, 'message': '; '.join(errors)}
+
+        return {'valid': True, 'message': 'Datos de persona validos'}
