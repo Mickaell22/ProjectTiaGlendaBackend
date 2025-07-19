@@ -112,13 +112,6 @@ if __name__ == '__main__':
     print(f"📚 Documentación Swagger: http://localhost:{port}/docs/")
     print(f"📄 Swagger JSON: http://localhost:{port}/static/swagger.json")
     print(f"❤️  Health Check: http://localhost:{port}/health")
-    print("=" * 70)
-    print("✅ Swagger UI habilitado con archivo JSON estático")
-    print("🔐 Para probar endpoints protegidos:")
-    print("   1. Ve a /docs/")
-    print("   2. Haz clic en 'Authorize' (🔒)")
-    print("   3. Haz login en /api/login")
-    print("   4. Pega el token: Bearer <tu-token>")
-    print("=" * 70)
+
 
     app.run(host='0.0.0.0', port=port, debug=debug)

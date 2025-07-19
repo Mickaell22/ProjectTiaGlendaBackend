@@ -65,3 +65,5 @@ LINE 2:                 INSERT INTO especialidad (nombre, area, esta...
 2025-07-19 13:48:55 - ERROR - auth_middleware.token_required - Error: unmatched ')' (PersonalService.py, line 66)
 2025-07-19 13:51:48 - ERROR - PersonalService.assign_especialidad - Error: Esta especialidad ya está asignada a este personal
 2025-07-19 13:52:04 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal
+2025-07-19 17:50:58 - ERROR - PersonalService.assign_especialidad - Error: Esta especialidad ya está asignada a este personal
+2025-07-19 17:51:13 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal
