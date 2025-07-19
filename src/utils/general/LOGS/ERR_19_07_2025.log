@@ -1,0 +1,2 @@
+2025-07-19 12:45:58 - ERROR - UsuarioService.delete_usuario - Error: Usuario ya esta inactivo
+2025-07-19 12:46:05 - ERROR - UsuarioService.create_usuario - Error: El nombre de usuario ya existe

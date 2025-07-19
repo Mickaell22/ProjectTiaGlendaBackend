@@ -1,0 +1,8 @@
+2025-07-18 18:03:02 - ERROR - get_connection - Error: 'utf-8' codec can't decode byte 0xf3 in position 85: invalid continuation byte
+2025-07-18 18:03:02 - ERROR - test_database - No se pudieron obtener datos
+2025-07-18 18:04:08 - ERROR - get_connection - Error: 'utf-8' codec can't decode byte 0xf3 in position 85: invalid continuation byte
+2025-07-18 18:04:34 - ERROR - get_connection - Error: 'utf-8' codec can't decode byte 0xf3 in position 85: invalid continuation byte
+2025-07-18 18:04:35 - ERROR - get_connection - Error: 'utf-8' codec can't decode byte 0xf3 in position 85: invalid continuation byte
+2025-07-18 18:05:03 - ERROR - get_connection - Error: 'utf-8' codec can't decode byte 0xf3 in position 85: invalid continuation byte
+2025-07-18 18:28:54 - ERROR - UsuarioService.delete_usuario - Error: Usuario ya esta inactivo
+2025-07-18 18:29:01 - ERROR - UsuarioService.create_usuario - Error: El nombre de usuario ya existe

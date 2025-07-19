@@ -1,0 +1,56 @@
+2025-07-19 12:41:10 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:41:10 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:41:40 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:41:40 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:42:04 - INFO - Acceso a ruta de prueba
+2025-07-19 12:42:06 - INFO - test_database - Conexion a base de datos exitosa
+2025-07-19 12:42:08 - INFO - LoginService.login - Intento de autenticacion
+2025-07-19 12:42:08 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-19 12:42:08 - INFO - LoginService.login - Contrasena incorrecta para: admin
+2025-07-19 12:42:59 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:43:29 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:43:32 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:43:36 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:44:44 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:45:04 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-19 12:45:34 - INFO - Acceso a ruta de prueba
+2025-07-19 12:45:36 - INFO - test_database - Conexion a base de datos exitosa
+2025-07-19 12:45:38 - INFO - LoginService.login - Intento de autenticacion
+2025-07-19 12:45:38 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-19 12:45:38 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-19 12:45:38 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-19 12:45:40 - INFO - LoginService.login - Intento de autenticacion
+2025-07-19 12:45:40 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-19 12:45:41 - INFO - LoginService.login - Contrasena incorrecta para: admin
+2025-07-19 12:45:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:43 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-19 12:45:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:45 - INFO - Información solicitada para usuario: admin
+2025-07-19 12:45:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:49 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-19 12:45:49 - INFO - UsuarioComponent.get_all_usuarios - 8 usuarios encontrados
+2025-07-19 12:45:49 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-19 12:45:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:51 - INFO - UsuarioService.get_usuario - ID: 1
+2025-07-19 12:45:51 - INFO - UsuarioComponent.get_usuario_by_id - Usuario 1 encontrado
+2025-07-19 12:45:51 - INFO - UsuarioService.get_usuario - Usuario 1 encontrado
+2025-07-19 12:45:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:53 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-19 12:45:54 - INFO - UsuarioComponent.get_usuario_by_id - Usuario 9 encontrado
+2025-07-19 12:45:54 - INFO - UsuarioComponent.create_usuario - Usuario creado con ID: 9
+2025-07-19 12:45:54 - INFO - UsuarioService.create_usuario - Usuario creado exitosamente
+2025-07-19 12:45:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:56 - INFO - UsuarioService.update_usuario - ID: 9
+2025-07-19 12:45:56 - INFO - UsuarioComponent.get_usuario_by_id - Usuario 9 encontrado
+2025-07-19 12:45:56 - INFO - UsuarioComponent.update_usuario - Usuario 9 actualizado
+2025-07-19 12:45:56 - INFO - UsuarioService.update_usuario - Usuario 9 actualizado
+2025-07-19 12:45:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:45:58 - INFO - UsuarioService.delete_usuario - ID: 9
+2025-07-19 12:46:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:46:00 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-19 12:46:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:46:02 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-19 12:46:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:46:05 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-19 12:46:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-19 12:46:07 - INFO - Logout solicitado
