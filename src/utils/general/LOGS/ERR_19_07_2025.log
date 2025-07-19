@@ -1,3 +1,56 @@
 2025-07-19 12:45:58 - ERROR - UsuarioService.delete_usuario - Error: Usuario ya esta inactivo
 2025-07-19 12:46:05 - ERROR - UsuarioService.create_usuario - Error: El nombre de usuario ya existe
 2025-07-19 13:08:06 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
+2025-07-19 13:19:06 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 10:             FROM especialidad e
+                          ^
+
+2025-07-19 13:19:06 - ERROR - EspecialidadComponent.get_all_especialidades - Error en consulta
+2025-07-19 13:19:06 - ERROR - EspecialidadService.get_especialidades - Error: Error ejecutando consulta
+2025-07-19 13:19:08 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 10:             FROM especialidad e
+                          ^
+
+2025-07-19 13:19:08 - ERROR - EspecialidadComponent.get_especialidades_by_area - Error en consulta para área terapeutico
+2025-07-19 13:19:08 - ERROR - EspecialidadService.get_especialidades_by_area - Error: Error ejecutando consulta
+2025-07-19 13:19:10 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 10:             FROM especialidad e
+                          ^
+
+2025-07-19 13:19:10 - ERROR - EspecialidadComponent.get_especialidades_by_area - Error en consulta para área pedagogico
+2025-07-19 13:19:10 - ERROR - EspecialidadService.get_especialidades_by_area - Error: Error ejecutando consulta
+2025-07-19 13:19:13 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 1: SELECT id FROM especialidad WHERE nombre = 'Especialidad de ...
+                       ^
+
+2025-07-19 13:19:13 - ERROR - ExecuteInsert - Error: no existe la relación «especialidad»
+LINE 2:                 INSERT INTO especialidad (nombre, area, esta...
+                                    ^
+
+2025-07-19 13:19:13 - ERROR - EspecialidadComponent.create_especialidad - Error insertando especialidad
+2025-07-19 13:19:13 - ERROR - EspecialidadService.create_especialidad - Error: Error creando especialidad
+2025-07-19 13:19:15 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 6:             FROM especialidad
+                         ^
+
+2025-07-19 13:19:15 - ERROR - EspecialidadComponent.get_especialidades_activas - Error en consulta
+2025-07-19 13:19:15 - ERROR - EspecialidadService.get_especialidades_activas - Error: Error ejecutando consulta
+2025-07-19 13:19:17 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 7:             FROM especialidad
+                         ^
+
+2025-07-19 13:19:17 - ERROR - EspecialidadComponent.get_estadisticas_especialidades - Error en consulta
+2025-07-19 13:19:17 - ERROR - EspecialidadService.get_estadisticas - Error: Error ejecutando consulta
+2025-07-19 13:19:26 - ERROR - getRecords - Error: no existe la relación «especialidad»
+LINE 1: SELECT id FROM especialidad WHERE nombre = 'Terapia Ocupacio...
+                       ^
+
+2025-07-19 13:19:26 - ERROR - ExecuteInsert - Error: no existe la relación «especialidad»
+LINE 2:                 INSERT INTO especialidad (nombre, area, esta...
+                                    ^
+
+2025-07-19 13:19:26 - ERROR - EspecialidadComponent.create_especialidad - Error insertando especialidad
+2025-07-19 13:19:26 - ERROR - EspecialidadService.create_especialidad - Error: Error creando especialidad
+2025-07-19 13:28:04 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
+2025-07-19 13:29:58 - ERROR - EspecialidadService.create_especialidad - Error: Ya existe una especialidad con ese nombre en el área terapeutico
+2025-07-19 13:30:04 - ERROR - EspecialidadService.delete_especialidad - Error: No se puede desactivar la especialidad porque tiene 1 miembro(s) del personal asignado(s)

@@ -268,3 +268,79 @@ class Validators:
             return {'valid': False, 'message': '; '.join(errors)}
 
         return {'valid': True, 'message': 'Datos de persona validos'}
+
+    @staticmethod
+    def validate_especialidad_data(data, is_update=False):
+        """Validar datos completos de especialidad"""
+        errors = []
+
+        # Campos requeridos para crear especialidad
+        if not is_update:
+            required_validation = Validators.validate_required_fields(
+                data, ['nombre', 'area']
+            )
+            if not required_validation['valid']:
+                errors.append(required_validation['message'])
+
+        # Validar nombre si está presente
+        if 'nombre' in data and data['nombre']:
+            name_validation = Validators.validate_especialidad_name(data['nombre'])
+            if not name_validation['valid']:
+                errors.append(name_validation['message'])
+
+        # Validar área si está presente
+        if 'area' in data and data['area']:
+            area_validation = Validators.validate_area(data['area'])
+            if not area_validation['valid']:
+                errors.append(area_validation['message'])
+
+        # Validar estado si está presente
+        if 'estado' in data and data['estado']:
+            valid_states = ['activo', 'inactivo']
+            if data['estado'] not in valid_states:
+                errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
+
+        # Validar IDs numéricos
+        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        for field in numeric_fields:
+            if field in data and data[field]:
+                try:
+                    int(data[field])
+                except (ValueError, TypeError):
+                    errors.append(f"{field} debe ser un numero entero")
+
+        if errors:
+            return {'valid': False, 'message': '; '.join(errors)}
+
+        return {'valid': True, 'message': 'Datos de especialidad validos'}
+
+    @staticmethod
+    def validate_especialidad_name(nombre):
+        """Validar nombre de especialidad"""
+        if not nombre or len(nombre.strip()) < 3:
+            return {'valid': False, 'message': 'Nombre de especialidad debe tener al menos 3 caracteres'}
+
+        if len(nombre.strip()) > 150:
+            return {'valid': False, 'message': 'Nombre de especialidad no puede tener mas de 150 caracteres'}
+
+        # Permitir letras, números, espacios, paréntesis, guiones y algunos caracteres especiales
+        if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s\(\)\-\.\,\/]+$", nombre):
+            return {
+                'valid': False,
+                'message': 'Nombre de especialidad contiene caracteres no permitidos'
+            }
+
+        return {'valid': True, 'message': 'Nombre de especialidad valido'}
+
+    @staticmethod
+    def validate_area(area):
+        """Validar área de especialidad"""
+        valid_areas = ['terapeutico', 'pedagogico']
+
+        if area not in valid_areas:
+            return {
+                'valid': False,
+                'message': f"Área debe ser una de: {', '.join(valid_areas)}"
+            }
+
+        return {'valid': True, 'message': 'Área valida'}

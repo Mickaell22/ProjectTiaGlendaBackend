@@ -146,6 +146,57 @@ def register_routes(app):
         return PersonaService.get_personas_disponibles()
 
     # ============================================
+    # RUTAS DE ESPECIALIDADES (Protegidas)
+    # ============================================
+    @app.route('/api/especialidades', methods=['GET'])
+    @token_required
+    def get_especialidades():
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.get_especialidades()
+
+    @app.route('/api/especialidades/<area>', methods=['GET'])
+    @token_required
+    def get_especialidades_by_area(area):
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.get_especialidades_by_area(area)
+
+    @app.route('/api/especialidades/id/<int:especialidad_id>', methods=['GET'])
+    @token_required
+    def get_especialidad(especialidad_id):
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.get_especialidad(especialidad_id)
+
+    @app.route('/api/especialidades', methods=['POST'])
+    @admin_required
+    def create_especialidad():
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.create_especialidad()
+
+    @app.route('/api/especialidades/id/<int:especialidad_id>', methods=['PUT'])
+    @admin_required
+    def update_especialidad(especialidad_id):
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.update_especialidad(especialidad_id)
+
+    @app.route('/api/especialidades/id/<int:especialidad_id>', methods=['DELETE'])
+    @admin_required
+    def delete_especialidad(especialidad_id):
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.delete_especialidad(especialidad_id)
+
+    @app.route('/api/especialidades/activas', methods=['GET'])
+    @token_required
+    def get_especialidades_activas():
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.get_especialidades_activas()
+
+    @app.route('/api/especialidades/estadisticas', methods=['GET'])
+    @token_required
+    def get_especialidades_estadisticas():
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.get_estadisticas()
+
+    # ============================================
     # RUTAS DE USUARIOS (Protegidas)
     # ============================================
     @app.route('/api/usuarios', methods=['GET'])
