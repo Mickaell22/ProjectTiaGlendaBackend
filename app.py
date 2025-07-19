@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_swagger_ui import get_swaggerui_blueprint
 from src.api.routes.api_routes import register_routes
 from src.utils.general.logs import HandleLogs
 from src.utils.general.config import get_config
@@ -10,7 +11,33 @@ app = Flask(__name__)
 # Configurar CORS
 CORS(app, origins=['http://localhost:3000', 'http://localhost:5173'])
 
-# Registrar todas las rutas
+# Configurar Swagger UI
+SWAGGER_URL = '/docs'  # URL para la documentación Swagger UI
+API_URL = '/static/swagger.json'  # URL del archivo swagger.json
+
+# Crear blueprint de Swagger UI
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "API Centro Tía Glenda",
+        'docExpansion': 'list',
+        'validatorUrl': None,
+        'tryItOutEnabled': True,
+        'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'patch'],
+        'defaultModelsExpandDepth': 3,
+        'defaultModelExpandDepth': 3,
+        'displayRequestDuration': True,
+        'filter': True,
+        'showExtensions': True,
+        'showCommonExtensions': True
+    }
+)
+
+# Registrar blueprint de Swagger UI
+app.register_blueprint(swaggerui_blueprint)
+
+# Registrar todas las rutas del API
 register_routes(app)
 
 
@@ -32,13 +59,34 @@ def health_check():
         }), 500
 
 
+# Ruta de bienvenida que redirige a la documentación
+@app.route('/')
+def welcome():
+    return jsonify({
+        "message": "Bienvenido al API del Centro Tía Glenda",
+        "documentation": "/docs/",
+        "health": "/health",
+        "version": "1.0.0",
+        "swagger_json": "/static/swagger.json",
+        "endpoints": {
+            "auth": "/api/login, /api/logout, /api/verify-token, /api/me",
+            "usuarios": "/api/usuarios",
+            "personas": "/api/personas",
+            "personal": "/api/personal",
+            "especialidades": "/api/especialidades",
+            "roles": "/api/roles"
+        }
+    })
+
+
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({
         "status": "error",
         "message": "Endpoint no encontrado",
-        "code": 404
+        "code": 404,
+        "documentation": "/docs/"
     }), 404
 
 
@@ -57,4 +105,20 @@ if __name__ == '__main__':
     debug = os.environ.get('DEBUG', 'True').lower() == 'true'
 
     HandleLogs.write_log("app - Iniciando Sistema Tía Glenda Backend")
+    print("=" * 70)
+    print("🏥 SISTEMA TÍA GLENDA - BACKEND")
+    print("=" * 70)
+    print(f"🌐 Servidor: http://localhost:{port}")
+    print(f"📚 Documentación Swagger: http://localhost:{port}/docs/")
+    print(f"📄 Swagger JSON: http://localhost:{port}/static/swagger.json")
+    print(f"❤️  Health Check: http://localhost:{port}/health")
+    print("=" * 70)
+    print("✅ Swagger UI habilitado con archivo JSON estático")
+    print("🔐 Para probar endpoints protegidos:")
+    print("   1. Ve a /docs/")
+    print("   2. Haz clic en 'Authorize' (🔒)")
+    print("   3. Haz login en /api/login")
+    print("   4. Pega el token: Bearer <tu-token>")
+    print("=" * 70)
+
     app.run(host='0.0.0.0', port=port, debug=debug)

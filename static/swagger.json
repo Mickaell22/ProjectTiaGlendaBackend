@@ -1,0 +1,727 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Centro Tía Glenda",
+    "version": "1.0.0",
+    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro\n- Control de roles y permisos\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`",
+    "contact": {
+      "name": "Sistema Tía Glenda",
+      "email": "admin@centro-tia-glenda.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Servidor de desarrollo"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT Token obtenido del endpoint /api/login"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "required": ["usuario", "contrasenia"],
+        "properties": {
+          "usuario": {
+            "type": "string",
+            "example": "admin",
+            "description": "Nombre de usuario"
+          },
+          "contrasenia": {
+            "type": "string",
+            "example": "admin123",
+            "description": "Contraseña del usuario"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Autenticacion exitosa"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "integer", "example": 1},
+                  "usuario": {"type": "string", "example": "admin"},
+                  "nombre_completo": {"type": "string", "example": "Admin Sistema"},
+                  "rol": {"type": "string", "example": "Administrador"},
+                  "correo": {"type": "string", "example": "admin@centro.com"}
+                }
+              }
+            }
+          }
+        }
+      },
+      "PersonaRequest": {
+        "type": "object",
+        "required": ["nombre", "apellido", "cedula"],
+        "properties": {
+          "nombre": {"type": "string", "example": "María Elena"},
+          "apellido": {"type": "string", "example": "García"},
+          "cedula": {"type": "string", "example": "12345678"},
+          "telefono": {"type": "string", "example": "+50612345678"},
+          "correo": {"type": "string", "example": "maria@email.com"},
+          "direccion": {"type": "string", "example": "San José, Costa Rica"},
+          "fecha_nacimiento": {"type": "string", "format": "date", "example": "1990-05-15"},
+          "estado": {"type": "string", "enum": ["activo", "inactivo"], "example": "activo"}
+        }
+      },
+      "EspecialidadRequest": {
+        "type": "object",
+        "required": ["nombre", "area"],
+        "properties": {
+          "nombre": {"type": "string", "example": "Terapia Ocupacional Pediátrica"},
+          "area": {"type": "string", "enum": ["terapeutico", "pedagogico"], "example": "terapeutico"},
+          "estado": {"type": "string", "enum": ["activo", "inactivo"], "example": "activo"}
+        }
+      },
+      "PersonalRequest": {
+        "type": "object",
+        "required": ["persona_id"],
+        "properties": {
+          "persona_id": {"type": "integer", "example": 1},
+          "titulo_profesional": {"type": "string", "example": "Licenciatura en Terapia Ocupacional"},
+          "estado": {"type": "string", "enum": ["activo", "inactivo"], "example": "activo"}
+        }
+      },
+      "UsuarioRequest": {
+        "type": "object",
+        "required": ["usuario", "contrasenia", "persona_id", "rol_id"],
+        "properties": {
+          "usuario": {"type": "string", "example": "maria.garcia"},
+          "contrasenia": {"type": "string", "example": "Password123!", "minLength": 8},
+          "persona_id": {"type": "integer", "example": 2},
+          "rol_id": {"type": "integer", "example": 2},
+          "estado": {"type": "string", "enum": ["activo", "inactivo", "bloqueado"], "example": "activo"}
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "example": "success"},
+          "message": {"type": "string", "example": "Operacion exitosa"},
+          "data": {"type": "object"}
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "example": "error"},
+          "message": {"type": "string", "example": "Error en la operacion"},
+          "code": {"type": "integer", "example": 400}
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Health check del sistema",
+        "description": "Verificar que el sistema está funcionando correctamente",
+        "responses": {
+          "200": {
+            "description": "Sistema funcionando",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Probar API",
+        "description": "Endpoint de prueba para verificar que la API responde",
+        "responses": {
+          "200": {
+            "description": "API funcionando",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-db": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Probar base de datos",
+        "description": "Verificar conexión con PostgreSQL",
+        "responses": {
+          "200": {
+            "description": "Conexión exitosa",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "500": {
+            "description": "Error de conexión",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Iniciar sesión",
+        "description": "Autenticar usuario y obtener token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/LoginRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/LoginResponse"}
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/verify-token": {
+      "get": {
+        "tags": ["Autenticación"],
+        "summary": "Verificar token",
+        "description": "Verificar si el token JWT es válido",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Token válido",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Cerrar sesión",
+        "description": "Cerrar sesión del usuario",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Sesión cerrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": ["Autenticación"],
+        "summary": "Usuario actual",
+        "description": "Obtener información del usuario autenticado",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Información del usuario",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles": {
+      "get": {
+        "tags": ["Roles"],
+        "summary": "Listar roles",
+        "description": "Obtener lista de roles disponibles",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de roles",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/personas": {
+      "get": {
+        "tags": ["Personas"],
+        "summary": "Listar personas",
+        "description": "Obtener lista de todas las personas",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de personas",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Personas"],
+        "summary": "Crear persona",
+        "description": "Crear una nueva persona",
+        "security": [{"Bearer": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/PersonaRequest"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Persona creada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/personas/{id}": {
+      "get": {
+        "tags": ["Personas"],
+        "summary": "Obtener persona",
+        "description": "Obtener una persona por ID",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la persona"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persona encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Persona no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Personas"],
+        "summary": "Actualizar persona",
+        "description": "Actualizar una persona existente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la persona"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/PersonaRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Persona actualizada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Personas"],
+        "summary": "Eliminar persona",
+        "description": "Desactivar una persona (solo administradores)",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la persona"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Persona eliminada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/especialidades": {
+      "get": {
+        "tags": ["Especialidades"],
+        "summary": "Listar especialidades",
+        "description": "Obtener todas las especialidades",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de especialidades",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Especialidades"],
+        "summary": "Crear especialidad",
+        "description": "Crear nueva especialidad (solo administradores)",
+        "security": [{"Bearer": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/EspecialidadRequest"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Especialidad creada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/especialidades/{area}": {
+      "get": {
+        "tags": ["Especialidades"],
+        "summary": "Especialidades por área",
+        "description": "Obtener especialidades por área específica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "area",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string", "enum": ["terapeutico", "pedagogico"]},
+            "description": "Área de especialidad"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Especialidades del área",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/personal": {
+      "get": {
+        "tags": ["Personal"],
+        "summary": "Listar personal",
+        "description": "Obtener todo el personal del centro",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista del personal",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Personal"],
+        "summary": "Crear personal",
+        "description": "Registrar nuevo personal (solo administradores)",
+        "security": [{"Bearer": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/PersonalRequest"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Personal creado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/personal/{id}/especialidades": {
+      "get": {
+        "tags": ["Personal"],
+        "summary": "Especialidades del personal",
+        "description": "Obtener especialidades asignadas a un miembro del personal",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del personal"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Especialidades asignadas",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Personal"],
+        "summary": "Asignar especialidad",
+        "description": "Asignar una especialidad al personal (solo administradores)",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del personal"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["especialidad_id"],
+                "properties": {
+                  "especialidad_id": {"type": "integer", "example": 1}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Especialidad asignada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Listar usuarios",
+        "description": "Obtener lista de usuarios (solo administradores)",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Crear usuario",
+        "description": "Crear nuevo usuario (solo administradores)",
+        "security": [{"Bearer": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UsuarioRequest"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Sistema",
+      "description": "Endpoints del sistema y health checks"
+    },
+    {
+      "name": "Autenticación",
+      "description": "Login, logout y verificación de tokens"
+    },
+    {
+      "name": "Roles",
+      "description": "Gestión de roles del sistema"
+    },
+    {
+      "name": "Personas",
+      "description": "Gestión de personas (personal, pacientes, alumnos)"
+    },
+    {
+      "name": "Especialidades",
+      "description": "Especialidades terapéuticas y pedagógicas"
+    },
+    {
+      "name": "Personal",
+      "description": "Gestión del personal del centro y sus especialidades"
+    },
+    {
+      "name": "Usuarios",
+      "description": "Gestión de usuarios del sistema"
+    }
+  ]
+}
