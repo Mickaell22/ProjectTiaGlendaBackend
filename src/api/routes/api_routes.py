@@ -345,3 +345,56 @@ def register_routes(app):
     def get_personas_disponibles_tutor():
         from src.api.Service.TutorService import TutorService
         return TutorService.get_personas_disponibles()
+
+
+
+    # ============================================
+    # RUTAS DE PACIENTES (Protegidas)
+    # ============================================
+    @app.route('/api/pacientes', methods=['GET'])
+    @token_required
+    def get_pacientes():
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_pacientes()
+
+    @app.route('/api/pacientes/<int:paciente_id>', methods=['GET'])
+    @token_required
+    def get_paciente_by_id(paciente_id):
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_paciente_by_id(paciente_id)
+
+    @app.route('/api/pacientes', methods=['POST'])
+    @token_required
+    def create_paciente():
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.create_paciente()
+
+    @app.route('/api/pacientes/<int:paciente_id>', methods=['PUT'])
+    @token_required
+    def update_paciente(paciente_id):
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.update_paciente(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/estado', methods=['PUT'])
+    @token_required
+    def change_estado_paciente(paciente_id):
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.change_estado_paciente(paciente_id)
+
+    @app.route('/api/pacientes/tutor/<int:tutor_id>', methods=['GET'])
+    @token_required
+    def get_pacientes_by_tutor(tutor_id):
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_pacientes_by_tutor(tutor_id)
+
+    @app.route('/api/pacientes/estadisticas', methods=['GET'])
+    @token_required
+    def get_pacientes_estadisticas():
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_estadisticas()
+
+    @app.route('/api/pacientes/personas-disponibles', methods=['GET'])
+    @token_required
+    def get_personas_disponibles_paciente():
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_personas_disponibles()

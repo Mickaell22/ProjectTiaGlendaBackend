@@ -481,3 +481,78 @@ class Validators:
             }
 
         return {'valid': True, 'message': 'Parentesco valido'}
+
+    @staticmethod
+    def validate_paciente_data(data, is_update=False):
+        """Validar datos completos de paciente"""
+        errors = []
+
+        # Campos requeridos para crear paciente
+        if not is_update:
+            required_validation = Validators.validate_required_fields(
+                data, ['persona_id', 'tutor_id', 'fecha_ingreso']
+            )
+            if not required_validation['valid']:
+                errors.append(required_validation['message'])
+
+        # Validar persona_id si está presente
+        if 'persona_id' in data and data['persona_id']:
+            try:
+                persona_id = int(data['persona_id'])
+                if persona_id <= 0:
+                    errors.append("ID de persona debe ser un numero positivo")
+            except (ValueError, TypeError):
+                errors.append("ID de persona debe ser un numero entero")
+
+        # Validar tutor_id si está presente
+        if 'tutor_id' in data and data['tutor_id']:
+            try:
+                tutor_id = int(data['tutor_id'])
+                if tutor_id <= 0:
+                    errors.append("ID de tutor debe ser un numero positivo")
+            except (ValueError, TypeError):
+                errors.append("ID de tutor debe ser un numero entero")
+
+        # Validar fecha_ingreso si está presente
+        if 'fecha_ingreso' in data and data['fecha_ingreso']:
+            date_validation = Validators.validate_date(data['fecha_ingreso'], 'fecha_ingreso')
+            if not date_validation['valid']:
+                errors.append(date_validation['message'])
+            else:
+                # Verificar que la fecha de ingreso no sea futura
+                try:
+                    from datetime import datetime, date
+                    if isinstance(data['fecha_ingreso'], str):
+                        fecha_ingreso = datetime.strptime(data['fecha_ingreso'], '%Y-%m-%d').date()
+                    else:
+                        fecha_ingreso = data['fecha_ingreso']
+
+                    if fecha_ingreso > date.today():
+                        errors.append("La fecha de ingreso no puede ser futura")
+                except:
+                    errors.append("Formato de fecha de ingreso inválido")
+
+        # Validar observaciones si están presentes
+        if 'observaciones' in data and data['observaciones']:
+            if len(data['observaciones'].strip()) > 1000:
+                errors.append("Las observaciones no pueden tener mas de 1000 caracteres")
+
+        # Validar estado si está presente
+        if 'estado' in data and data['estado']:
+            valid_states = ['activo', 'inactivo', 'alta', 'derivado']
+            if data['estado'] not in valid_states:
+                errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
+
+        # Validar IDs numéricos
+        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        for field in numeric_fields:
+            if field in data and data[field]:
+                try:
+                    int(data[field])
+                except (ValueError, TypeError):
+                    errors.append(f"{field} debe ser un numero entero")
+
+        if errors:
+            return {'valid': False, 'message': '; '.join(errors)}
+
+        return {'valid': True, 'message': 'Datos de paciente validos'}
