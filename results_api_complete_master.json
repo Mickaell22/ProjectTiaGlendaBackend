@@ -1,0 +1,81 @@
+{
+  "test_execution": {
+    "timestamp": "2025-07-20T12:33:18.593969",
+    "total_execution_time": 40.37,
+    "server": "http://localhost:5000"
+  },
+  "summary": {
+    "total_modules": 8,
+    "successful_modules": 0,
+    "failed_modules": 8,
+    "success_rate": 0.0,
+    "total_module_time": 20.63
+  },
+  "modules": {
+    "AUTENTICACIÓN": {
+      "success": false,
+      "execution_time": 2.52,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "ROLES": {
+      "success": false,
+      "execution_time": 2.5,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "PERSONAS": {
+      "success": false,
+      "execution_time": 2.49,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "ESPECIALIDADES": {
+      "success": false,
+      "execution_time": 3.03,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "PERSONAL": {
+      "success": false,
+      "execution_time": 2.49,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "TUTORES": {
+      "success": false,
+      "execution_time": 2.51,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "PACIENTES": {
+      "success": false,
+      "execution_time": 2.53,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    },
+    "USUARIOS": {
+      "success": false,
+      "execution_time": 2.56,
+      "returncode": 1,
+      "stdout_lines": 3,
+      "stderr_lines": 26,
+      "detailed_results": null
+    }
+  },
+  "status": "FAILED"
+}

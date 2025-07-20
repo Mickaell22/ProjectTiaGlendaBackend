@@ -1,0 +1,63 @@
+{
+  "module_name": "AUTENTICACIÓN",
+  "timestamp": "2025-07-20T12:31:27.754336",
+  "total_tests": 7,
+  "total_duration": 48.54429340362549,
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "errors": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "name": "Login exitoso",
+      "status": "passed",
+      "duration": 2.4313671588897705,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Credenciales inválidas",
+      "status": "passed",
+      "duration": 17.23312497138977,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Verificación de tokens",
+      "status": "passed",
+      "duration": 8.30094051361084,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Usuario actual",
+      "status": "passed",
+      "duration": 2.106678009033203,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Logout",
+      "status": "passed",
+      "duration": 2.1184351444244385,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Flujo completo",
+      "status": "passed",
+      "duration": 11.012593030929565,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Seguridad avanzada",
+      "status": "passed",
+      "duration": 4.6335766315460205,
+      "error_message": null,
+      "retry_count": 0
+    }
+  ]
+}

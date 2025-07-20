@@ -1,0 +1,63 @@
+{
+  "module_name": "USUARIOS",
+  "timestamp": "2025-07-20T12:34:49.957583",
+  "total_tests": 7,
+  "total_duration": 55.47498273849487,
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "errors": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "passed",
+      "duration": 2.331986665725708,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Configuracion de datos",
+      "status": "passed",
+      "duration": 4.5206687450408936,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "CRUD de usuarios",
+      "status": "passed",
+      "duration": 9.166525602340698,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Funciones de autenticación",
+      "status": "passed",
+      "duration": 6.377466201782227,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Gestión de roles",
+      "status": "passed",
+      "duration": 2.110391139984131,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Validaciones",
+      "status": "passed",
+      "duration": 19.914928436279297,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Validaciones de permisos",
+      "status": "passed",
+      "duration": 10.347944498062134,
+      "error_message": null,
+      "retry_count": 0
+    }
+  ]
+}

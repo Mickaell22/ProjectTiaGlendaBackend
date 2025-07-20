@@ -1,0 +1,63 @@
+{
+  "module_name": "PERSONAL",
+  "timestamp": "2025-07-20T11:58:48.040973",
+  "total_tests": 7,
+  "total_duration": 47.697439670562744,
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "errors": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "passed",
+      "duration": 2.372974157333374,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Configuracion de datos",
+      "status": "passed",
+      "duration": 4.532366991043091,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "CRUD de personal",
+      "status": "passed",
+      "duration": 9.116889715194702,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Gestión de especialidades",
+      "status": "passed",
+      "duration": 11.446008920669556,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Personal por área",
+      "status": "passed",
+      "duration": 4.339204549789429,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Endpoints adicionales",
+      "status": "passed",
+      "duration": 2.222227096557617,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Validaciones",
+      "status": "passed",
+      "duration": 12.963436365127563,
+      "error_message": null,
+      "retry_count": 0
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "module_name": "ROLES",
+  "timestamp": "2025-07-20T12:06:14.288030",
+  "total_tests": 7,
+  "total_duration": 22.44425058364868,
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "errors": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "passed",
+      "duration": 2.377068519592285,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Listar roles",
+      "status": "passed",
+      "duration": 2.190884590148926,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Estructura de datos",
+      "status": "passed",
+      "duration": 0.002036571502685547,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Contenido del sistema",
+      "status": "passed",
+      "duration": 0.0005404949188232422,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Validaciones de seguridad",
+      "status": "passed",
+      "duration": 4.129737138748169,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Uso en el sistema",
+      "status": "passed",
+      "duration": 2.17932391166687,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Rendimiento",
+      "status": "passed",
+      "duration": 10.857841968536377,
+      "error_message": null,
+      "retry_count": 0
+    }
+  ]
+}

@@ -17,3 +17,40 @@
 2025-07-20 11:47:33 - ERROR - PersonaService.delete_persona - Error: Persona no encontrada
 2025-07-20 11:49:23 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
 2025-07-20 11:49:27 - ERROR - PersonaService.delete_persona - Error: Persona no encontrada
+2025-07-20 11:53:19 - ERROR - EspecialidadService.create_especialidad - Error: Ya existe una especialidad con ese nombre en el área terapeutico
+2025-07-20 11:55:17 - ERROR - EspecialidadService.create_especialidad - Error: Ya existe una especialidad con ese nombre en el área terapeutico
+2025-07-20 11:57:04 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal
+2025-07-20 11:57:11 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «personal» viola la llave foránea «personal_persona_id_fkey»
+DETAIL:  La llave (persona_id)=(99999) no está presente en la tabla «persona».
+
+2025-07-20 11:57:11 - ERROR - PersonalComponent.create_personal - Error insertando personal
+2025-07-20 11:57:11 - ERROR - PersonalService.create_personal - Error: Error creando personal
+2025-07-20 11:58:25 - ERROR - PersonalService.assign_especialidad - Error: Esta especialidad ya está asignada a este personal
+2025-07-20 11:58:41 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal
+2025-07-20 11:58:47 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «personal» viola la llave foránea «personal_persona_id_fkey»
+DETAIL:  La llave (persona_id)=(99999) no está presente en la tabla «persona».
+
+2025-07-20 11:58:47 - ERROR - PersonalComponent.create_personal - Error insertando personal
+2025-07-20 11:58:47 - ERROR - PersonalService.create_personal - Error: Error creando personal
+2025-07-20 12:02:06 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «usuario» viola la llave foránea «usuario_persona_id_fkey»
+DETAIL:  La llave (persona_id)=(99999) no está presente en la tabla «persona».
+
+2025-07-20 12:02:06 - ERROR - UsuarioComponent.create_usuario - Error insertando usuario
+2025-07-20 12:02:06 - ERROR - UsuarioService.create_usuario - Error: Error creando usuario
+2025-07-20 12:02:08 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «usuario» viola la llave foránea «usuario_rol_id_fkey»
+DETAIL:  La llave (rol_id)=(99999) no está presente en la tabla «rol».
+
+2025-07-20 12:02:08 - ERROR - UsuarioComponent.create_usuario - Error insertando usuario
+2025-07-20 12:02:08 - ERROR - UsuarioService.create_usuario - Error: Error creando usuario
+2025-07-20 12:02:11 - ERROR - UsuarioService.create_usuario - Error: El nombre de usuario ya existe
+2025-07-20 12:34:34 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «usuario» viola la llave foránea «usuario_persona_id_fkey»
+DETAIL:  La llave (persona_id)=(99999) no está presente en la tabla «persona».
+
+2025-07-20 12:34:34 - ERROR - UsuarioComponent.create_usuario - Error insertando usuario
+2025-07-20 12:34:34 - ERROR - UsuarioService.create_usuario - Error: Error creando usuario
+2025-07-20 12:34:37 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «usuario» viola la llave foránea «usuario_rol_id_fkey»
+DETAIL:  La llave (rol_id)=(99999) no está presente en la tabla «rol».
+
+2025-07-20 12:34:37 - ERROR - UsuarioComponent.create_usuario - Error insertando usuario
+2025-07-20 12:34:37 - ERROR - UsuarioService.create_usuario - Error: Error creando usuario
+2025-07-20 12:34:39 - ERROR - UsuarioService.create_usuario - Error: El nombre de usuario ya existe
