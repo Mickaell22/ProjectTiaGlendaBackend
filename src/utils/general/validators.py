@@ -410,3 +410,74 @@ class Validators:
             }
 
         return {'valid': True, 'message': 'Título profesional valido'}
+
+    @staticmethod
+    def validate_tutor_data(data, is_update=False):
+        """Validar datos completos de tutor"""
+        errors = []
+
+        # Campos requeridos para crear tutor
+        if not is_update:
+            required_validation = Validators.validate_required_fields(
+                data, ['persona_id', 'parentesco']
+            )
+            if not required_validation['valid']:
+                errors.append(required_validation['message'])
+
+        # Validar persona_id si está presente
+        if 'persona_id' in data and data['persona_id']:
+            try:
+                persona_id = int(data['persona_id'])
+                if persona_id <= 0:
+                    errors.append("ID de persona debe ser un numero positivo")
+            except (ValueError, TypeError):
+                errors.append("ID de persona debe ser un numero entero")
+
+        # Validar parentesco si está presente
+        if 'parentesco' in data and data['parentesco']:
+            parentesco_validation = Validators.validate_parentesco(data['parentesco'])
+            if not parentesco_validation['valid']:
+                errors.append(parentesco_validation['message'])
+
+        # Validar es_contacto_emergencia si está presente
+        if 'es_contacto_emergencia' in data and data['es_contacto_emergencia'] is not None:
+            if not isinstance(data['es_contacto_emergencia'], bool):
+                errors.append("es_contacto_emergencia debe ser true o false")
+
+        # Validar observaciones_tutor si está presente
+        if 'observaciones_tutor' in data and data['observaciones_tutor']:
+            if len(data['observaciones_tutor'].strip()) > 500:
+                errors.append("Observaciones del tutor no pueden tener mas de 500 caracteres")
+
+        # Validar estado si está presente
+        if 'estado' in data and data['estado']:
+            valid_states = ['activo', 'inactivo']
+            if data['estado'] not in valid_states:
+                errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
+
+        # Validar IDs numéricos
+        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        for field in numeric_fields:
+            if field in data and data[field]:
+                try:
+                    int(data[field])
+                except (ValueError, TypeError):
+                    errors.append(f"{field} debe ser un numero entero")
+
+        if errors:
+            return {'valid': False, 'message': '; '.join(errors)}
+
+        return {'valid': True, 'message': 'Datos de tutor validos'}
+
+    @staticmethod
+    def validate_parentesco(parentesco):
+        """Validar parentesco del tutor"""
+        valid_parentescos = ['padre', 'madre', 'abuelo', 'abuela', 'tio', 'tia', 'hermano', 'hermana', 'tutor_legal']
+
+        if parentesco not in valid_parentescos:
+            return {
+                'valid': False,
+                'message': f"Parentesco debe ser uno de: {', '.join(valid_parentescos)}"
+            }
+
+        return {'valid': True, 'message': 'Parentesco valido'}

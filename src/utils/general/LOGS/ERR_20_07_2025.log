@@ -1,0 +1,4 @@
+2025-07-20 11:19:14 - ERROR - PersonalService.assign_especialidad - Error: Esta especialidad ya está asignada a este personal
+2025-07-20 11:19:29 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal
+2025-07-20 11:19:43 - ERROR - TutorService.create_tutor - Error: Esta persona ya está registrada como tutor
+2025-07-20 11:19:49 - ERROR - TutorService.delete_tutor - Error: Tutor no encontrado

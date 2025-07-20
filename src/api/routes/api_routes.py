@@ -292,3 +292,56 @@ def register_routes(app):
     def delete_usuario(usuario_id):
         from src.api.Service.UsuarioService import UsuarioService
         return UsuarioService.delete_usuario(usuario_id)
+
+
+
+    # ============================================
+    # RUTAS DE TUTORES (Protegidas)
+    # ============================================
+    @app.route('/api/tutores', methods=['GET'])
+    @token_required
+    def get_tutores():
+        from src.api.Service.TutorService import TutorService
+        return TutorService.get_tutores()
+
+    @app.route('/api/tutores/<int:tutor_id>', methods=['GET'])
+    @token_required
+    def get_tutor_by_id(tutor_id):
+        from src.api.Service.TutorService import TutorService
+        return TutorService.get_tutor_by_id(tutor_id)
+
+    @app.route('/api/tutores', methods=['POST'])
+    @token_required
+    def create_tutor():
+        from src.api.Service.TutorService import TutorService
+        return TutorService.create_tutor()
+
+    @app.route('/api/tutores/<int:tutor_id>', methods=['PUT'])
+    @token_required
+    def update_tutor(tutor_id):
+        from src.api.Service.TutorService import TutorService
+        return TutorService.update_tutor(tutor_id)
+
+    @app.route('/api/tutores/<int:tutor_id>', methods=['DELETE'])
+    @admin_required
+    def delete_tutor(tutor_id):
+        from src.api.Service.TutorService import TutorService
+        return TutorService.delete_tutor(tutor_id)
+
+    @app.route('/api/tutores/activos', methods=['GET'])
+    @token_required
+    def get_tutores_activos():
+        from src.api.Service.TutorService import TutorService
+        return TutorService.get_tutores_activos()
+
+    @app.route('/api/tutores/estadisticas', methods=['GET'])
+    @token_required
+    def get_tutores_estadisticas():
+        from src.api.Service.TutorService import TutorService
+        return TutorService.get_estadisticas()
+
+    @app.route('/api/tutores/personas-disponibles', methods=['GET'])
+    @token_required
+    def get_personas_disponibles_tutor():
+        from src.api.Service.TutorService import TutorService
+        return TutorService.get_personas_disponibles()
