@@ -3,3 +3,17 @@
 2025-07-20 11:19:43 - ERROR - TutorService.create_tutor - Error: Esta persona ya está registrada como tutor
 2025-07-20 11:19:49 - ERROR - TutorService.delete_tutor - Error: Tutor no encontrado
 2025-07-20 11:25:30 - ERROR - PacienteService.create_paciente - Error: Esta persona ya está registrada como paciente
+2025-07-20 11:34:58 - ERROR - TutorService.create_tutor - Error: Esta persona ya está registrada como tutor
+2025-07-20 11:35:04 - ERROR - TutorService.delete_tutor - Error: Tutor no encontrado
+2025-07-20 11:35:07 - ERROR - TutorService.delete_tutor - Error: Tutor ya está inactivo
+2025-07-20 11:38:04 - ERROR - TutorService.create_tutor - Error: Esta persona ya está registrada como tutor
+2025-07-20 11:38:10 - ERROR - TutorService.delete_tutor - Error: Tutor no encontrado
+2025-07-20 11:38:14 - ERROR - TutorService.delete_tutor - Error: Tutor ya está inactivo
+2025-07-20 11:40:14 - ERROR - TutorService.create_tutor - Error: Esta persona ya está registrada como tutor
+2025-07-20 11:40:20 - ERROR - TutorService.delete_tutor - Error: Tutor no encontrado
+2025-07-20 11:45:23 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
+2025-07-20 11:45:27 - ERROR - PersonaService.delete_persona - Error: Persona no encontrada
+2025-07-20 11:47:28 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
+2025-07-20 11:47:33 - ERROR - PersonaService.delete_persona - Error: Persona no encontrada
+2025-07-20 11:49:23 - ERROR - PersonaService.create_persona - Error: La cedula ya existe
+2025-07-20 11:49:27 - ERROR - PersonaService.delete_persona - Error: Persona no encontrada

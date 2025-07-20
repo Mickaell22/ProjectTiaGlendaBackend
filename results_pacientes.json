@@ -1,0 +1,56 @@
+{
+  "module_name": "PACIENTES",
+  "timestamp": "2025-07-20T11:42:45.820315",
+  "total_tests": 6,
+  "total_duration": 43.55886888504028,
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "errors": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "passed",
+      "duration": 2.4088222980499268,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Configuracion de datos",
+      "status": "passed",
+      "duration": 7.232030153274536,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "CRUD de pacientes",
+      "status": "passed",
+      "duration": 9.279677629470825,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Cambios de estado",
+      "status": "passed",
+      "duration": 6.647993803024292,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Endpoints adicionales",
+      "status": "passed",
+      "duration": 6.722111940383911,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Validaciones",
+      "status": "passed",
+      "duration": 10.664260149002075,
+      "error_message": null,
+      "retry_count": 0
+    }
+  ]
+}

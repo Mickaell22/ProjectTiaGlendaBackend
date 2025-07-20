@@ -1,0 +1,49 @@
+{
+  "module_name": "PERSONAS",
+  "timestamp": "2025-07-20T11:49:27.763846",
+  "total_tests": 5,
+  "total_duration": 33.71787071228027,
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "errors": 0,
+    "success_rate": 100.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "passed",
+      "duration": 2.3787834644317627,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "CRUD de personas",
+      "status": "passed",
+      "duration": 9.089421272277832,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Endpoints adicionales",
+      "status": "passed",
+      "duration": 2.187758207321167,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Validaciones",
+      "status": "passed",
+      "duration": 15.020533800125122,
+      "error_message": null,
+      "retry_count": 0
+    },
+    {
+      "name": "Eliminacion",
+      "status": "passed",
+      "duration": 4.537236452102661,
+      "error_message": null,
+      "retry_count": 0
+    }
+  ]
+}
