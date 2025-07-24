@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(more:*)"
+      "Bash(more:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
