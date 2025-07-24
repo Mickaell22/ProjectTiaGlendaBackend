@@ -1464,3 +1464,23 @@
 2025-07-20 12:34:36 - INFO - UsuarioService.create_usuario - Iniciando
 2025-07-20 12:34:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
 2025-07-20 12:34:39 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-20 12:39:06 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:06 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-20 12:39:06 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-20 12:39:06 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-20 12:39:08 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:08 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: usuario_inexistente
+2025-07-20 12:39:08 - INFO - LoginService.login - Usuario no encontrado: usuario_inexistente
+2025-07-20 12:39:10 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:10 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-20 12:39:11 - INFO - LoginService.login - Contrasena incorrecta para: admin
+2025-07-20 12:39:13 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:15 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:17 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:19 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:21 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:23 - INFO - LoginService.login - Intento de autenticacion
+2025-07-20 12:39:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-20 12:39:25 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-20 12:39:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-20 12:39:34 - INFO - Información solicitada para usuario: admin
