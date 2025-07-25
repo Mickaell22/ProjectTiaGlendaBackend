@@ -1,0 +1,141 @@
+2025-07-25 00:05:32 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-25 00:05:32 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-25 00:05:49 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:05:49 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:05:49 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:05:49 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:05:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:05:51 - INFO - PersonaService.create_persona - Iniciando
+2025-07-25 00:05:52 - INFO - PersonaComponent.get_persona_by_id - Persona 27 encontrada
+2025-07-25 00:05:52 - INFO - PersonaComponent.create_persona - Persona creada con ID: 27
+2025-07-25 00:05:52 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-25 00:05:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:05:54 - INFO - TutorService.get_tutores - Iniciando
+2025-07-25 00:05:54 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-07-25 00:05:54 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-25 00:05:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:05:56 - INFO - TutorService.create_tutor - Iniciando
+2025-07-25 00:05:56 - INFO - TutorComponent.get_tutor_by_id - Tutor 10 encontrado
+2025-07-25 00:05:56 - INFO - TutorComponent.create_tutor - Tutor creado con ID: 10
+2025-07-25 00:05:56 - INFO - TutorService.create_tutor - Tutor creado exitosamente
+2025-07-25 00:05:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:05:58 - INFO - TutorService.get_tutor_by_id - ID: 10
+2025-07-25 00:05:58 - INFO - TutorComponent.get_tutor_by_id - Tutor 10 encontrado
+2025-07-25 00:05:58 - INFO - TutorService.get_tutor_by_id - Tutor 10 encontrado
+2025-07-25 00:06:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:01 - INFO - TutorService.update_tutor - ID: 10
+2025-07-25 00:06:01 - INFO - TutorComponent.get_tutor_by_id - Tutor 10 encontrado
+2025-07-25 00:06:01 - INFO - TutorComponent.update_tutor - Tutor 10 actualizado
+2025-07-25 00:06:01 - INFO - TutorService.update_tutor - Tutor 10 actualizado
+2025-07-25 00:06:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:03 - INFO - TutorService.get_tutores_activos - Iniciando
+2025-07-25 00:06:03 - INFO - TutorComponent.get_tutores_activos - 10 tutores activos encontrados
+2025-07-25 00:06:03 - INFO - TutorService.get_tutores_activos - Tutores activos obtenidos
+2025-07-25 00:06:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:05 - INFO - TutorService.get_estadisticas - Iniciando
+2025-07-25 00:06:05 - INFO - TutorComponent.get_estadisticas_tutores - Estadísticas obtenidas
+2025-07-25 00:06:05 - INFO - TutorService.get_estadisticas - Estadísticas obtenidas
+2025-07-25 00:06:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:07 - INFO - TutorService.get_personas_disponibles - Iniciando
+2025-07-25 00:06:07 - INFO - TutorComponent.get_personas_disponibles_para_tutor - 17 personas disponibles
+2025-07-25 00:06:07 - INFO - TutorService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-25 00:06:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:10 - INFO - TutorService.create_tutor - Iniciando
+2025-07-25 00:06:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:12 - INFO - TutorService.create_tutor - Iniciando
+2025-07-25 00:06:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:14 - INFO - TutorService.create_tutor - Iniciando
+2025-07-25 00:06:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:16 - INFO - TutorService.create_tutor - Iniciando
+2025-07-25 00:06:18 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:18 - INFO - TutorService.create_tutor - Iniciando
+2025-07-25 00:06:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:21 - INFO - TutorService.delete_tutor - ID: 10
+2025-07-25 00:06:21 - INFO - TutorComponent.deactivate_tutor - Tutor 10 desactivado
+2025-07-25 00:06:21 - INFO - TutorService.delete_tutor - Tutor 10 desactivado
+2025-07-25 00:06:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:06:23 - INFO - TutorService.delete_tutor - ID: 99999
+2025-07-25 00:06:43 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:43 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:06:43 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:06:43 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:06:45 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:45 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: usuario_inexistente
+2025-07-25 00:06:45 - INFO - LoginService.login - Usuario no encontrado: usuario_inexistente
+2025-07-25 00:06:47 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:47 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:06:47 - INFO - LoginService.login - Contrasena incorrecta para: admin
+2025-07-25 00:06:49 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:51 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:54 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:56 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:06:58 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:00 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:02 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-25 00:07:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:10 - INFO - Información solicitada para usuario: admin
+2025-07-25 00:07:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:13 - INFO - Logout solicitado
+2025-07-25 00:07:15 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:15 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:07:15 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:07:15 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:07:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:17 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-25 00:07:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:19 - INFO - Información solicitada para usuario: admin
+2025-07-25 00:07:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:22 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:07:22 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-25 00:07:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:07:24 - INFO - Logout solicitado
+2025-07-25 00:07:26 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:26 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: usuario_inexistente
+2025-07-25 00:07:26 - INFO - LoginService.login - Usuario no encontrado: usuario_inexistente
+2025-07-25 00:07:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:07:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:07:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:07:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:07:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:07:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:07:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:07:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:08:08 - INFO - LoginService.login - Intento de autenticacion
+2025-07-25 00:08:08 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-25 00:08:08 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-25 00:08:08 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-25 00:08:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:11 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:08:11 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-25 00:08:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:17 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-25 00:08:17 - INFO - UsuarioComponent.get_all_usuarios - 8 usuarios encontrados
+2025-07-25 00:08:17 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-25 00:08:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:20 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:08:20 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-25 00:08:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:22 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:08:22 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-25 00:08:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:24 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:08:24 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-25 00:08:26 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:26 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:08:26 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-25 00:08:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-25 00:08:28 - INFO - RolService.get_roles - Iniciando
+2025-07-25 00:08:28 - INFO - RolService.get_roles - 4 roles encontrados

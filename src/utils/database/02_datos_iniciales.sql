@@ -1,0 +1,452 @@
+-- =============================================
+-- CENTRO TÍA GLENDA - DATOS INICIALES
+-- Archivo: 02_datos_iniciales.sql
+-- =============================================
+
+-- Conectar a la base de datos
+\c centro_tia_glenda;
+
+-- =============================================
+-- 1. CATÁLOGOS BÁSICOS INDEPENDIENTES
+-- =============================================
+
+-- =============================================
+-- 1.1 ROLES DEL SISTEMA
+-- =============================================
+INSERT INTO rol (nombre, descripcion) VALUES 
+('Administrador', 'Acceso completo al sistema. Puede gestionar usuarios, configuraciones y generar todos los reportes'),
+('Terapeuta', 'Personal del área terapéutica. Acceso a gestión de pacientes y tratamientos'),
+('Pedagógico', 'Personal del área pedagógica. Acceso a gestión de alumnos y seguimiento académico'),
+('Cliente', 'Cliente externo. Solo consulta de información pública e horarios disponibles');
+
+-- =============================================
+-- 2.1 PERSONA ADMINISTRADOR PRINCIPAL
+-- =============================================
+INSERT INTO persona (
+    nombre, 
+    apellido, 
+    cedula, 
+    telefono, 
+    correo, 
+    direccion,
+    fecha_nacimiento, 
+    estado
+) VALUES (
+    'Admin',
+    'Sistema',
+    '00000000',
+    '+1234567890',
+    'admin@centro-tia-glenda.com',
+    'Centro Tía Glenda - Administración',
+    '1990-01-01',
+    'activo'
+);
+
+-- =============================================
+-- 2.2 USUARIO ADMINISTRADOR INICIAL
+-- =============================================
+-- Usuario Admin (ID persona: 1, ID rol: 1-Administrador)
+INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, estado) VALUES
+('admin', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 1, 1, 'activo');
+
+-- Actualizar auditoría inicial
+UPDATE persona SET usuario_creacion = 1 WHERE id = 1;
+UPDATE rol SET usuario_creacion = 1 WHERE id IN (1,2,3,4);
+UPDATE usuario SET usuario_creacion = 1 WHERE id = 1;
+
+-- =============================================
+-- 2.3 ESPECIALIDADES DEL CENTRO
+-- =============================================
+
+-- ESPECIALIDADES TERAPÉUTICAS
+INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
+-- Terapia Ocupacional
+('Terapia Ocupacional Pediátrica', 'terapeutico', 1),
+('Neurorehabilitación', 'terapeutico', 1),
+('Integración Sensorial', 'terapeutico', 1),
+('Terapia Ocupacional en Salud Mental', 'terapeutico', 1),
+('Rehabilitación Cognitiva', 'terapeutico', 1),
+
+-- Fisioterapia
+('Fisioterapia Pediátrica', 'terapeutico', 1),
+('Fisioterapia Neurológica', 'terapeutico', 1),
+('Fisioterapia Respiratoria', 'terapeutico', 1),
+('Fisioterapia Ortopédica', 'terapeutico', 1),
+
+-- Fonoaudiología
+('Fonoaudiología Pediátrica', 'terapeutico', 1),
+('Terapia del Lenguaje', 'terapeutico', 1),
+('Trastornos de la Deglución', 'terapeutico', 1),
+('Audiología', 'terapeutico', 1),
+
+-- Psicología
+('Psicología Clínica Infantil', 'terapeutico', 1),
+('Neuropsicología', 'terapeutico', 1),
+('Psicología del Desarrollo', 'terapeutico', 1),
+('Terapia Conductual', 'terapeutico', 1),
+
+-- Terapias Especializadas
+('Terapia ABA (Análisis Conductual Aplicado)', 'terapeutico', 1),
+('Terapia con Animales', 'terapeutico', 1),
+('Musicoterapia', 'terapeutico', 1),
+('Arteterapia', 'terapeutico', 1);
+
+-- ESPECIALIDADES PEDAGÓGICAS
+INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
+-- Educación Especial
+('Educación Especial', 'pedagogico', 1),
+('Discapacidades Intelectuales', 'pedagogico', 1),
+('Trastornos del Espectro Autista', 'pedagogico', 1),
+('Síndrome de Down', 'pedagogico', 1),
+
+-- Dificultades de Aprendizaje
+('Dislexia', 'pedagogico', 1),
+('Discalculia', 'pedagogico', 1),
+('TDAH (Trastorno por Déficit de Atención)', 'pedagogico', 1),
+('Dificultades de Lectoescritura', 'pedagogico', 1),
+
+-- Desarrollo Temprano
+('Estimulación Temprana', 'pedagogico', 1),
+('Desarrollo Cognitivo', 'pedagogico', 1),
+('Desarrollo del Lenguaje', 'pedagogico', 1),
+('Desarrollo Psicomotor', 'pedagogico', 1),
+
+-- Métodos Pedagógicos
+('Metodología Montessori', 'pedagogico', 1),
+('Metodología Waldorf', 'pedagogico', 1),
+('Aprendizaje Multisensorial', 'pedagogico', 1),
+('Tecnología Educativa Adaptada', 'pedagogico', 1),
+
+-- Orientación y Apoyo
+('Psicopedagogía', 'pedagogico', 1),
+('Orientación Familiar', 'pedagogico', 1),
+('Transición a la Vida Adulta', 'pedagogico', 1),
+('Inclusión Educativa', 'pedagogico', 1);
+
+-- =============================================
+-- 2.4 PERSONAL DEL CENTRO
+-- =============================================
+INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado, usuario_creacion) VALUES
+-- Dueña del centro (será administradora)
+('María Glenda', 'Rodríguez', '12345678', '+50612345678', 'glenda@centro-tia-glenda.com', 'San José, Costa Rica', '1975-03-15', 'activo', 1),
+
+-- Personal Terapéutico
+('Ana Patricia', 'González', '23456789', '+50623456789', 'ana.gonzalez@centro-tia-glenda.com', 'Heredia, Costa Rica', '1985-07-22', 'activo', 1),
+('Carlos Manuel', 'Jiménez', '34567890', '+50634567890', 'carlos.jimenez@centro-tia-glenda.com', 'Cartago, Costa Rica', '1988-11-10', 'activo', 1),
+('Sofía Elena', 'Morales', '45678901', '+50645678901', 'sofia.morales@centro-tia-glenda.com', 'Alajuela, Costa Rica', '1992-04-18', 'activo', 1),
+
+-- Personal Pedagógico
+('Roberto Luis', 'Vargas', '56789012', '+50656789012', 'roberto.vargas@centro-tia-glenda.com', 'San José, Costa Rica', '1980-09-25', 'activo', 1),
+('Laura María', 'Castillo', '67890123', '+50667890123', 'laura.castillo@centro-tia-glenda.com', 'Escazú, Costa Rica', '1987-12-08', 'activo', 1),
+('Diego Andrés', 'Hernández', '78901234', '+50678901234', 'diego.hernandez@centro-tia-glenda.com', 'Curridabat, Costa Rica', '1990-06-14', 'activo', 1);
+
+-- =============================================
+-- 2.5 USUARIOS DEL PERSONAL
+-- =============================================
+-- Usuarios del personal (contraseña: "admin123" para todos)
+INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, estado, usuario_creacion) VALUES
+('glenda.rodriguez', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 2, 1, 'activo', 1),
+('ana.gonzalez', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 3, 2, 'activo', 1),
+('carlos.jimenez', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 4, 2, 'activo', 1),
+('sofia.morales', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 5, 2, 'activo', 1),
+('roberto.vargas', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 6, 3, 'activo', 1),
+('laura.castillo', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 7, 3, 'activo', 1),
+('diego.hernandez', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 8, 3, 'activo', 1);
+
+-- =============================================
+-- 2.6 REGISTROS DE PERSONAL PROFESIONAL
+-- =============================================
+INSERT INTO personal (persona_id, titulo_profesional, usuario_creacion) VALUES
+-- Personal Terapéutico
+(3, 'Licenciatura en Terapia Ocupacional', 1),  -- Ana Patricia González
+(4, 'Licenciatura en Fisioterapia', 1),         -- Carlos Manuel Jiménez
+(5, 'Licenciatura en Fonoaudiología', 1),       -- Sofía Elena Morales
+
+-- Personal Pedagógico
+(6, 'Licenciatura en Educación Especial', 1),  -- Roberto Luis Vargas
+(7, 'Maestría en Psicopedagogía', 1),           -- Laura María Castillo
+(8, 'Licenciatura en Educación Preescolar con Especialización en Necesidades Especiales', 1); -- Diego Andrés Hernández
+
+-- =============================================
+-- 2.7 ESPECIALIDADES DEL PERSONAL
+-- =============================================
+
+-- Ana Patricia González (Terapia Ocupacional)
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 1, id, 1 FROM especialidad WHERE nombre = 'Terapia Ocupacional Pediátrica';
+
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 1, id, 1 FROM especialidad WHERE nombre = 'Integración Sensorial';
+
+-- Carlos Manuel Jiménez (Fisioterapia)
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 2, id, 1 FROM especialidad WHERE nombre = 'Fisioterapia Pediátrica';
+
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 2, id, 1 FROM especialidad WHERE nombre = 'Fisioterapia Neurológica';
+
+-- Sofía Elena Morales (Fonoaudiología)
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 3, id, 1 FROM especialidad WHERE nombre = 'Fonoaudiología Pediátrica';
+
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 3, id, 1 FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
+
+-- Roberto Luis Vargas (Educación Especial)
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 4, id, 1 FROM especialidad WHERE nombre = 'Educación Especial';
+
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 4, id, 1 FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista';
+
+-- Laura María Castillo (Psicopedagogía)
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 5, id, 1 FROM especialidad WHERE nombre = 'Psicopedagogía';
+
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 5, id, 1 FROM especialidad WHERE nombre = 'Estimulación Temprana';
+
+-- Diego Andrés Hernández (Dificultades de Aprendizaje)
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 6, id, 1 FROM especialidad WHERE nombre = 'Dislexia';
+
+INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
+SELECT 6, id, 1 FROM especialidad WHERE nombre = 'TDAH (Trastorno por Déficit de Atención)';
+
+-- =============================================
+-- 3. DATOS DE EJEMPLO - FAMILIAS Y PACIENTES
+-- =============================================
+
+-- =============================================
+-- 3.1 PERSONAS QUE SERÁN TUTORES
+-- =============================================
+INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado, usuario_creacion) VALUES
+-- Tutores área terapéutica
+('Carmen Elena', 'Ramírez Solís', '87654321', '+50687654321', 'carmen.ramirez@email.com', 'La Uruca, San José', '1985-06-15', 'activo', 1),
+('José Miguel', 'López Vargas', '76543210', '+50676543210', 'jose.lopez@email.com', 'Pavas, San José', '1982-09-20', 'activo', 1),
+('Ana Lucía', 'Sánchez Mora', '65432109', '+50665432109', 'ana.sanchez@email.com', 'Rohrmoser, San José', '1988-12-03', 'activo', 1),
+
+-- Tutores área pedagógica
+('Roberto Carlos', 'Torres Jiménez', '54321098', '+50654321098', 'roberto.torres@email.com', 'Tibás, San José', '1980-04-18', 'activo', 1),
+('Patricia María', 'Rojas Castillo', '43210987', '+50643210987', 'patricia.rojas@email.com', 'Moravia, San José', '1983-07-25', 'activo', 1),
+('Fernando José', 'Mendoza Pérez', '32109876', '+50632109876', 'fernando.mendoza@email.com', 'Guadalupe, San José', '1979-11-30', 'activo', 1),
+
+-- Tutores adicionales (más diversidad)
+('Mónica Isabel', 'Chaves Ruiz', '21098765', '+50621098765', 'monica.chaves@email.com', 'Escazú, San José', '1990-02-14', 'activo', 1),
+('Andrés Felipe', 'Quirós Mata', '10987654', '+50610987654', 'andres.quiros@email.com', 'Santa Ana, San José', '1987-08-30', 'activo', 1),
+('Gabriela María', 'Vega Solano', '09876543', '+50609876543', 'gabriela.vega@email.com', 'Curridabat, San José', '1992-05-12', 'activo', 1);
+
+-- =============================================
+-- 3.2 PERSONAS QUE SERÁN PACIENTES/ALUMNOS
+-- =============================================
+INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado, usuario_creacion) VALUES
+-- Pacientes área terapéutica
+('María José', 'Ramírez', '11111111', '+50611111111', 'mariajose.ramirez@email.com', 'La Uruca, San José', '2015-03-20', 'activo', 1),
+('Pedro Antonio', 'López', '22222222', '+50622222222', 'pedro.lopez@email.com', 'Pavas, San José', '2012-08-15', 'activo', 1),
+('Valentina', 'Sánchez', '33333333', '+50633333333', 'valentina.sanchez@email.com', 'Rohrmoser, San José', '2018-11-02', 'activo', 1),
+
+-- Alumnos área pedagógica
+('Santiago', 'Torres', '44444444', '+50644444444', 'santiago.torres@email.com', 'Tibás, San José', '2014-05-10', 'activo', 1),
+('Isabella', 'Rojas', '55555555', '+50655555555', 'isabella.rojas@email.com', 'Moravia, San José', '2016-09-25', 'activo', 1),
+('Sebastián', 'Mendoza', '66666666', '+50666666666', 'sebastian.mendoza@email.com', 'Guadalupe, San José', '2013-12-18', 'activo', 1),
+
+-- Pacientes/alumnos adicionales
+('Sofía Gabriela', 'Chaves', '77777777', '+50677777777', 'sofia.chaves@email.com', 'Escazú, San José', '2017-01-08', 'activo', 1),
+('Mateo Alejandro', 'Quirós', '88888888', '+50688888888', 'mateo.quiros@email.com', 'Santa Ana, San José', '2019-04-22', 'activo', 1),
+('Camila Andrea', 'Vega', '99999999', '+50699999999', 'camila.vega@email.com', 'Curridabat, San José', '2016-10-15', 'activo', 1);
+
+-- =============================================
+-- 3.3 REGISTROS DE TUTORES
+-- =============================================
+INSERT INTO tutor (persona_id, parentesco, es_contacto_emergencia, observaciones_tutor, usuario_creacion) VALUES
+-- Tutores principales (personas 9-17)
+(9, 'madre', true, 'Madre muy colaborativa, disponible para citas matutinas', 1),      -- Carmen Elena
+(10, 'padre', true, 'Padre comprometido, prefiere comunicación por WhatsApp', 1),       -- José Miguel
+(11, 'madre', true, 'Madre trabajadora, disponible tardes y fines de semana', 1),      -- Ana Lucía
+(12, 'padre', true, 'Padre ingeniero, muy interesado en metodologías educativas', 1),  -- Roberto Carlos
+(13, 'madre', true, 'Madre psicóloga, excelente seguimiento en casa', 1),               -- Patricia María
+(14, 'padre', true, 'Padre profesor, gran apoyo en tareas académicas', 1),             -- Fernando José
+
+-- Tutores adicionales
+(15, 'madre', true, 'Madre trabajadora social, muy comprometida con el desarrollo integral', 1), -- Mónica Isabel
+(16, 'padre', true, 'Padre médico, comprende bien las necesidades terapéuticas', 1),             -- Andrés Felipe
+(17, 'madre', true, 'Madre terapeuta ocupacional, excelente apoyo profesional', 1);               -- Gabriela María
+
+-- =============================================
+-- 3.4 REGISTROS DE PACIENTES/ALUMNOS
+-- =============================================
+INSERT INTO paciente (persona_id, tutor_id, fecha_ingreso, observaciones, usuario_creacion) VALUES
+-- Pacientes del área terapéutica (personas 18-26, tutores 1-9)
+(18, 1, '2023-01-15', 'Paciente con necesidades de terapia ocupacional e integración sensorial. Excelente progreso inicial.', 1),  -- María José
+(19, 2, '2023-02-20', 'Requiere fisioterapia neurológica. Familia muy comprometida con el tratamiento.', 1),                       -- Pedro Antonio
+(20, 3, '2023-03-10', 'Necesidades de fonoaudiología pediátrica. Responde muy bien a estímulos auditivos.', 1),                  -- Valentina
+
+-- Alumnos del área pedagógica
+(21, 4, '2023-01-25', 'Alumno con trastorno del espectro autista. Requiere metodología especializada y seguimiento constante.', 1), -- Santiago
+(22, 5, '2023-02-15', 'Alumna con dificultades de aprendizaje. Excelente motivación y apoyo familiar.', 1),                        -- Isabella
+(23, 6, '2023-03-05', 'Estudiante con TDAH. Necesita estrategias de concentración y apoyo psicopedagógico.', 1),                   -- Sebastián
+
+-- Pacientes/alumnos adicionales
+(24, 7, '2023-04-10', 'Niña con retraso en el desarrollo del lenguaje. Muy receptiva a la terapia.', 1),                           -- Sofía Gabriela
+(25, 8, '2023-05-02', 'Niño con necesidades de estimulación temprana. Familia muy colaborativa.', 1),                             -- Mateo Alejandro
+(26, 9, '2023-05-15', 'Niña con discapacidades múltiples. Requiere enfoque multidisciplinario.', 1);                              -- Camila Andrea
+
+-- =============================================
+-- 3.5 ESPECIALIDADES ASIGNADAS A PACIENTES
+-- =============================================
+
+-- María José (Paciente 1) - Terapia Ocupacional e Integración Sensorial
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 1, id, '2023-01-15', 'Inicio con terapia ocupacional pediátrica. Objetivos: mejorar coordinación motora fina.', 1
+FROM especialidad WHERE nombre = 'Terapia Ocupacional Pediátrica';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 1, id, '2023-02-01', 'Integración sensorial iniciada después de evaluación completa.', 1
+FROM especialidad WHERE nombre = 'Integración Sensorial';
+
+-- Pedro Antonio (Paciente 2) - Fisioterapia
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 2, id, '2023-02-20', 'Fisioterapia pediátrica para fortalecimiento muscular.', 1
+FROM especialidad WHERE nombre = 'Fisioterapia Pediátrica';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 2, id, '2023-03-01', 'Fisioterapia neurológica para mejorar patrones de movimiento.', 1
+FROM especialidad WHERE nombre = 'Fisioterapia Neurológica';
+
+-- Valentina (Paciente 3) - Fonoaudiología
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 3, id, '2023-03-10', 'Fonoaudiología pediátrica para desarrollo del lenguaje.', 1
+FROM especialidad WHERE nombre = 'Fonoaudiología Pediátrica';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 3, id, '2023-03-15', 'Terapia del lenguaje complementaria.', 1
+FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
+
+-- Santiago (Paciente 4) - Educación Especial y TEA
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 4, id, '2023-01-25', 'Educación especial adaptada a necesidades individuales.', 1
+FROM especialidad WHERE nombre = 'Educación Especial';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 4, id, '2023-02-01', 'Programa especializado para trastornos del espectro autista.', 1
+FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista';
+
+-- Isabella (Paciente 5) - Estimulación Temprana y Psicopedagogía
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 5, id, '2023-02-15', 'Estimulación temprana para potenciar desarrollo cognitivo.', 1
+FROM especialidad WHERE nombre = 'Estimulación Temprana';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 5, id, '2023-03-01', 'Apoyo psicopedagógico para dificultades de aprendizaje.', 1
+FROM especialidad WHERE nombre = 'Psicopedagogía';
+
+-- Sebastián (Paciente 6) - TDAH y Dislexia
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 6, id, '2023-03-05', 'Programa para TDAH con estrategias de concentración.', 1
+FROM especialidad WHERE nombre = 'TDAH (Trastorno por Déficit de Atención)';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 6, id, '2023-03-12', 'Tratamiento especializado para dislexia.', 1
+FROM especialidad WHERE nombre = 'Dislexia';
+
+-- Sofía Gabriela (Paciente 7) - Desarrollo del Lenguaje y Estimulación Temprana
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 7, id, '2023-04-10', 'Terapia del lenguaje para retraso en desarrollo comunicativo.', 1
+FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 7, id, '2023-04-15', 'Estimulación temprana para desarrollo integral.', 1
+FROM especialidad WHERE nombre = 'Estimulación Temprana';
+
+-- Mateo Alejandro (Paciente 8) - Estimulación Temprana y Desarrollo Psicomotor
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 8, id, '2023-05-02', 'Programa de estimulación temprana integral.', 1
+FROM especialidad WHERE nombre = 'Estimulación Temprana';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 8, id, '2023-05-10', 'Desarrollo psicomotor y coordinación.', 1
+FROM especialidad WHERE nombre = 'Desarrollo Psicomotor';
+
+-- Camila Andrea (Paciente 9) - Múltiples especialidades (caso complejo)
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 9, id, '2023-05-15', 'Terapia ocupacional para desarrollo de habilidades básicas.', 1
+FROM especialidad WHERE nombre = 'Terapia Ocupacional Pediátrica';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 9, id, '2023-05-20', 'Fisioterapia pediátrica para movilidad.', 1
+FROM especialidad WHERE nombre = 'Fisioterapia Pediátrica';
+
+INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
+SELECT 9, id, '2023-05-25', 'Terapia del lenguaje adaptada.', 1
+FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
+
+-- =============================================
+-- MENSAJE DE FINALIZACIÓN
+-- =============================================
+SELECT 'Datos iniciales cargados exitosamente - Centro Tía Glenda' AS mensaje;
+
+-- =============================================
+-- 4. INFORMACIÓN DEL SISTEMA
+-- =============================================
+
+/*
+============================================================================
+CREDENCIALES DE ACCESO PARA DESARROLLO/PRUEBAS
+============================================================================
+
+USUARIOS ADMINISTRADORES:
+- Usuario: admin          | Contraseña: admin123  | Rol: Administrador
+- Usuario: glenda.rodriguez | Contraseña: admin123  | Rol: Administrador
+
+USUARIOS DEL PERSONAL TERAPÉUTICO:
+- Usuario: ana.gonzalez   | Contraseña: admin123  | Rol: Terapeuta
+- Usuario: carlos.jimenez | Contraseña: admin123  | Rol: Terapeuta  
+- Usuario: sofia.morales  | Contraseña: admin123  | Rol: Terapeuta
+
+USUARIOS DEL PERSONAL PEDAGÓGICO:
+- Usuario: roberto.vargas | Contraseña: admin123  | Rol: Pedagógico
+- Usuario: laura.castillo | Contraseña: admin123  | Rol: Pedagógico
+- Usuario: diego.hernandez| Contraseña: admin123  | Rol: Pedagógico
+
+============================================================================
+RESUMEN DE DATOS CARGADOS
+============================================================================
+
+CATÁLOGOS BÁSICOS:
+✓ 4 roles del sistema (Administrador, Terapeuta, Pedagógico, Cliente)
+✓ 41 especialidades (22 terapéuticas + 19 pedagógicas)
+
+PERSONAL Y USUARIOS:
+✓ 1 persona administrador principal + 7 personal del centro
+✓ 8 usuarios del sistema con credenciales completas
+✓ 6 registros de personal profesional con títulos
+✓ 12 asignaciones de especialidades al personal
+
+FAMILIAS Y PACIENTES:
+✓ 9 personas tutores con información completa
+✓ 9 personas pacientes/alumnos (diferentes edades y necesidades)
+✓ 9 registros de tutores con parentesco y contacto
+✓ 9 registros de pacientes con fechas de ingreso
+✓ 21 asignaciones de especialidades a pacientes
+
+ESTRUCTURA DE CASOS DE PRUEBA:
+• 3 pacientes área terapéutica (0-8 años) con múltiples necesidades
+• 3 alumnos área pedagógica (5-12 años) con dificultades específicas  
+• 3 casos adicionales (mixtos y complejos) para diversidad
+
+============================================================================
+NOTAS IMPORTANTES DE SEGURIDAD
+============================================================================
+
+⚠️  IMPORTANTE: Este archivo es solo para desarrollo y pruebas
+⚠️  Todas las contraseñas están hasheadas con bcrypt
+⚠️  La contraseña real para todos los usuarios es: "admin123"
+⚠️  CAMBIAR TODAS LAS CONTRASEÑAS EN PRODUCCIÓN
+⚠️  Los datos incluyen relaciones completas entre todas las tablas
+
+============================================================================
+*/
+
+
+
+

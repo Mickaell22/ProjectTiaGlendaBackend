@@ -1,0 +1,2 @@
+2025-07-25 00:06:16 - ERROR - TutorService.create_tutor - Error: Esta persona ya está registrada como tutor
+2025-07-25 00:06:23 - ERROR - TutorService.delete_tutor - Error: Tutor no encontrado
