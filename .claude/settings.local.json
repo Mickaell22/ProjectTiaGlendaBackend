@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(more:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(python:*)",
+      "Bash(copy SesionTerapiaService.py SesionTerapiaService_backup.py)",
+      "Bash(copy SesionTerapiaService_clean.py SesionTerapiaService.py)",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(timeout:*)",
+      "Bash(ls:*)",
+      "Bash(echo:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

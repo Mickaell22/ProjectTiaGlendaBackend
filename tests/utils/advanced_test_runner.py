@@ -7,7 +7,7 @@ from typing import List, Callable, Dict, Any, Optional
 
 
 class Colors:
-    """Códigos de color ANSI para terminal"""
+    """Codigos de color ANSI para terminal"""
     GREEN = '\033[92m'
     RED = '\033[91m'
     YELLOW = '\033[93m'
@@ -24,29 +24,29 @@ class Colors:
 class BarStyles:
     """Diferentes estilos de barras de progreso"""
     CLASSIC = {
-        'filled': '█',
-        'partial': '▌',
-        'empty': '░'
+        'filled': '#',
+        'partial': '=',
+        'empty': '-'
     }
     MODERN = {
-        'filled': '▓',
-        'partial': '▒',
-        'empty': '░'
+        'filled': '#',
+        'partial': '=',
+        'empty': '-'
     }
     DOTS = {
-        'filled': '●',
-        'partial': '◐',
-        'empty': '○'
+        'filled': 'o',
+        'partial': '.',
+        'empty': ' '
     }
     BLOCKS = {
-        'filled': '■',
-        'partial': '▣',
-        'empty': '□'
+        'filled': '#',
+        'partial': '+',
+        'empty': '-'
     }
     ARROWS = {
-        'filled': '▶',
-        'partial': '▷',
-        'empty': '▷'
+        'filled': '>',
+        'partial': '>',
+        'empty': '-'
     }
 
 
@@ -136,7 +136,7 @@ class AdvancedTestRunner:
     def _calculate_eta(self, current: int, total: int, elapsed: float) -> str:
         """Calcular tiempo estimado restante"""
         if current == 0:
-            return "∞"
+            return "inf"
 
         avg_time_per_test = elapsed / current
         remaining_tests = total - current
@@ -153,8 +153,8 @@ class AdvancedTestRunner:
             # Versión sin colores para CI/CD
             percent = (current / total) * 100
             bar_filled = int(self.config.bar_width * current // total)
-            bar = '█' * bar_filled + '░' * (self.config.bar_width - bar_filled)
-            return f'[{bar}] {percent:.1f}% | ✓{passed} ✗{failed} ⚠{errors} | {test_name}'
+            bar = '#' * bar_filled + '-' * (self.config.bar_width - bar_filled)
+            return f'[{bar}] {percent:.1f}% | OK{passed} X{failed} !{errors} | {test_name}'
 
         # Versión con colores
         percent = (current / total) * 100
@@ -168,9 +168,9 @@ class AdvancedTestRunner:
         bar = filled_part + empty_part
 
         # Estadísticas con colores
-        stats = (f"{Colors.GREEN}✓{passed}{Colors.END} "
-                 f"{Colors.RED}✗{failed}{Colors.END} "
-                 f"{Colors.YELLOW}⚠{errors}{Colors.END}")
+        stats = (f"{Colors.GREEN}OK{passed}{Colors.END} "
+                 f"{Colors.RED}X{failed}{Colors.END} "
+                 f"{Colors.YELLOW}!{errors}{Colors.END}")
 
         # Información adicional
         additional_info = []
@@ -180,7 +180,7 @@ class AdvancedTestRunner:
             additional_info.append(f"{Colors.CYAN}{self._format_time(avg_time)}/test{Colors.END}")
 
         if elapsed_time > 0:
-            additional_info.append(f"{Colors.BLUE}⏱ {self._format_time(elapsed_time)}{Colors.END}")
+            additional_info.append(f"{Colors.BLUE}TIME {self._format_time(elapsed_time)}{Colors.END}")
 
         if self.config.show_eta and current > 0 and current < total:
             eta = self._calculate_eta(current, total, elapsed_time)
@@ -197,7 +197,7 @@ class AdvancedTestRunner:
             result += f" | {info_str}"
 
         if current_test and self.config.show_progress_details:
-            result += f"\n{Colors.DIM}▸ {current_test}{Colors.END}"
+            result += f"\n{Colors.DIM}> {current_test}{Colors.END}"
 
         return result
 
@@ -207,17 +207,17 @@ class AdvancedTestRunner:
             return
 
         terminal_width = self._get_terminal_width()
-        title = f"EJECUTANDO PRUEBAS DEL MÓDULO: {self.module_name.upper()}"
+        title = f"EJECUTANDO PRUEBAS DEL MODULO: {self.module_name.upper()}"
 
         if self.config.colored_output:
             print(f"\n{Colors.BOLD}{Colors.BLUE}{title}{Colors.END}")
-            print(f"{Colors.BLUE}{'═' * min(len(title), terminal_width)}{Colors.END}")
+            print(f"{Colors.BLUE}{'=' * min(len(title), terminal_width)}{Colors.END}")
         else:
             print(f"\n{title}")
             print("=" * min(len(title), terminal_width))
 
-        print(f"📊 Total de pruebas: {len(self.tests)}")
-        print(f"🕐 Iniciado: {datetime.now().strftime('%H:%M:%S')}")
+        print(f"Total de pruebas: {len(self.tests)}")
+        print(f"Iniciado: {datetime.now().strftime('%H:%M:%S')}")
         print()
 
     def _print_progress(self, current: int, test_name: str = ""):
@@ -281,7 +281,7 @@ class AdvancedTestRunner:
 
         if not self.config.silent_mode:
             print(
-                f"\n{Colors.YELLOW}🔄 Reintentando: {test_name} (intento {original_result.retry_count + 2}){Colors.END}")
+                f"\n{Colors.YELLOW}RETRY: {test_name} (intento {original_result.retry_count + 2}){Colors.END}")
 
         time.sleep(1)  # Pequeña pausa antes del reintento
 
@@ -302,22 +302,22 @@ class AdvancedTestRunner:
         total = len(self.results)
         success_rate = (len(passed) / total) * 100 if total > 0 else 0
 
-        print(f"\n\n{Colors.BOLD}🎯 RESUMEN DETALLADO:{Colors.END}")
+        print(f"\n\n{Colors.BOLD}RESUMEN DETALLADO:{Colors.END}")
 
         if self.config.colored_output:
-            print(f"{Colors.BLUE}{'═' * 50}{Colors.END}")
+            print(f"{Colors.BLUE}{'=' * 50}{Colors.END}")
         else:
             print("=" * 50)
 
         # Estadísticas principales
-        print(f"{Colors.GREEN}✅ Pruebas exitosas: {len(passed)}{Colors.END}")
-        print(f"{Colors.RED}❌ Pruebas fallidas: {len(failed)}{Colors.END}")
-        print(f"{Colors.YELLOW}⚠️  Pruebas con errores: {len(errors)}{Colors.END}")
-        print(f"{Colors.BLUE}⏱️  Tiempo total: {self._format_time(self.total_duration)}{Colors.END}")
+        print(f"{Colors.GREEN}OK Pruebas exitosas: {len(passed)}{Colors.END}")
+        print(f"{Colors.RED}X Pruebas fallidas: {len(failed)}{Colors.END}")
+        print(f"{Colors.YELLOW}! Pruebas con errores: {len(errors)}{Colors.END}")
+        print(f"{Colors.BLUE}TIME Tiempo total: {self._format_time(self.total_duration)}{Colors.END}")
 
         if total > 0:
             avg_time = self.total_duration / total
-            print(f"{Colors.CYAN}📊 Promedio por test: {self._format_time(avg_time)}{Colors.END}")
+            print(f"{Colors.CYAN}AVG Promedio por test: {self._format_time(avg_time)}{Colors.END}")
 
             # Test más rápido y más lento
             if len(passed) > 0:
@@ -325,31 +325,31 @@ class AdvancedTestRunner:
                 slowest = max(self.results, key=lambda x: x.duration)
 
                 print(
-                    f"{Colors.GREEN}🏆 Test más rápido: {fastest.name} ({self._format_time(fastest.duration)}){Colors.END}")
+                    f"{Colors.GREEN}FAST Test mas rapido: {fastest.name} ({self._format_time(fastest.duration)}){Colors.END}")
                 print(
-                    f"{Colors.MAGENTA}🐌 Test más lento: {slowest.name} ({self._format_time(slowest.duration)}){Colors.END}")
+                    f"{Colors.MAGENTA}SLOW Test mas lento: {slowest.name} ({self._format_time(slowest.duration)}){Colors.END}")
 
         # Porcentaje de éxito con emoji apropiado
         if success_rate == 100:
-            print(f"{Colors.GREEN}🎉 Porcentaje de éxito: {success_rate:.1f}%{Colors.END}")
+            print(f"{Colors.GREEN}OK Porcentaje de exito: {success_rate:.1f}%{Colors.END}")
         elif success_rate >= 80:
-            print(f"{Colors.YELLOW}⚠️  Porcentaje de éxito: {success_rate:.1f}%{Colors.END}")
+            print(f"{Colors.YELLOW}! Porcentaje de exito: {success_rate:.1f}%{Colors.END}")
         else:
-            print(f"{Colors.RED}❌ Porcentaje de éxito: {success_rate:.1f}%{Colors.END}")
+            print(f"{Colors.RED}X Porcentaje de exito: {success_rate:.1f}%{Colors.END}")
 
         # Detalles de tests fallidos
         if self.config.detailed_summary and (failed or errors):
-            print(f"\n{Colors.RED}❌ TESTS FALLIDOS:{Colors.END}")
+            print(f"\n{Colors.RED}X TESTS FALLIDOS:{Colors.END}")
             for result in failed + errors:
-                status_icon = "💥" if result.status == "error" else "❌"
+                status_icon = "!" if result.status == "error" else "X"
                 print(f"  {status_icon} {result.name}: {result.error_message}")
 
         # Información adicional
-        print(f"\n{Colors.GRAY}🕐 Finalizado: {datetime.now().strftime('%H:%M:%S')}{Colors.END}")
+        print(f"\n{Colors.GRAY}Finalizado: {datetime.now().strftime('%H:%M:%S')}{Colors.END}")
 
         if self.config.export_results:
             self._export_results()
-            print(f"{Colors.CYAN}💾 Resultados exportados a: {self.config.export_path}{Colors.END}")
+            print(f"{Colors.CYAN}EXPORT Resultados exportados a: {self.config.export_path}{Colors.END}")
 
     def _export_results(self):
         """Exportar resultados a JSON"""

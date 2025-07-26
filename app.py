@@ -106,12 +106,12 @@ if __name__ == '__main__':
 
     HandleLogs.write_log("app - Iniciando Sistema Tía Glenda Backend")
     print("=" * 70)
-    print("🏥 SISTEMA TÍA GLENDA - BACKEND")
+    print("SISTEMA TIA GLENDA - BACKEND")
     print("=" * 70)
-    print(f"🌐 Servidor: http://localhost:{port}")
-    print(f"📚 Documentación Swagger: http://localhost:{port}/docs/")
-    print(f"📄 Swagger JSON: http://localhost:{port}/static/swagger.json")
-    print(f"❤️  Health Check: http://localhost:{port}/health")
+    print(f"Servidor: http://localhost:{port}")
+    print(f"Documentacion Swagger: http://localhost:{port}/docs/")
+    print(f"Swagger JSON: http://localhost:{port}/static/swagger.json")
+    print(f"Health Check: http://localhost:{port}/health")
 
 
     app.run(host='0.0.0.0', port=port, debug=debug)

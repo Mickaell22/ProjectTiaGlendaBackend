@@ -398,3 +398,184 @@ def register_routes(app):
     def get_personas_disponibles_paciente():
         from src.api.Service.PacienteService import PacienteService
         return PacienteService.get_personas_disponibles()
+
+    # Agregar estas rutas al archivo src/api/routes/api_routes.py
+
+    def register_sesiones_routes(app):
+        """Registrar rutas para el módulo de Sesiones de Terapia"""
+
+        # ============================================
+        # RUTAS DE SESIONES DE TERAPIA (Protegidas)
+        # ============================================
+
+        @app.route('/api/sesiones-terapia', methods=['GET'])
+        @token_required
+        def get_sesiones_terapia():
+            """Obtener todas las sesiones de terapia"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_sesiones()
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>', methods=['GET'])
+        @token_required
+        def get_sesion_terapia(sesion_id):
+            """Obtener una sesión de terapia específica"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_sesion(sesion_id)
+
+        @app.route('/api/sesiones-terapia', methods=['POST'])
+        @token_required  # Tanto admin como terapeuta pueden crear
+        def create_sesion_terapia():
+            """Crear nueva sesión de terapia"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.create_sesion()
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>', methods=['PUT'])
+        @token_required  # Tanto admin como terapeuta pueden editar
+        def update_sesion_terapia(sesion_id):
+            """Actualizar sesión de terapia"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.update_sesion(sesion_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>', methods=['DELETE'])
+        @admin_required  # Solo admin puede cancelar
+        def delete_sesion_terapia(sesion_id):
+            """Cancelar sesión de terapia"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.delete_sesion(sesion_id)
+
+        # ============================================
+        # RUTAS DE GESTIÓN DE PACIENTES EN SESIONES
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/pacientes', methods=['GET'])
+        @token_required
+        def get_pacientes_sesion(sesion_id):
+            """Obtener pacientes asignados a una sesión"""
+            from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
+            try:
+                pacientes = SesionTerapiaComponent.get_pacientes_sesion(sesion_id)
+                from src.utils.general.response import response_success
+                return response_success(pacientes or [], "Pacientes de la sesión obtenidos")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                return response_error(f"Error al obtener pacientes: {str(e)}", 500)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/pacientes', methods=['POST'])
+        @token_required
+        def add_paciente_sesion(sesion_id):
+            """Agregar paciente a una sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.add_paciente_to_sesion(sesion_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/pacientes/<int:paciente_id>', methods=['DELETE'])
+        @token_required
+        def remove_paciente_sesion(sesion_id, paciente_id):
+            """Remover paciente de una sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.remove_paciente_from_sesion(sesion_id, paciente_id)
+
+        # ============================================
+        # RUTAS DE GESTIÓN DE CRONOGRAMA
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/cronograma', methods=['GET'])
+        @token_required
+        def get_cronograma_sesion(sesion_id):
+            """Obtener cronograma de una sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_cronograma_sesion(sesion_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/cronograma/generar', methods=['POST'])
+        @token_required
+        def generar_cronograma_sesion(sesion_id):
+            """Regenerar cronograma de una sesión"""
+            from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
+            try:
+                SesionTerapiaComponent.generar_cronograma(sesion_id)
+                from src.utils.general.response import response_success
+                return response_success({'sesion_id': sesion_id}, "Cronograma generado exitosamente")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                return response_error(f"Error al generar cronograma: {str(e)}", 500)
+
+        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/realizar', methods=['PUT'])
+        @token_required
+        def marcar_sesion_realizada(cronograma_id):
+            """Marcar sesión como realizada"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.marcar_sesion_realizada(cronograma_id)
+
+        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/reprogramar', methods=['PUT'])
+        @token_required
+        def reprogramar_sesion(cronograma_id):
+            """Reprogramar una sesión específica"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.reprogramar_sesion(cronograma_id)
+
+        # ============================================
+        # RUTAS DE ASISTENCIA
+        # ============================================
+
+        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/asistencias', methods=['GET'])
+        @token_required
+        def get_asistencias_sesion(cronograma_id):
+            """Obtener asistencias de una sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_asistencias_sesion(cronograma_id)
+
+        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/asistencias/<int:paciente_id>', methods=['POST'])
+        @token_required
+        def registrar_asistencia_paciente(cronograma_id, paciente_id):
+            """Registrar asistencia de un paciente"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.registrar_asistencia(cronograma_id, paciente_id)
+
+        # ============================================
+        # RUTAS DE CONSULTAS Y REPORTES
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/terapeuta/<int:terapeuta_id>', methods=['GET'])
+        @token_required
+        def get_sesiones_by_terapeuta(terapeuta_id):
+            """Obtener sesiones de un terapeuta específico"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_sesiones_by_terapeuta(terapeuta_id)
+
+        @app.route('/api/sesiones-terapia/hoy', methods=['GET'])
+        @token_required
+        def get_sesiones_hoy():
+            """Obtener sesiones programadas para hoy"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_sesiones_hoy()
+
+        @app.route('/api/sesiones-terapia/estadisticas', methods=['GET'])
+        @token_required
+        def get_estadisticas_sesiones():
+            """Obtener estadísticas de sesiones"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_estadisticas()
+
+        # ============================================
+        # RUTAS DE DATOS AUXILIARES
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/pacientes-disponibles', methods=['GET'])
+        @token_required
+        def get_pacientes_disponibles_sesiones():
+            """Obtener pacientes disponibles para asignar a sesiones"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_pacientes_disponibles()
+
+        @app.route('/api/sesiones-terapia/terapeutas-disponibles', methods=['GET'])
+        @token_required
+        def get_terapeutas_disponibles_sesiones():
+            """Obtener terapeutas disponibles para asignar a sesiones"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_terapeutas_disponibles()
+
+    # ============================================
+    # REGISTRAR RUTAS DE SESIONES DE TERAPIA
+    # ============================================
+    register_sesiones_routes(app)
+
+

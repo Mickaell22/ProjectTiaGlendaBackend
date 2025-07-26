@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is "Centro Tía Glenda" - a healthcare management system built with Flask (Python) that manages medical center operations including patients, staff, specialties, and user authentication. The system uses PostgreSQL as the database and provides a REST API with Swagger documentation.
+This is "Centro Tía Glenda" - a healthcare management system built with Flask (Python) that manages medical center operations including patients, staff, specialties, therapy sessions, and user authentication. The system uses PostgreSQL as the database and provides a REST API with Swagger documentation.
 
 ## Development Commands
 
@@ -28,6 +28,7 @@ python tests/test_usuarios_api.py
 python tests/test_tutores_api.py
 python tests/test_personas_api.py
 python tests/test_roles_api.py
+python tests/test_sesiones_terapia_api.py
 
 # Unit tests
 python tests/test_units.py
@@ -96,6 +97,7 @@ Key environment variables:
 - `/api/pacientes`: Patient management
 - `/api/tutores`: Guardian/tutor management
 - `/api/roles`: Role management
+- `/api/sesiones-terapia`: Therapy session management with cronograma generation
 - `/docs/`: Swagger UI documentation
 - `/health`: Application health endpoint
 
@@ -123,10 +125,14 @@ The project uses a sophisticated testing framework (`tests/utils/advanced_test_r
 - Integration throughout the application
 
 ### Database Patterns
-- Custom DataBaseHandle class for connection management
-- Support for parameterized queries
-- Proper connection cleanup
-- Error handling and logging integration
+- Custom DataBaseHandle class for connection management with specific methods:
+  - `getRecords()`: For SELECT queries (returns dict/list)
+  - `ExecuteNonQuery()`: For INSERT/UPDATE/DELETE without return values
+  - `ExecuteInsert()`: For INSERT with ID return (limited use)
+- **Important**: Never use `getRecords()` with INSERT RETURNING - use ExecuteNonQuery + separate SELECT
+- **Important**: No `updateRecords()` method exists - use `ExecuteNonQuery()` for updates
+- PostgreSQL time objects require conversion to strings for JSON serialization
+- Support for parameterized queries and proper connection cleanup
 
 ## Dependencies
 
@@ -150,3 +156,27 @@ The system includes comprehensive Swagger documentation available at `/docs/` wh
 3. Use the returned JWT token in Authorization header for protected routes
 4. Run tests to verify changes: `python tests/test_api_complete_master.py`
 5. Check logs in `src/utils/general/LOGS/` for debugging
+
+## Critical Development Notes
+
+### JSON Serialization Issues
+When working with database responses, always convert PostgreSQL-specific types to JSON-serializable formats:
+- `time` objects: Use `str(time_obj)` 
+- `date` objects: Use `date_obj.isoformat()`
+- `datetime` objects: Use `datetime_obj.isoformat()`
+
+### Test Runner Compatibility
+The advanced test runner (`tests/utils/advanced_test_runner.py`) is Windows-compatible with ASCII-only characters in progress bars. Unicode characters have been replaced with ASCII equivalents to prevent encoding errors.
+
+### Therapy Sessions Module
+The therapy sessions (`/api/sesiones-terapia`) module includes:
+- Automatic cronograma (schedule) generation when creating sessions
+- Complex relationships between sessions, patients, therapists, and schedules
+- Custom business logic for session date calculations based on weekdays
+- Four main tables: `sesion_terapia`, `sesion_paciente`, `cronograma_sesiones`, `asistencia_sesiones`
+
+### Database Schema Notes
+- All tables include audit fields: `fecha_creacion`, `fecha_modificacion`, `usuario_creacion`, `usuario_modificacion`
+- Foreign key relationships are strictly enforced
+- Triggers automatically update `fecha_modificacion` on record updates
+- Session codes are auto-generated with format "ST-YYYY-NNN" via database triggers

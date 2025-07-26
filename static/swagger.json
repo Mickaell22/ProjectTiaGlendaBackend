@@ -156,6 +156,70 @@
           "message": {"type": "string", "example": "Error en la operacion"},
           "code": {"type": "integer", "example": 400}
         }
+      },
+      "SesionTerapiaRequest": {
+        "type": "object",
+        "required": ["paciente_id", "terapeuta_id", "especialidad_id", "fecha_inicio", "hora_inicio", "duracion_minutos", "tipo_sesion", "dias_semana"],
+        "properties": {
+          "paciente_id": {"type": "integer", "example": 1},
+          "terapeuta_id": {"type": "integer", "example": 2},
+          "especialidad_id": {"type": "integer", "example": 1},
+          "fecha_inicio": {"type": "string", "format": "date", "example": "2025-07-26"},
+          "hora_inicio": {"type": "string", "format": "time", "example": "10:00:00"},
+          "duracion_minutos": {"type": "integer", "example": 60},
+          "tipo_sesion": {"type": "string", "enum": ["individual", "grupal"], "example": "individual"},
+          "dias_semana": {"type": "string", "example": "lunes,miercoles,viernes"},
+          "observaciones": {"type": "string", "example": "Sesion de terapia fisica"}
+        }
+      },
+      "SesionTerapiaResponse": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "example": 1},
+          "codigo_sesion": {"type": "string", "example": "SES-001-2025"},
+          "paciente_id": {"type": "integer", "example": 1},
+          "terapeuta_id": {"type": "integer", "example": 2},
+          "especialidad_id": {"type": "integer", "example": 1},
+          "fecha_inicio": {"type": "string", "format": "date", "example": "2025-07-26"},
+          "hora_inicio": {"type": "string", "example": "10:00:00"},
+          "duracion_minutos": {"type": "integer", "example": 60},
+          "tipo_sesion": {"type": "string", "example": "individual"},
+          "dias_semana": {"type": "string", "example": "lunes,miercoles,viernes"},
+          "observaciones": {"type": "string", "example": "Sesion de terapia fisica"},
+          "estado": {"type": "string", "example": "activo"},
+          "fecha_creacion": {"type": "string", "format": "date-time", "example": "2025-07-26T10:00:00"},
+          "fecha_modificacion": {"type": "string", "format": "date-time", "example": "2025-07-26T10:00:00"},
+          "usuario_creacion": {"type": "integer", "example": 1},
+          "usuario_modificacion": {"type": "integer", "example": 1},
+          "cronograma": {
+            "type": "array",
+            "items": {"$ref": "#/components/schemas/CronogramaResponse"}
+          }
+        }
+      },
+      "CronogramaResponse": {
+        "type": "object",
+        "properties": {
+          "fecha": {"type": "string", "format": "date", "example": "2025-07-26"},
+          "dia_semana": {"type": "string", "example": "sabado"},
+          "hora_inicio": {"type": "string", "example": "10:00:00"},
+          "hora_fin": {"type": "string", "example": "11:00:00"}
+        }
+      },
+      "SesionTerapiaUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "paciente_id": {"type": "integer", "example": 1},
+          "terapeuta_id": {"type": "integer", "example": 2},
+          "especialidad_id": {"type": "integer", "example": 1},
+          "fecha_inicio": {"type": "string", "format": "date", "example": "2025-07-26"},
+          "hora_inicio": {"type": "string", "format": "time", "example": "10:00:00"},
+          "duracion_minutos": {"type": "integer", "example": 60},
+          "tipo_sesion": {"type": "string", "enum": ["individual", "grupal"], "example": "individual"},
+          "dias_semana": {"type": "string", "example": "lunes,miercoles,viernes"},
+          "observaciones": {"type": "string", "example": "Sesion de terapia fisica actualizada"},
+          "estado": {"type": "string", "enum": ["activo", "inactivo"], "example": "activo"}
+        }
       }
     }
   },
@@ -1455,6 +1519,284 @@
           }
         }
       }
+    },
+    "/api/sesiones-terapia": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener todas las sesiones de terapia",
+        "description": "Obtener lista de todas las sesiones de terapia registradas",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de sesiones obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/SesionTerapiaResponse"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token requerido",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Crear nueva sesión de terapia",
+        "description": "Crear una nueva sesión de terapia con cronograma automático",
+        "security": [{"Bearer": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/SesionTerapiaRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          },
+          "401": {
+            "description": "Token requerido",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/{id}": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener sesión específica",
+        "description": "Obtener información detallada de una sesión de terapia por su ID",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesión encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "data": {"$ref": "#/components/schemas/SesionTerapiaResponse"}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Actualizar sesión de terapia",
+        "description": "Actualizar información de una sesión de terapia existente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/SesionTerapiaUpdateRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Eliminar sesión de terapia",
+        "description": "Eliminar una sesión de terapia del sistema",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesión eliminada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/{id}/cronograma": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener cronograma de sesión",
+        "description": "Obtener el cronograma completo de una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cronograma obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/CronogramaResponse"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/terapeuta/{terapeuta_id}": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener sesiones por terapeuta",
+        "description": "Obtener todas las sesiones asignadas a un terapeuta específico",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "terapeuta_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del terapeuta"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesiones del terapeuta obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/SesionTerapiaResponse"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Terapeuta no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -1493,6 +1835,10 @@
     {
       "name": "Usuarios",
       "description": "Gestión de usuarios del sistema"
+    },
+    {
+      "name": "Sesiones de Terapia",
+      "description": "Gestión de sesiones de terapia, cronogramas y seguimiento"
     }
   ]
 }

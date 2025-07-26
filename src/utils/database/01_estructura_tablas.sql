@@ -378,7 +378,7 @@ CREATE TABLE sesion_terapia (
     id SERIAL PRIMARY KEY,
     
     -- Información básica de la sesión
-    codigo_sesion VARCHAR(20) UNIQUE NOT NULL, -- Código único para identificar la sesión (ej: ST-2024-001)
+    codigo_sesion VARCHAR(30) UNIQUE NOT NULL, -- Código único para identificar la sesión (ej: ST-2025-001)
     titulo VARCHAR(200) NOT NULL, -- Título descriptivo de la sesión
     
     -- Relaciones principales
@@ -388,7 +388,7 @@ CREATE TABLE sesion_terapia (
     -- Configuración de horarios
     fecha_inicio DATE NOT NULL, -- Fecha de inicio del contrato
     fecha_fin DATE NOT NULL, -- Fecha de fin del contrato
-    dias_semana VARCHAR(20) NOT NULL, -- Días de la semana separados por comas (ej: "lunes,miercoles,viernes")
+    dias_semana VARCHAR(60) NOT NULL, -- Días de la semana separados por comas (ej: "lunes,miercoles,viernes")
     hora_inicio TIME NOT NULL, -- Hora de inicio de la sesión
     duracion_minutos INTEGER DEFAULT 45 CHECK (duracion_minutos BETWEEN 15 AND 120), -- Duración en minutos
     
@@ -602,17 +602,19 @@ DECLARE
 BEGIN
     v_year := extract(year from CURRENT_DATE)::TEXT;
     
-    -- Obtener el próximo correlativo
+    -- Obtener el próximo correlativo usando LIKE y split_part para mayor compatibilidad
     SELECT COALESCE(MAX(
         CASE 
-            WHEN codigo_sesion ~ '^ST-' || v_year || '-[0-9]+$' 
-            THEN CAST(substring(codigo_sesion from length('ST-' || v_year || '-') + 1) AS INTEGER)
+            WHEN codigo_sesion LIKE 'ST-' || v_year || '-%' 
+                AND codigo_sesion ~ '^ST-[0-9]{4}-[0-9]+$'
+            THEN CAST(split_part(codigo_sesion, '-', 3) AS INTEGER)
             ELSE 0
         END
     ), 0) + 1
     INTO v_correlativo
     FROM sesion_terapia;
     
+    -- Generar código con formato: ST-2025-001
     v_codigo := 'ST-' || v_year || '-' || lpad(v_correlativo::TEXT, 3, '0');
     
     RETURN v_codigo;

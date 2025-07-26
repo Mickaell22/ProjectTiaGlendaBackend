@@ -1,8 +1,8 @@
 {
-  "module_name": "PERSONAL",
-  "timestamp": "2025-07-26T01:37:55.650354",
+  "module_name": "SESIONES DE TERAPIA",
+  "timestamp": "2025-07-26T11:07:35.967823",
   "total_tests": 7,
-  "total_duration": 55.14244818687439,
+  "total_duration": 37.47943830490112,
   "summary": {
     "passed": 7,
     "failed": 0,
@@ -13,51 +13,51 @@
     {
       "name": "Autenticacion",
       "status": "passed",
-      "duration": 2.392005681991577,
+      "duration": 2.4050862789154053,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Configuracion de datos",
       "status": "passed",
-      "duration": 4.658539295196533,
+      "duration": 6.435236692428589,
       "error_message": null,
       "retry_count": 0
     },
     {
-      "name": "CRUD de personal",
+      "name": "CRUD de sesiones",
       "status": "passed",
-      "duration": 9.11256217956543,
+      "duration": 10.396292924880981,
       "error_message": null,
       "retry_count": 0
     },
     {
-      "name": "Gestión de especialidades",
+      "name": "Gestión de cronograma",
       "status": "passed",
-      "duration": 11.144628047943115,
+      "duration": 4.350534677505493,
       "error_message": null,
       "retry_count": 0
     },
     {
-      "name": "Personal por área",
+      "name": "Gestión de pacientes",
       "status": "passed",
-      "duration": 4.368261337280273,
+      "duration": 4.385711669921875,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Endpoints adicionales",
       "status": "passed",
-      "duration": 2.2203807830810547,
+      "duration": 6.625546932220459,
       "error_message": null,
       "retry_count": 0
     },
     {
-      "name": "Validaciones",
+      "name": "Limpieza de datos",
       "status": "passed",
-      "duration": 12.963389873504639,
+      "duration": 2.1741886138916016,
       "error_message": null,
-      "retry_count": 1
+      "retry_count": 0
     }
   ]
 }

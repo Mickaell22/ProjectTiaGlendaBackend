@@ -381,12 +381,258 @@ SELECT 9, id, '2023-05-25', 'Terapia del lenguaje adaptada.', 1
 FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
 
 -- =============================================
--- MENSAJE DE FINALIZACIÓN
+-- 4. DATOS DE EJEMPLO - SESIONES DE TERAPIA
 -- =============================================
-SELECT 'Datos iniciales cargados exitosamente - Centro Tía Glenda' AS mensaje;
 
 -- =============================================
--- 4. INFORMACIÓN DEL SISTEMA
+-- 4.1 SESIONES DE TERAPIA GRUPALES E INDIVIDUALES
+-- =============================================
+
+-- Sesión 1: Terapia Ocupacional Grupal (Ana Patricia González)
+INSERT INTO sesion_terapia (
+    titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
+    dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
+    costo_total, meses_contrato, estado, observaciones, usuario_creacion
+) VALUES (
+    'Terapia Ocupacional Grupo Infantil - Integración Sensorial',
+    (SELECT id FROM personal WHERE persona_id = 3), -- Ana Patricia González
+    (SELECT id FROM especialidad WHERE nombre = 'Integración Sensorial'),
+    '2024-01-15', -- Fecha inicio
+    '2024-04-15', -- Fecha fin (3 meses)
+    'lunes,miercoles,viernes', -- Días de la semana
+    '09:00', -- Hora de inicio
+    45, -- Duración en minutos
+    36, -- Número de sesiones (3 meses x 3 días x 4 semanas)
+    432000.00, -- Costo total (36 sesiones x 12,000 colones)
+    3, -- Meses de contrato
+    'activo',
+    'Sesión grupal para desarrollo de integración sensorial en niños de 3-6 años. Máximo 4 pacientes por sesión.',
+    1
+);
+
+-- Sesión 2: Fisioterapia Individual (Carlos Manuel Jiménez)
+INSERT INTO sesion_terapia (
+    titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
+    dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
+    costo_total, meses_contrato, estado, observaciones, usuario_creacion
+) VALUES (
+    'Fisioterapia Neurológica Individual - Pedro Antonio',
+    (SELECT id FROM personal WHERE persona_id = 4), -- Carlos Manuel Jiménez
+    (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia Neurológica'),
+    '2024-02-01',
+    '2024-05-01', -- 3 meses
+    'martes,jueves',
+    '10:30',
+    60, -- 1 hora por ser individual
+    24, -- 2 días x 4 semanas x 3 meses
+    480000.00, -- 24 sesiones x 20,000 colones (individual)
+    3,
+    'activo',
+    'Sesión individual especializada para Pedro Antonio López. Enfoque en fortalecimiento muscular y patrones de movimiento.',
+    1
+);
+
+-- Sesión 3: Terapia del Lenguaje Grupal (Sofía Elena Morales)
+INSERT INTO sesion_terapia (
+    titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
+    dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
+    costo_total, meses_contrato, estado, observaciones, usuario_creacion
+) VALUES (
+    'Terapia del Lenguaje - Grupo de Desarrollo Comunicativo',
+    (SELECT id FROM personal WHERE persona_id = 5), -- Sofía Elena Morales
+    (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
+    '2024-01-22',
+    '2024-04-22',
+    'lunes,miercoles',
+    '14:00',
+    45,
+    24, -- 2 días x 4 semanas x 3 meses
+    288000.00, -- 24 sesiones x 12,000 colones
+    3,
+    'activo',
+    'Sesión grupal para niños con retraso en desarrollo del lenguaje. Enfoque en comunicación funcional.',
+    1
+);
+
+-- Sesión 4: Educación Especial - TEA (Roberto Luis Vargas)
+INSERT INTO sesion_terapia (
+    titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
+    dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
+    costo_total, meses_contrato, estado, observaciones, usuario_creacion
+) VALUES (
+    'Programa TEA - Trastornos del Espectro Autista',
+    (SELECT id FROM personal WHERE persona_id = 6), -- Roberto Luis Vargas
+    (SELECT id FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista'),
+    '2024-02-05',
+    '2024-08-05', -- 6 meses (programa más largo)
+    'lunes,martes,miercoles,jueves,viernes',
+    '08:00',
+    90, -- Sesiones más largas para TEA
+    120, -- 5 días x 4 semanas x 6 meses
+    1440000.00, -- 120 sesiones x 12,000 colones
+    6,
+    'activo',
+    'Programa intensivo para Santiago Torres. Metodología ABA y estrategias de comunicación aumentativa.',
+    1
+);
+
+-- Sesión 5: Estimulación Temprana (Laura María Castillo)
+INSERT INTO sesion_terapia (
+    titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
+    dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
+    costo_total, meses_contrato, estado, observaciones, usuario_creacion
+) VALUES (
+    'Estimulación Temprana - Desarrollo Integral 0-3 años',
+    (SELECT id FROM personal WHERE persona_id = 7), -- Laura María Castillo
+    (SELECT id FROM especialidad WHERE nombre = 'Estimulación Temprana'),
+    '2024-03-01',
+    '2024-06-01',
+    'martes,jueves',
+    '09:30',
+    45,
+    24, -- 2 días x 4 semanas x 3 meses
+    360000.00, -- 24 sesiones x 15,000 colones
+    3,
+    'activo',
+    'Programa de estimulación temprana para Mateo Alejandro. Incluye desarrollo cognitivo, motor y social.',
+    1
+);
+
+-- =============================================
+-- 4.2 ASIGNACIÓN DE PACIENTES A SESIONES
+-- =============================================
+
+-- Asignaciones de pacientes a sesiones usando IDs dinámicos
+-- Sesión de Terapia Ocupacional - 3 pacientes
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 1, '2024-01-15', 432000.00, 'María José - Paciente principal del grupo. Excelente progreso esperado.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%';
+
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 7, '2024-01-22', 432000.00, 'Sofía Gabriela - Se incorpora una semana después. Necesita adaptación gradual.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%';
+
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 9, '2024-02-01', 432000.00, 'Camila Andrea - Caso complejo. Requiere atención especializada dentro del grupo.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%';
+
+-- Sesión de Fisioterapia Individual - 1 paciente
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 2, '2024-02-01', 480000.00, 'Pedro Antonio - Sesión individual personalizada. Seguimiento neurológico estricto.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Fisioterapia Neurológica Individual%';
+
+-- Sesión de Terapia del Lenguaje - 2 pacientes
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 3, '2024-01-22', 288000.00, 'Valentina - Retraso leve en desarrollo del lenguaje. Muy colaborativa.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia del Lenguaje - Grupo%';
+
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 7, '2024-01-29', 288000.00, 'Sofía Gabriela - Combinará con terapia ocupacional. Coordinación entre terapeutas.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia del Lenguaje - Grupo%';
+
+-- Programa TEA - 1 paciente (intensivo)
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 4, '2024-02-05', 1440000.00, 'Santiago Torres - Programa intensivo personalizado. Seguimiento diario de avances.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Programa TEA%';
+
+-- Estimulación Temprana - 2 pacientes
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 8, '2024-03-01', 360000.00, 'Mateo Alejandro - Estimulación temprana integral. Familia muy comprometida.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Estimulación Temprana%';
+
+INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
+SELECT 
+    st.id, 5, '2024-03-08', 360000.00, 'Isabella Rojas - Se incorpora para refuerzo de desarrollo cognitivo.', 'activo', 1
+FROM sesion_terapia st WHERE st.titulo LIKE '%Estimulación Temprana%';
+
+-- =============================================
+-- 4.3 CRONOGRAMA AUTOMÁTICO DE SESIONES
+-- =============================================
+-- El cronograma se genera automáticamente mediante la función generar_cronograma_sesiones()
+-- Generar cronogramas para todas las sesiones creadas
+
+-- Generar cronogramas usando los IDs de las sesiones recién creadas
+DO $$
+DECLARE
+    sesion_record RECORD;
+BEGIN
+    -- Generar cronograma para cada sesión creada
+    FOR sesion_record IN 
+        SELECT id, titulo FROM sesion_terapia 
+        WHERE titulo LIKE '%Terapia Ocupacional Grupo Infantil%'
+           OR titulo LIKE '%Fisioterapia Neurológica Individual%'
+           OR titulo LIKE '%Terapia del Lenguaje - Grupo%'
+           OR titulo LIKE '%Programa TEA%'
+           OR titulo LIKE '%Estimulación Temprana%'
+        ORDER BY id
+    LOOP
+        PERFORM generar_cronograma_sesiones(sesion_record.id);
+        RAISE NOTICE 'Cronograma generado para sesión: % (ID: %)', sesion_record.titulo, sesion_record.id;
+    END LOOP;
+END $$;
+
+-- =============================================
+-- 4.4 EJEMPLOS DE ASISTENCIAS (para las primeras sesiones)
+-- =============================================
+
+-- Registrar asistencias para las primeras sesiones programadas de cada grupo
+-- Nota: Estos IDs de cronograma_sesion pueden variar según la generación automática
+
+-- Registrar asistencias usando JOINs dinámicos
+-- Asistencias para Terapia Ocupacional (primera sesión)
+INSERT INTO asistencia_sesiones (cronograma_sesion_id, paciente_id, asistio, llegada_tardanza_minutos, observaciones_asistencia, notas_progreso, tareas_asignadas, proximos_objetivos, usuario_creacion)
+SELECT cs.id, 1, true, 0, 'Primera sesión exitosa. Muy colaborativa.', 'Excelente participación en actividades de coordinación motora fina.', 'Practicar ejercicios de pinza con plastilina en casa.', 'Mejorar coordinación bimanual en próxima sesión.', 1
+FROM cronograma_sesiones cs 
+JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
+WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%' AND cs.numero_sesion = 1;
+
+INSERT INTO asistencia_sesiones (cronograma_sesion_id, paciente_id, asistio, llegada_tardanza_minutos, observaciones_asistencia, notas_progreso, tareas_asignadas, proximos_objetivos, usuario_creacion)
+SELECT cs.id, 7, true, 5, 'Llegó 5 minutos tarde pero se adaptó bien al grupo.', 'Mostró interés en actividades sensoriales. Necesita más tiempo de adaptación.', 'Ejercicios de relajación antes de dormir.', 'Reducir tiempo de adaptación al grupo.', 1
+FROM cronograma_sesiones cs 
+JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
+WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%' AND cs.numero_sesion = 1;
+
+-- Asistencias para Fisioterapia Individual (primera sesión)
+INSERT INTO asistencia_sesiones (cronograma_sesion_id, paciente_id, asistio, llegada_tardanza_minutos, observaciones_asistencia, notas_progreso, tareas_asignadas, proximos_objetivos, usuario_creacion)
+SELECT cs.id, 2, true, 0, 'Primera evaluación completa realizada.', 'Evaluación neurológica inicial. Tono muscular dentro de parámetros esperados.', 'Ejercicios de estiramiento suave 2 veces al día.', 'Iniciar fortalecimiento de core en próxima sesión.', 1
+FROM cronograma_sesiones cs 
+JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
+WHERE st.titulo LIKE '%Fisioterapia Neurológica Individual%' AND cs.numero_sesion = 1;
+
+-- Asistencias para Terapia del Lenguaje (primera sesión)
+INSERT INTO asistencia_sesiones (cronograma_sesion_id, paciente_id, asistio, llegada_tardanza_minutos, observaciones_asistencia, notas_progreso, tareas_asignadas, proximos_objetivos, usuario_creacion)
+SELECT cs.id, 3, true, 0, 'Muy receptiva a estímulos auditivos.', 'Responde bien a comandos simples. Vocalizaciones espontáneas limitadas.', 'Lectura diaria de cuentos con énfasis en sonidos.', 'Incrementar vocabulario expresivo en 5 palabras.', 1
+FROM cronograma_sesiones cs 
+JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
+WHERE st.titulo LIKE '%Terapia del Lenguaje - Grupo%' AND cs.numero_sesion = 1;
+
+-- Marcar algunas sesiones como realizadas (ejemplo de seguimiento)
+UPDATE cronograma_sesiones 
+SET estado = 'realizada', 
+    fecha_realizacion = fecha_programada + interval '1 hour',
+    observaciones_cronograma = 'Sesión realizada exitosamente. Todos los objetivos cumplidos.'
+WHERE sesion_terapia_id IN (
+    SELECT id FROM sesion_terapia 
+    WHERE titulo LIKE '%Terapia Ocupacional Grupo Infantil%'
+       OR titulo LIKE '%Fisioterapia Neurológica Individual%'
+       OR titulo LIKE '%Terapia del Lenguaje - Grupo%'
+) AND numero_sesion = 1;
+
+-- =============================================
+-- MENSAJE DE FINALIZACIÓN
+-- =============================================
+SELECT 'Datos iniciales cargados exitosamente - Centro Tía Glenda (incluye sesiones de terapia)' AS mensaje;
+
+-- =============================================
+-- 5. INFORMACIÓN DEL SISTEMA
 -- =============================================
 
 /*
@@ -429,10 +675,24 @@ FAMILIAS Y PACIENTES:
 ✓ 9 registros de pacientes con fechas de ingreso
 ✓ 21 asignaciones de especialidades a pacientes
 
+SESIONES DE TERAPIA:
+✓ 5 sesiones de terapia activas (grupales e individuales)
+✓ 10 asignaciones de pacientes a sesiones
+✓ Cronogramas automáticos generados para todas las sesiones
+✓ Ejemplos de asistencias registradas para primeras sesiones
+✓ Estados de sesiones variados (programadas, realizadas)
+
 ESTRUCTURA DE CASOS DE PRUEBA:
 • 3 pacientes área terapéutica (0-8 años) con múltiples necesidades
 • 3 alumnos área pedagógica (5-12 años) con dificultades específicas  
 • 3 casos adicionales (mixtos y complejos) para diversidad
+
+SESIONES DE EJEMPLO CREADAS:
+• Terapia Ocupacional Grupal (3 pacientes) - 3 meses
+• Fisioterapia Individual (1 paciente) - 3 meses  
+• Terapia del Lenguaje Grupal (2 pacientes) - 3 meses
+• Programa TEA Intensivo (1 paciente) - 6 meses
+• Estimulación Temprana (2 pacientes) - 3 meses
 
 ============================================================================
 NOTAS IMPORTANTES DE SEGURIDAD
