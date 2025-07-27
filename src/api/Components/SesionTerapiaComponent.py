@@ -220,7 +220,7 @@ class SesionTerapiaComponent:
 
     @staticmethod
     def generar_cronograma(sesion_id):
-        """Generar cronograma automático para una sesión"""
+        """Generar cronograma automático para una sesión - VERSIÓN MEJORADA"""
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
@@ -233,6 +233,14 @@ class SesionTerapiaComponent:
             if not sesion_data:
                 raise Exception(f"Sesión {sesion_id} no encontrada")
             
+            # Validar datos requeridos
+            if not sesion_data['fecha_inicio']:
+                raise Exception("La fecha de inicio es requerida")
+            if not sesion_data['dias_semana']:
+                raise Exception("Los días de la semana son requeridos")
+            if not sesion_data['numero_sesiones_contratadas'] or sesion_data['numero_sesiones_contratadas'] <= 0:
+                raise Exception("El número de sesiones contratadas debe ser mayor a 0")
+            
             # Limpiar cronograma existente
             delete_query = "DELETE FROM cronograma_sesiones WHERE sesion_terapia_id = %s"
             DataBaseHandle.ExecuteNonQuery(delete_query, (sesion_id,))
@@ -242,24 +250,50 @@ class SesionTerapiaComponent:
             
             fecha_inicio = sesion_data['fecha_inicio']
             fecha_fin = sesion_data['fecha_fin']
-            dias_semana = sesion_data['dias_semana'].split(',') if sesion_data['dias_semana'] else []
+            dias_semana_str = sesion_data['dias_semana'].strip()
             hora_inicio = sesion_data['hora_inicio']
             max_sesiones = sesion_data['numero_sesiones_contratadas']
             
-            # Mapeo de días
+            # Mapeo de días (asegurar consistencia)
             dias_map = {
-                'lunes': 0, 'martes': 1, 'miercoles': 2, 'jueves': 3, 
-                'viernes': 4, 'sabado': 5, 'domingo': 6
+                'lunes': 0, 'martes': 1, 'miercoles': 2, 'miércoles': 2,
+                'jueves': 3, 'viernes': 4, 'sabado': 5, 'sábado': 5, 'domingo': 6
             }
             
-            dias_numeros = [dias_map.get(dia.strip().lower(), -1) for dia in dias_semana if dia.strip().lower() in dias_map]
+            # Procesar días de la semana con mejor validación
+            dias_semana_list = [dia.strip().lower() for dia in dias_semana_str.split(',') if dia.strip()]
+            dias_numeros = []
             
+            for dia in dias_semana_list:
+                if dia in dias_map:
+                    dias_numeros.append(dias_map[dia])
+                else:
+                    HandleLogs.write_error(f"Día de semana no reconocido: {dia}")
+            
+            if not dias_numeros:
+                raise Exception(f"No se pudieron procesar los días de la semana: {dias_semana_str}")
+            
+            # Remover duplicados y ordenar
+            dias_numeros = sorted(list(set(dias_numeros)))
+            
+            # Calcular fecha límite inteligente
+            # Si no hay fecha_fin, calcular basándose en el número de sesiones
+            if not fecha_fin:
+                # Estimar fecha fin: (sesiones / días_por_semana) * 7 días + margen de 4 semanas
+                dias_por_semana = len(dias_numeros)
+                semanas_estimadas = (max_sesiones // dias_por_semana) + 1
+                fecha_fin = fecha_inicio + timedelta(weeks=semanas_estimadas + 4)
+            
+            # Generar cronograma de manera eficiente
             fecha_actual = fecha_inicio
             numero_sesion = 1
             sesiones_creadas = 0
+            intentos_max = 1000  # Evitar bucles infinitos
+            intentos = 0
             
-            while fecha_actual <= fecha_fin and sesiones_creadas < max_sesiones:
+            while sesiones_creadas < max_sesiones and fecha_actual <= fecha_fin and intentos < intentos_max:
                 dia_semana = fecha_actual.weekday()  # 0=lunes, 6=domingo
+                intentos += 1
                 
                 if dia_semana in dias_numeros:
                     # Insertar sesión en cronograma
@@ -274,8 +308,20 @@ class SesionTerapiaComponent:
                     
                     numero_sesion += 1
                     sesiones_creadas += 1
+                    
+                    # Log progreso cada 10 sesiones
+                    if sesiones_creadas % 10 == 0:
+                        HandleLogs.write_log(f"Cronograma sesión {sesion_id}: {sesiones_creadas}/{max_sesiones} generadas")
                 
                 fecha_actual += timedelta(days=1)
+            
+            # Validar resultados
+            if sesiones_creadas == 0:
+                raise Exception("No se pudieron generar sesiones. Verificar fechas y días de la semana.")
+            
+            if sesiones_creadas < max_sesiones:
+                HandleLogs.write_error(
+                    f"Advertencia: Solo se generaron {sesiones_creadas} de {max_sesiones} sesiones solicitadas")
             
             HandleLogs.write_log(
                 f"SesionTerapiaComponent.generar_cronograma - {sesiones_creadas} sesiones programadas para sesión {sesion_id}")

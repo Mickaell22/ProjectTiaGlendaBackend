@@ -1,0 +1,1625 @@
+2025-07-27 12:01:07 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:01:07 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:01:49 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:01:49 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:01:49 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:01:49 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:01:51 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:01:51 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: usuario_inexistente
+2025-07-27 12:01:51 - INFO - LoginService.login - Usuario no encontrado: usuario_inexistente
+2025-07-27 12:01:53 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:01:53 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:01:53 - INFO - LoginService.login - Contrasena incorrecta para: admin
+2025-07-27 12:01:55 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:01:58 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:00 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:02 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:04 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:06 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:08 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-27 12:02:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:16 - INFO - Información solicitada para usuario: admin
+2025-07-27 12:02:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:19 - INFO - Logout solicitado
+2025-07-27 12:02:21 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:21 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:21 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:21 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:23 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-27 12:02:25 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:25 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:25 - INFO - Información solicitada para usuario: admin
+2025-07-27 12:02:26 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:26 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:28 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:02:28 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:02:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:28 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:02:28 - INFO - PersonaComponent.get_persona_by_id - Persona 28 encontrada
+2025-07-27 12:02:28 - INFO - PersonaComponent.create_persona - Persona creada con ID: 28
+2025-07-27 12:02:28 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-27 12:02:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:30 - INFO - Logout solicitado
+2025-07-27 12:02:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:30 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:02:30 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:02:32 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:32 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: usuario_inexistente
+2025-07-27 12:02:32 - INFO - LoginService.login - Usuario no encontrado: usuario_inexistente
+2025-07-27 12:02:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:33 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:02:33 - INFO - UsuarioComponent.get_all_usuarios - 9 usuarios encontrados
+2025-07-27 12:02:33 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:02:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:34 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:34 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:34 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:34 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:34 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:34 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:35 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:02:35 - INFO - UsuarioComponent.get_usuario_by_id - Usuario 10 encontrado
+2025-07-27 12:02:35 - INFO - UsuarioComponent.create_usuario - Usuario creado con ID: 10
+2025-07-27 12:02:35 - INFO - UsuarioService.create_usuario - Usuario creado exitosamente
+2025-07-27 12:02:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:37 - INFO - UsuarioService.get_usuario - ID: 10
+2025-07-27 12:02:37 - INFO - UsuarioComponent.get_usuario_by_id - Usuario 10 encontrado
+2025-07-27 12:02:37 - INFO - UsuarioService.get_usuario - Usuario 10 encontrado
+2025-07-27 12:02:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:39 - INFO - UsuarioService.update_usuario - ID: 10
+2025-07-27 12:02:40 - INFO - UsuarioComponent.get_usuario_by_id - Usuario 10 encontrado
+2025-07-27 12:02:40 - INFO - UsuarioComponent.update_usuario - Usuario 10 actualizado
+2025-07-27 12:02:40 - INFO - UsuarioService.update_usuario - Usuario 10 actualizado
+2025-07-27 12:02:42 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:42 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:42 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-07-27 12:02:42 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:42 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:44 - INFO - Información solicitada para usuario: admin
+2025-07-27 12:02:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:44 - INFO - PersonaService.get_personas - Iniciando
+2025-07-27 12:02:44 - INFO - PersonaComponent.get_all_personas - 28 personas encontradas
+2025-07-27 12:02:44 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-07-27 12:02:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:46 - INFO - Logout solicitado
+2025-07-27 12:02:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:46 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:02:46 - INFO - PersonaComponent.get_persona_by_id - Persona 29 encontrada
+2025-07-27 12:02:46 - INFO - PersonaComponent.create_persona - Persona creada con ID: 29
+2025-07-27 12:02:46 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-27 12:02:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:48 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:02:48 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:02:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:49 - INFO - PersonaService.get_persona - ID: 29
+2025-07-27 12:02:49 - INFO - PersonaComponent.get_persona_by_id - Persona 29 encontrada
+2025-07-27 12:02:49 - INFO - PersonaService.get_persona - Persona 29 encontrada
+2025-07-27 12:02:50 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:02:50 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:02:50 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:02:50 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:02:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:51 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:02:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:51 - INFO - PersonaService.update_persona - ID: 29
+2025-07-27 12:02:51 - INFO - PersonaComponent.get_persona_by_id - Persona 29 encontrada
+2025-07-27 12:02:51 - INFO - PersonaComponent.update_persona - Persona 29 actualizada
+2025-07-27 12:02:51 - INFO - PersonaService.update_persona - Persona 29 actualizada
+2025-07-27 12:02:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:53 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:02:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:53 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:02:53 - INFO - PersonaComponent.get_persona_by_id - Persona 30 encontrada
+2025-07-27 12:02:53 - INFO - PersonaComponent.create_persona - Persona creada con ID: 30
+2025-07-27 12:02:53 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-27 12:02:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:53 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:02:53 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 20 personas disponibles
+2025-07-27 12:02:53 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:02:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:55 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:02:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:55 - INFO - EspecialidadService.get_especialidades_activas - Iniciando
+2025-07-27 12:02:55 - INFO - EspecialidadComponent.get_especialidades_activas - 41 especialidades activas encontradas
+2025-07-27 12:02:55 - INFO - EspecialidadService.get_especialidades_activas - Especialidades activas obtenidas
+2025-07-27 12:02:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:56 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:02:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:57 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:02:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:57 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:02:57 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:02:57 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:02:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:58 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:02:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:59 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:02:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:02:59 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:00 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-27 12:03:00 - INFO - PersonalComponent.create_personal - Personal creado con ID: 7
+2025-07-27 12:03:00 - INFO - PersonalService.create_personal - Personal creado exitosamente
+2025-07-27 12:03:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:00 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:01 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:03:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:02 - INFO - PersonalService.get_personal_by_id - ID: 7
+2025-07-27 12:03:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:02 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:02 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-27 12:03:02 - INFO - PersonalService.get_personal_by_id - Personal 7 encontrado
+2025-07-27 12:03:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:03 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:03:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:04 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:04 - INFO - PersonalService.update_personal - ID: 7
+2025-07-27 12:03:04 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-27 12:03:04 - INFO - PersonalComponent.update_personal - Personal 7 actualizado
+2025-07-27 12:03:04 - INFO - PersonalService.update_personal - Personal 7 actualizado
+2025-07-27 12:03:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:06 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:03:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:06 - INFO - PersonaService.get_persona - ID: 29
+2025-07-27 12:03:06 - INFO - PersonaComponent.get_persona_by_id - Persona 29 encontrada
+2025-07-27 12:03:06 - INFO - PersonaService.get_persona - Persona 29 encontrada
+2025-07-27 12:03:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:06 - INFO - PersonalService.get_personal_especialidades - Personal ID: 7
+2025-07-27 12:03:07 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-27 12:03:07 - INFO - PersonalService.get_personal_especialidades - 0 especialidades encontradas
+2025-07-27 12:03:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:08 - INFO - UsuarioService.create_usuario - Iniciando
+2025-07-27 12:03:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:08 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:09 - INFO - PersonalService.assign_especialidad - Personal ID: 7
+2025-07-27 12:03:09 - INFO - PersonalComponent.assign_especialidad - Especialidad 36 asignada a personal 7
+2025-07-27 12:03:09 - INFO - PersonalService.assign_especialidad - Especialidad 36 asignada a personal 7
+2025-07-27 12:03:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:11 - INFO - PersonaService.delete_persona - ID: 29
+2025-07-27 12:03:11 - INFO - PersonaComponent.deactivate_persona - Persona 29 desactivada
+2025-07-27 12:03:11 - INFO - PersonaService.delete_persona - Persona 29 desactivada
+2025-07-27 12:03:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:11 - INFO - PersonalService.get_personal_especialidades - Personal ID: 7
+2025-07-27 12:03:11 - INFO - PersonalComponent.get_personal_by_id - Personal 7 encontrado
+2025-07-27 12:03:11 - INFO - PersonalService.get_personal_especialidades - 1 especialidades encontradas
+2025-07-27 12:03:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:13 - INFO - PersonaService.delete_persona - ID: 99999
+2025-07-27 12:03:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:13 - INFO - PersonalService.assign_especialidad - Personal ID: 7
+2025-07-27 12:03:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:16 - INFO - PersonalService.remove_especialidad - Personal ID: 7, Especialidad ID: 36
+2025-07-27 12:03:16 - INFO - PersonalComponent.remove_especialidad - Especialidad 36 removida del personal 7
+2025-07-27 12:03:16 - INFO - PersonalService.remove_especialidad - Especialidad 36 removida del personal 7
+2025-07-27 12:03:17 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:03:17 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:03:17 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:03:17 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:03:18 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:18 - INFO - PersonalService.get_personal_by_area - Área: terapeutico
+2025-07-27 12:03:18 - INFO - PersonalComponent.get_personal_by_area - 3 personal de área terapeutico encontrado
+2025-07-27 12:03:18 - INFO - PersonalService.get_personal_by_area - Personal de terapeutico obtenido
+2025-07-27 12:03:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:20 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:03:20 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:03:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:20 - INFO - PersonalService.get_personal_by_area - Área: pedagogico
+2025-07-27 12:03:20 - INFO - PersonalComponent.get_personal_by_area - 3 personal de área pedagogico encontrado
+2025-07-27 12:03:20 - INFO - PersonalService.get_personal_by_area - Personal de pedagogico obtenido
+2025-07-27 12:03:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:22 - INFO - PersonalService.get_estadisticas - Iniciando
+2025-07-27 12:03:23 - INFO - PersonalComponent.get_estadisticas_personal - Estadísticas obtenidas
+2025-07-27 12:03:23 - INFO - PersonalService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:03:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:25 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:26 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:26 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:03:26 - INFO - UsuarioComponent.get_all_usuarios - 10 usuarios encontrados
+2025-07-27 12:03:26 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:03:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:27 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:03:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:03:29 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:03:29 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:03:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:29 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:03:29 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:03:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:29 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:29 - INFO - PersonalComponent.get_personal_by_id - Personal 8 encontrado
+2025-07-27 12:03:29 - INFO - PersonalComponent.create_personal - Personal creado con ID: 8
+2025-07-27 12:03:29 - INFO - PersonalService.create_personal - Personal creado exitosamente
+2025-07-27 12:03:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:31 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:03:31 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:03:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:31 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:31 - INFO - PersonaComponent.get_persona_by_id - Persona 31 encontrada
+2025-07-27 12:03:31 - INFO - PersonaComponent.create_persona - Persona creada con ID: 31
+2025-07-27 12:03:31 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-27 12:03:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:32 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:33 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:03:33 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:03:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:33 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:03:33 - INFO - TutorComponent.get_tutor_by_id - Tutor 10 encontrado
+2025-07-27 12:03:33 - INFO - TutorComponent.create_tutor - Tutor creado con ID: 10
+2025-07-27 12:03:33 - INFO - TutorService.create_tutor - Tutor creado exitosamente
+2025-07-27 12:03:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:03:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:03:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:34 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:35 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:03:35 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:03:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:35 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:03:35 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:03:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:35 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:36 - INFO - PersonaComponent.get_persona_by_id - Persona 32 encontrada
+2025-07-27 12:03:36 - INFO - PersonaComponent.create_persona - Persona creada con ID: 32
+2025-07-27 12:03:36 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-27 12:03:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:37 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:37 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:03:37 - INFO - EspecialidadComponent.get_all_especialidades - 41 especialidades encontradas
+2025-07-27 12:03:37 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:03:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:37 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:03:37 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:03:38 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:38 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:03:38 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:03:38 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:03:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:39 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:39 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:03:39 - INFO - EspecialidadComponent.get_especialidad_by_id - Especialidad 42 encontrada
+2025-07-27 12:03:39 - INFO - EspecialidadComponent.create_especialidad - Especialidad creada con ID: 42
+2025-07-27 12:03:39 - INFO - EspecialidadService.create_especialidad - Especialidad creada exitosamente
+2025-07-27 12:03:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:40 - INFO - PacienteService.create_paciente - Iniciando
+2025-07-27 12:03:40 - INFO - PacienteComponent.get_paciente_by_id - Paciente 10 encontrado
+2025-07-27 12:03:40 - INFO - PacienteComponent.create_paciente - Paciente creado con ID: 10
+2025-07-27 12:03:40 - INFO - PacienteService.create_paciente - Paciente creado exitosamente
+2025-07-27 12:03:41 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:41 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:41 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:41 - INFO - EspecialidadService.get_especialidad - ID: 42
+2025-07-27 12:03:41 - INFO - EspecialidadComponent.get_especialidad_by_id - Especialidad 42 encontrada
+2025-07-27 12:03:41 - INFO - EspecialidadService.get_especialidad - Especialidad 42 encontrada
+2025-07-27 12:03:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:42 - INFO - PacienteService.get_paciente_by_id - ID: 10
+2025-07-27 12:03:42 - INFO - PacienteComponent.get_paciente_by_id - Paciente 10 encontrado
+2025-07-27 12:03:42 - INFO - PacienteService.get_paciente_by_id - Paciente 10 encontrado
+2025-07-27 12:03:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:43 - INFO - PersonalService.create_personal - Iniciando
+2025-07-27 12:03:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:43 - INFO - EspecialidadService.update_especialidad - ID: 42
+2025-07-27 12:03:43 - INFO - EspecialidadComponent.get_especialidad_by_id - Especialidad 42 encontrada
+2025-07-27 12:03:43 - INFO - EspecialidadComponent.update_especialidad - Especialidad 42 actualizada
+2025-07-27 12:03:43 - INFO - EspecialidadService.update_especialidad - Especialidad 42 actualizada
+2025-07-27 12:03:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:45 - INFO - PacienteService.update_paciente - ID: 10
+2025-07-27 12:03:45 - INFO - PacienteComponent.get_paciente_by_id - Paciente 10 encontrado
+2025-07-27 12:03:45 - INFO - PacienteComponent.update_paciente - Paciente 10 actualizado
+2025-07-27 12:03:45 - INFO - PacienteService.update_paciente - Paciente 10 actualizado
+2025-07-27 12:03:45 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:03:45 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:03:45 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:03:45 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:03:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:46 - INFO - EspecialidadService.get_especialidades_by_area - Área: terapeutico
+2025-07-27 12:03:46 - INFO - EspecialidadComponent.get_especialidades_by_area - 22 especialidades de área terapeutico encontradas
+2025-07-27 12:03:46 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de terapeutico obtenidas
+2025-07-27 12:03:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:47 - INFO - PacienteService.change_estado_paciente - ID: 10
+2025-07-27 12:03:47 - INFO - PacienteComponent.change_estado_paciente - Paciente 10 cambió a estado inactivo
+2025-07-27 12:03:47 - INFO - PacienteService.change_estado_paciente - Estado del paciente 10 cambiado
+2025-07-27 12:03:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:48 - INFO - PersonaService.create_persona - Iniciando
+2025-07-27 12:03:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:48 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 12:03:48 - INFO - PersonaComponent.get_persona_by_id - Persona 33 encontrada
+2025-07-27 12:03:48 - INFO - PersonaComponent.create_persona - Persona creada con ID: 33
+2025-07-27 12:03:48 - INFO - PersonaService.create_persona - Persona creada exitosamente
+2025-07-27 12:03:48 - INFO - EspecialidadComponent.get_especialidades_by_area - 20 especialidades de área pedagogico encontradas
+2025-07-27 12:03:48 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 12:03:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:49 - INFO - PacienteService.change_estado_paciente - ID: 10
+2025-07-27 12:03:49 - INFO - PacienteComponent.change_estado_paciente - Paciente 10 cambió a estado activo
+2025-07-27 12:03:49 - INFO - PacienteService.change_estado_paciente - Estado del paciente 10 cambiado
+2025-07-27 12:03:50 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:50 - INFO - EspecialidadService.get_especialidades_activas - Iniciando
+2025-07-27 12:03:50 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:50 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:03:50 - INFO - EspecialidadComponent.get_especialidades_activas - 42 especialidades activas encontradas
+2025-07-27 12:03:50 - INFO - EspecialidadService.get_especialidades_activas - Especialidades activas obtenidas
+2025-07-27 12:03:50 - INFO - TutorComponent.get_all_tutores - 10 tutores encontrados
+2025-07-27 12:03:50 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:03:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:51 - INFO - PacienteService.change_estado_paciente - ID: 10
+2025-07-27 12:03:51 - INFO - PacienteComponent.change_estado_paciente - Paciente 10 cambió a estado alta
+2025-07-27 12:03:51 - INFO - PacienteService.change_estado_paciente - Estado del paciente 10 cambiado
+2025-07-27 12:03:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:52 - INFO - EspecialidadService.get_estadisticas - Iniciando
+2025-07-27 12:03:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:52 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:03:52 - INFO - EspecialidadComponent.get_estadisticas_especialidades - Estadísticas obtenidas
+2025-07-27 12:03:52 - INFO - EspecialidadService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:03:52 - INFO - TutorComponent.get_tutor_by_id - Tutor 11 encontrado
+2025-07-27 12:03:52 - INFO - TutorComponent.create_tutor - Tutor creado con ID: 11
+2025-07-27 12:03:52 - INFO - TutorService.create_tutor - Tutor creado exitosamente
+2025-07-27 12:03:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:54 - INFO - PacienteService.get_pacientes_by_tutor - Tutor ID: 10
+2025-07-27 12:03:54 - INFO - PacienteComponent.get_pacientes_by_tutor - 1 pacientes del tutor 10 encontrados
+2025-07-27 12:03:54 - INFO - PacienteService.get_pacientes_by_tutor - Pacientes del tutor 10 obtenidos
+2025-07-27 12:03:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:55 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:03:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:55 - INFO - TutorService.get_tutor_by_id - ID: 11
+2025-07-27 12:03:55 - INFO - TutorComponent.get_tutor_by_id - Tutor 11 encontrado
+2025-07-27 12:03:55 - INFO - TutorService.get_tutor_by_id - Tutor 11 encontrado
+2025-07-27 12:03:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:56 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-07-27 12:03:56 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-07-27 12:03:56 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:03:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:57 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:03:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:57 - INFO - TutorService.update_tutor - ID: 11
+2025-07-27 12:03:57 - INFO - TutorComponent.get_tutor_by_id - Tutor 11 encontrado
+2025-07-27 12:03:57 - INFO - TutorComponent.update_tutor - Tutor 11 actualizado
+2025-07-27 12:03:57 - INFO - TutorService.update_tutor - Tutor 11 actualizado
+2025-07-27 12:03:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:58 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-07-27 12:03:58 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 22 personas disponibles
+2025-07-27 12:03:58 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:03:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:59 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:03:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:03:59 - INFO - TutorService.get_tutores_activos - Iniciando
+2025-07-27 12:03:59 - INFO - TutorComponent.get_tutores_activos - 11 tutores activos encontrados
+2025-07-27 12:03:59 - INFO - TutorService.get_tutores_activos - Tutores activos obtenidos
+2025-07-27 12:04:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:00 - INFO - PacienteService.create_paciente - Iniciando
+2025-07-27 12:04:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:01 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:04:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:01 - INFO - TutorService.get_estadisticas - Iniciando
+2025-07-27 12:04:01 - INFO - TutorComponent.get_estadisticas_tutores - Estadísticas obtenidas
+2025-07-27 12:04:01 - INFO - TutorService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:04:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:03 - INFO - PacienteService.create_paciente - Iniciando
+2025-07-27 12:04:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:03 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:04:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:03 - INFO - TutorService.get_personas_disponibles - Iniciando
+2025-07-27 12:04:04 - INFO - TutorComponent.get_personas_disponibles_para_tutor - 21 personas disponibles
+2025-07-27 12:04:04 - INFO - TutorService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:04:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:05 - INFO - PacienteService.create_paciente - Iniciando
+2025-07-27 12:04:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:05 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:04:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:06 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:04:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:07 - INFO - PacienteService.create_paciente - Iniciando
+2025-07-27 12:04:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:07 - INFO - EspecialidadService.create_especialidad - Iniciando
+2025-07-27 12:04:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:08 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:04:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:09 - INFO - PacienteService.change_estado_paciente - ID: 1
+2025-07-27 12:04:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:10 - INFO - EspecialidadService.update_especialidad - ID: 42
+2025-07-27 12:04:10 - INFO - EspecialidadComponent.get_especialidad_by_id - Especialidad 42 encontrada
+2025-07-27 12:04:10 - INFO - EspecialidadComponent.update_especialidad - Especialidad 42 actualizada
+2025-07-27 12:04:10 - INFO - EspecialidadService.update_especialidad - Especialidad 42 actualizada
+2025-07-27 12:04:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:10 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:04:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:12 - INFO - EspecialidadService.update_especialidad - ID: 42
+2025-07-27 12:04:12 - INFO - EspecialidadComponent.get_especialidad_by_id - Especialidad 42 encontrada
+2025-07-27 12:04:12 - INFO - EspecialidadComponent.update_especialidad - Especialidad 42 actualizada
+2025-07-27 12:04:12 - INFO - EspecialidadService.update_especialidad - Especialidad 42 actualizada
+2025-07-27 12:04:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:12 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:04:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:14 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:04:14 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:04:14 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:04:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:14 - INFO - TutorService.create_tutor - Iniciando
+2025-07-27 12:04:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:17 - INFO - TutorService.delete_tutor - ID: 11
+2025-07-27 12:04:17 - INFO - TutorComponent.deactivate_tutor - Tutor 11 desactivado
+2025-07-27 12:04:17 - INFO - TutorService.delete_tutor - Tutor 11 desactivado
+2025-07-27 12:04:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:04:19 - INFO - TutorService.delete_tutor - ID: 99999
+2025-07-27 12:06:51 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:06:51 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:06:51 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:06:51 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:06:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:06:53 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:06:53 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:06:53 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:06:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:06:56 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-27 12:06:56 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 8 terapeutas disponibles
+2025-07-27 12:06:56 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 8 terapeutas disponibles
+2025-07-27 12:06:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:06:58 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-27 12:06:58 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-27 12:06:58 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-27 12:07:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:00 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:07:00 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:07:00 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:07:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:02 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-27 12:07:02 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 7, Código: ST-2025-007
+2025-07-27 12:07:03 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 7
+2025-07-27 12:07:03 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 7
+2025-07-27 12:07:04 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 7
+2025-07-27 12:07:04 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 7
+2025-07-27 12:07:04 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 7
+2025-07-27 12:07:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:06 - INFO - SesionTerapiaService.get_sesion - ID: 7
+2025-07-27 12:07:06 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 7 encontrada
+2025-07-27 12:07:06 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-27 12:07:07 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-27 12:07:07 - INFO - SesionTerapiaService.get_sesion - Sesión 7 encontrada
+2025-07-27 12:07:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:09 - INFO - SesionTerapiaService.update_sesion - ID: 7
+2025-07-27 12:07:09 - INFO - SesionTerapiaComponent.update_sesion - Sesión 7 actualizada
+2025-07-27 12:07:09 - INFO - SesionTerapiaService.update_sesion - Sesión 7 actualizada
+2025-07-27 12:07:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:11 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 7
+2025-07-27 12:07:11 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-27 12:07:11 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-27 12:07:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:13 - INFO - SesionTerapiaService.marcar_sesion_realizada - Cronograma ID: 261
+2025-07-27 12:07:13 - INFO - SesionTerapiaComponent.marcar_sesion_realizada - Sesión 261 marcada como realizada
+2025-07-27 12:07:13 - INFO - SesionTerapiaService.marcar_sesion_realizada - Sesión 261 marcada como realizada
+2025-07-27 12:07:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:15 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-27 12:07:18 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:18 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 7
+2025-07-27 12:07:18 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 7
+2025-07-27 12:07:18 - INFO - SesionTerapiaService.add_paciente_to_sesion - Paciente 9 agregado a sesión 7
+2025-07-27 12:07:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:20 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-27 12:07:20 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 12:07:20 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:07:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:22 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-27 12:07:22 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 0 sesiones hoy
+2025-07-27 12:07:22 - INFO - SesionTerapiaService.get_sesiones_hoy - 0 sesiones hoy
+2025-07-27 12:07:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:24 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - ID: 8
+2025-07-27 12:07:24 - INFO - SesionTerapiaComponent.get_sesiones_by_terapeuta - 1 sesiones encontradas
+2025-07-27 12:07:24 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - Sesiones obtenidas
+2025-07-27 12:07:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:07:27 - INFO - SesionTerapiaService.delete_sesion - ID: 7
+2025-07-27 12:07:27 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 7 cancelada
+2025-07-27 12:07:27 - INFO - SesionTerapiaService.delete_sesion - Sesión 7 cancelada
+2025-07-27 12:14:28 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:14:28 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:14:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:14:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:14:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:30 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:14:30 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:14:30 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:14:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:33 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-27 12:14:33 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 8 terapeutas disponibles
+2025-07-27 12:14:33 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 8 terapeutas disponibles
+2025-07-27 12:14:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:35 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-27 12:14:35 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-27 12:14:35 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-27 12:14:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:37 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:14:37 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:14:37 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:14:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:39 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-27 12:14:39 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 8, Código: ST-2025-008
+2025-07-27 12:14:40 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 8
+2025-07-27 12:14:40 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 8
+2025-07-27 12:14:41 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 8
+2025-07-27 12:14:41 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 8
+2025-07-27 12:14:41 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 8
+2025-07-27 12:14:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:43 - INFO - SesionTerapiaService.get_sesion - ID: 8
+2025-07-27 12:14:43 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 8 encontrada
+2025-07-27 12:14:43 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-27 12:14:43 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-27 12:14:43 - INFO - SesionTerapiaService.get_sesion - Sesión 8 encontrada
+2025-07-27 12:14:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:45 - INFO - SesionTerapiaService.update_sesion - ID: 8
+2025-07-27 12:14:45 - INFO - SesionTerapiaComponent.update_sesion - Sesión 8 actualizada
+2025-07-27 12:14:45 - INFO - SesionTerapiaService.update_sesion - Sesión 8 actualizada
+2025-07-27 12:14:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:47 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 8
+2025-07-27 12:14:47 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-27 12:14:47 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-27 12:14:50 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:50 - INFO - SesionTerapiaService.marcar_sesion_realizada - Cronograma ID: 285
+2025-07-27 12:14:50 - INFO - SesionTerapiaComponent.marcar_sesion_realizada - Sesión 285 marcada como realizada
+2025-07-27 12:14:50 - INFO - SesionTerapiaService.marcar_sesion_realizada - Sesión 285 marcada como realizada
+2025-07-27 12:14:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:52 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-27 12:14:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:54 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 8
+2025-07-27 12:14:54 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 8
+2025-07-27 12:14:54 - INFO - SesionTerapiaService.add_paciente_to_sesion - Paciente 9 agregado a sesión 8
+2025-07-27 12:14:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:56 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-27 12:14:57 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 12:14:57 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:14:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:14:59 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-27 12:14:59 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 0 sesiones hoy
+2025-07-27 12:14:59 - INFO - SesionTerapiaService.get_sesiones_hoy - 0 sesiones hoy
+2025-07-27 12:15:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:15:01 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - ID: 8
+2025-07-27 12:15:01 - INFO - SesionTerapiaComponent.get_sesiones_by_terapeuta - 1 sesiones encontradas
+2025-07-27 12:15:01 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - Sesiones obtenidas
+2025-07-27 12:15:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:15:03 - INFO - SesionTerapiaService.delete_sesion - ID: 8
+2025-07-27 12:15:03 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 8 cancelada
+2025-07-27 12:15:03 - INFO - SesionTerapiaService.delete_sesion - Sesión 8 cancelada
+2025-07-27 12:16:40 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:17:01 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:17:01 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:17:02 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:17:02 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:17:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:04 - INFO - PersonaService.get_personas - Iniciando
+2025-07-27 12:17:04 - INFO - PersonaComponent.get_all_personas - 33 personas encontradas
+2025-07-27 12:17:04 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-07-27 12:17:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:04 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:04 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 22 personas disponibles
+2025-07-27 12:17:04 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:04 - INFO - PersonaService.get_personas - Iniciando
+2025-07-27 12:17:04 - INFO - PersonaComponent.get_all_personas - 33 personas encontradas
+2025-07-27 12:17:04 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-07-27 12:17:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:05 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:05 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 22 personas disponibles
+2025-07-27 12:17:05 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:06 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:06 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 22 personas disponibles
+2025-07-27 12:17:06 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:07 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:17:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:07 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:07 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:17:07 - INFO - UsuarioComponent.get_all_usuarios - 10 usuarios encontrados
+2025-07-27 12:17:07 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:17:07 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:17:07 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 22 personas disponibles
+2025-07-27 12:17:07 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:07 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:17:07 - INFO - UsuarioComponent.get_all_usuarios - 10 usuarios encontrados
+2025-07-27 12:17:07 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:17:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:07 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:17:07 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:17:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:08 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:08 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:17:08 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 22 personas disponibles
+2025-07-27 12:17:08 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:08 - INFO - PersonalComponent.get_all_personal - 8 miembros del personal encontrados
+2025-07-27 12:17:08 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:17:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:08 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:08 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:08 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:08 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:08 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:17:08 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 22 personas disponibles
+2025-07-27 12:17:08 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:08 - INFO - PersonalComponent.get_all_personal - 8 miembros del personal encontrados
+2025-07-27 12:17:08 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:17:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:08 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:09 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:09 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:09 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:17:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:09 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:09 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:09 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:17:09 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:09 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:09 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 22 personas disponibles
+2025-07-27 12:17:09 - INFO - TutorComponent.get_all_tutores - 11 tutores encontrados
+2025-07-27 12:17:09 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:09 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:17:09 - INFO - PacienteComponent.get_all_pacientes - 10 pacientes encontrados
+2025-07-27 12:17:09 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:17:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:09 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-07-27 12:17:10 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-07-27 12:17:10 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:17:10 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-07-27 12:17:10 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:10 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:10 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 22 personas disponibles
+2025-07-27 12:17:10 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:17:10 - INFO - PersonalComponent.get_all_personal - 8 miembros del personal encontrados
+2025-07-27 12:17:10 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:17:10 - INFO - TutorComponent.get_all_tutores - 11 tutores encontrados
+2025-07-27 12:17:10 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:17:10 - INFO - PacienteComponent.get_all_pacientes - 10 pacientes encontrados
+2025-07-27 12:17:10 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:10 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:17:10 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:17:10 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:10 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:10 - INFO - PersonalComponent.get_all_personal - 8 miembros del personal encontrados
+2025-07-27 12:17:10 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-07-27 12:17:10 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-07-27 12:17:10 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:17:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:10 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:17:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:11 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:17:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:11 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:11 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:17:11 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:17:11 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:11 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:11 - INFO - PacienteComponent.get_all_pacientes - 10 pacientes encontrados
+2025-07-27 12:17:11 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:17:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:11 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:17:11 - INFO - PacienteComponent.get_all_pacientes - 10 pacientes encontrados
+2025-07-27 12:17:11 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:17:15 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:17:15 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:17:16 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:17:16 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:17:18 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:18 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:17:18 - INFO - EspecialidadComponent.get_all_especialidades - 42 especialidades encontradas
+2025-07-27 12:17:18 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:17:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:20 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-27 12:17:20 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 8 terapeutas disponibles
+2025-07-27 12:17:20 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 8 terapeutas disponibles
+2025-07-27 12:17:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:22 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-27 12:17:22 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-27 12:17:22 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-27 12:17:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:25 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:17:25 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:17:25 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:17:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:27 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-27 12:17:27 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 9, Código: ST-2025-009
+2025-07-27 12:17:27 - INFO - Cronograma sesión 9: 10/12 generadas
+2025-07-27 12:17:28 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 9
+2025-07-27 12:17:28 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 9
+2025-07-27 12:17:28 - INFO - Cronograma sesión 9: 10/12 generadas
+2025-07-27 12:17:28 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 9
+2025-07-27 12:17:28 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 9
+2025-07-27 12:17:28 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 9
+2025-07-27 12:17:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:30 - INFO - SesionTerapiaService.get_sesion - ID: 9
+2025-07-27 12:17:30 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 9 encontrada
+2025-07-27 12:17:30 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-27 12:17:30 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-27 12:17:30 - INFO - SesionTerapiaService.get_sesion - Sesión 9 encontrada
+2025-07-27 12:17:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:33 - INFO - SesionTerapiaService.update_sesion - ID: 9
+2025-07-27 12:17:33 - INFO - SesionTerapiaComponent.update_sesion - Sesión 9 actualizada
+2025-07-27 12:17:33 - INFO - SesionTerapiaService.update_sesion - Sesión 9 actualizada
+2025-07-27 12:17:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:35 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 9
+2025-07-27 12:17:35 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-27 12:17:35 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-27 12:17:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:37 - INFO - SesionTerapiaService.marcar_sesion_realizada - Cronograma ID: 309
+2025-07-27 12:17:37 - INFO - SesionTerapiaComponent.marcar_sesion_realizada - Sesión 309 marcada como realizada
+2025-07-27 12:17:37 - INFO - SesionTerapiaService.marcar_sesion_realizada - Sesión 309 marcada como realizada
+2025-07-27 12:17:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:39 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-27 12:17:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:42 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 9
+2025-07-27 12:17:42 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 9
+2025-07-27 12:17:42 - INFO - SesionTerapiaService.add_paciente_to_sesion - Paciente 9 agregado a sesión 9
+2025-07-27 12:17:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:44 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-27 12:17:44 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 12:17:44 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:17:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:46 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-27 12:17:46 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 0 sesiones hoy
+2025-07-27 12:17:46 - INFO - SesionTerapiaService.get_sesiones_hoy - 0 sesiones hoy
+2025-07-27 12:17:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:48 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - ID: 8
+2025-07-27 12:17:48 - INFO - SesionTerapiaComponent.get_sesiones_by_terapeuta - 1 sesiones encontradas
+2025-07-27 12:17:48 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - Sesiones obtenidas
+2025-07-27 12:17:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:17:51 - INFO - SesionTerapiaService.delete_sesion - ID: 9
+2025-07-27 12:17:51 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 9 cancelada
+2025-07-27 12:17:51 - INFO - SesionTerapiaService.delete_sesion - Sesión 9 cancelada
+2025-07-27 12:30:28 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:51:56 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:52:15 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:53:12 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:53:36 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:54:09 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:54:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:12 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:54:12 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:54:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:12 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:54:12 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:54:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:13 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:54:13 - INFO - UsuarioComponent.get_all_usuarios - 8 usuarios encontrados
+2025-07-27 12:54:13 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:54:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:14 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:54:14 - INFO - UsuarioComponent.get_all_usuarios - 8 usuarios encontrados
+2025-07-27 12:54:14 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:54:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:15 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:54:15 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:54:15 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:54:16 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:54:16 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-27 12:54:16 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:54:16 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:54:16 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:54:16 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:54:16 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:54:16 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:54:16 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:54:16 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-27 12:54:16 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:54:16 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:54:16 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:54:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:16 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:54:16 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:54:16 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:54:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:20 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:54:20 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:54:20 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:54:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:20 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:20 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-07-27 12:54:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:20 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:54:20 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-07-27 12:54:20 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:20 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-07-27 12:54:20 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:54:20 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-07-27 12:54:20 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - TutorService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:21 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-27 12:54:21 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:54:21 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:54:21 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:21 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-07-27 12:54:21 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - TutorService.get_estadisticas - Iniciando
+2025-07-27 12:54:21 - INFO - TutorComponent.get_personas_disponibles_para_tutor - 17 personas disponibles
+2025-07-27 12:54:21 - INFO - TutorService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:21 - INFO - TutorComponent.get_estadisticas_tutores - Estadísticas obtenidas
+2025-07-27 12:54:21 - INFO - TutorService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:54:21 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-07-27 12:54:21 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:54:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:21 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-07-27 12:54:21 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-07-27 12:54:21 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:54:22 - INFO - TutorService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - TutorService.get_estadisticas - Iniciando
+2025-07-27 12:54:22 - INFO - TutorComponent.get_personas_disponibles_para_tutor - 17 personas disponibles
+2025-07-27 12:54:22 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-27 12:54:22 - INFO - TutorService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:22 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:54:22 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:54:22 - INFO - TutorComponent.get_estadisticas_tutores - Estadísticas obtenidas
+2025-07-27 12:54:22 - INFO - TutorService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:54:22 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-07-27 12:54:22 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:54:22 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:54:22 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:22 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 18 personas disponibles
+2025-07-27 12:54:22 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - TutorService.get_tutores - Iniciando
+2025-07-27 12:54:22 - INFO - UsuarioComponent.get_all_usuarios - 8 usuarios encontrados
+2025-07-27 12:54:22 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:54:22 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:54:22 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-27 12:54:22 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:54:22 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-07-27 12:54:22 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:54:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:22 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:22 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:54:22 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:54:23 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 18 personas disponibles
+2025-07-27 12:54:23 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:23 - INFO - UsuarioService.get_usuarios - Iniciando
+2025-07-27 12:54:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:23 - INFO - RolService.get_roles - Iniciando
+2025-07-27 12:54:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:23 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-27 12:54:23 - INFO - UsuarioComponent.get_all_usuarios - 8 usuarios encontrados
+2025-07-27 12:54:23 - INFO - UsuarioService.get_usuarios - Usuarios obtenidos exitosamente
+2025-07-27 12:54:23 - INFO - RolService.get_roles - 4 roles encontrados
+2025-07-27 12:54:23 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-27 12:54:23 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-27 12:54:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:23 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:23 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 18 personas disponibles
+2025-07-27 12:54:23 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:24 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-07-27 12:54:24 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 18 personas disponibles
+2025-07-27 12:54:24 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-07-27 12:54:49 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:54:56 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:54:57 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:54:57 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:54:57 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:54:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:54:59 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 12:54:59 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 12:54:59 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 12:55:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:01 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:55:01 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:55:01 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:55:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:03 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:55:03 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:55:03 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:55:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:06 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 12:55:06 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:55:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:08 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 12:55:08 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 1 creada exitosamente
+2025-07-27 12:55:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:14 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 12:55:15 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 12:55:15 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:55:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:55:59 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:56:52 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:56:52 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:56:52 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:56:52 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:56:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:56:54 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 12:56:54 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 12:56:54 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 12:56:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:56:56 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:56:56 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:56:56 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:56:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:56:58 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:56:58 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:56:58 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:57:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:01 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 12:57:01 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:57:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:03 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 12:57:03 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 2 creada exitosamente
+2025-07-27 12:57:03 - INFO - Cronograma sesión pedagógica 2: 10/36 generadas
+2025-07-27 12:57:04 - INFO - Cronograma sesión pedagógica 2: 20/36 generadas
+2025-07-27 12:57:04 - INFO - Cronograma sesión pedagógica 2: 30/36 generadas
+2025-07-27 12:57:05 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 2
+2025-07-27 12:57:05 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 2
+2025-07-27 12:57:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:07 - INFO - SesionPedagogicaService.get_sesion - ID: 2
+2025-07-27 12:57:07 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 2 no encontrada
+2025-07-27 12:57:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:09 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 2
+2025-07-27 12:57:09 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 2
+2025-07-27 12:57:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:12 - INFO - Cronograma sesión pedagógica 2: 10/36 generadas
+2025-07-27 12:57:12 - INFO - Cronograma sesión pedagógica 2: 20/36 generadas
+2025-07-27 12:57:13 - INFO - Cronograma sesión pedagógica 2: 30/36 generadas
+2025-07-27 12:57:13 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 2
+2025-07-27 12:57:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:15 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 2
+2025-07-27 12:57:15 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 2
+2025-07-27 12:57:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:19 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 2
+2025-07-27 12:57:20 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 12:57:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:22 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 2
+2025-07-27 12:57:22 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 2
+2025-07-27 12:57:22 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 1
+2025-07-27 12:57:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:24 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 2
+2025-07-27 12:57:24 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 12:57:26 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:26 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 12:57:26 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 12:57:26 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 12:57:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:57:33 - INFO - SesionPedagogicaService.delete_sesion - ID: 2
+2025-07-27 12:57:33 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 2 no encontrada
+2025-07-27 12:58:29 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:59:26 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 12:59:34 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 12:59:34 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 12:59:34 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 12:59:34 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 12:59:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:37 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 12:59:37 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 12:59:37 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 12:59:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:39 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 12:59:39 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 12:59:39 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 12:59:41 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:41 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 12:59:41 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 12:59:41 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 12:59:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:43 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 12:59:43 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:59:43 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 12:59:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:46 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 12:59:46 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 3 creada exitosamente
+2025-07-27 12:59:46 - INFO - Cronograma sesión pedagógica 3: 10/36 generadas
+2025-07-27 12:59:47 - INFO - Cronograma sesión pedagógica 3: 20/36 generadas
+2025-07-27 12:59:47 - INFO - Cronograma sesión pedagógica 3: 30/36 generadas
+2025-07-27 12:59:47 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 3
+2025-07-27 12:59:47 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 3
+2025-07-27 12:59:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:49 - INFO - SesionPedagogicaService.get_sesion - ID: 3
+2025-07-27 12:59:50 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 3 no encontrada
+2025-07-27 12:59:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:52 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 3
+2025-07-27 12:59:52 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 3
+2025-07-27 12:59:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:55 - INFO - Cronograma sesión pedagógica 3: 10/36 generadas
+2025-07-27 12:59:55 - INFO - Cronograma sesión pedagógica 3: 20/36 generadas
+2025-07-27 12:59:56 - INFO - Cronograma sesión pedagógica 3: 30/36 generadas
+2025-07-27 12:59:56 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 3
+2025-07-27 12:59:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 12:59:58 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 3
+2025-07-27 12:59:58 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 3
+2025-07-27 13:00:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:02 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 3
+2025-07-27 13:00:02 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:00:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:04 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 3
+2025-07-27 13:00:04 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 3
+2025-07-27 13:00:04 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 2
+2025-07-27 13:00:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:07 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 3
+2025-07-27 13:00:07 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:00:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:09 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:00:09 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:00:09 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:00:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:13 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 2 sesiones encontradas para pedagogo 1
+2025-07-27 13:00:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:16 - INFO - SesionPedagogicaService.delete_sesion - ID: 3
+2025-07-27 13:00:16 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 3 no encontrada
+2025-07-27 13:00:25 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:00:25 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:00:43 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:00:43 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:00:43 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:00:43 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:00:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:46 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:00:46 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:00:46 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:00:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:48 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:00:48 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:00:48 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:00:50 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:50 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:00:50 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:00:50 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:00:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:52 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:00:52 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:00:52 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:00:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:54 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:00:55 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 4 creada exitosamente
+2025-07-27 13:00:55 - INFO - Cronograma sesión pedagógica 4: 10/36 generadas
+2025-07-27 13:00:55 - INFO - Cronograma sesión pedagógica 4: 20/36 generadas
+2025-07-27 13:00:56 - INFO - Cronograma sesión pedagógica 4: 30/36 generadas
+2025-07-27 13:00:56 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 4
+2025-07-27 13:00:56 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 4
+2025-07-27 13:00:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:00:58 - INFO - SesionPedagogicaService.get_sesion - ID: 4
+2025-07-27 13:00:58 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 4 no encontrada
+2025-07-27 13:01:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:00 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 4
+2025-07-27 13:01:00 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 4
+2025-07-27 13:01:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:03 - INFO - Cronograma sesión pedagógica 4: 10/36 generadas
+2025-07-27 13:01:03 - INFO - Cronograma sesión pedagógica 4: 20/36 generadas
+2025-07-27 13:01:04 - INFO - Cronograma sesión pedagógica 4: 30/36 generadas
+2025-07-27 13:01:04 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 4
+2025-07-27 13:01:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:06 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 4
+2025-07-27 13:01:07 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 4
+2025-07-27 13:01:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:11 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 4
+2025-07-27 13:01:11 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:01:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:13 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 4
+2025-07-27 13:01:13 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 4
+2025-07-27 13:01:13 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 3
+2025-07-27 13:01:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:15 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 4
+2025-07-27 13:01:15 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:01:18 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:18 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:01:18 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:01:18 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:01:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:22 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 3 sesiones encontradas para pedagogo 1
+2025-07-27 13:01:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:01:24 - INFO - SesionPedagogicaService.delete_sesion - ID: 4
+2025-07-27 13:01:24 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 4 no encontrada
+2025-07-27 13:02:52 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:02:59 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:02:59 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:02:59 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:02:59 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:03:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:01 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:03:01 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:03:01 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:03:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:04 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:03:04 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:03:04 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:03:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:06 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:03:06 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:03:06 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:03:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:08 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:03:08 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:03:08 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:03:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:10 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:03:10 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 5 creada exitosamente
+2025-07-27 13:03:11 - INFO - Cronograma sesión pedagógica 5: 10/36 generadas
+2025-07-27 13:03:11 - INFO - Cronograma sesión pedagógica 5: 20/36 generadas
+2025-07-27 13:03:12 - INFO - Cronograma sesión pedagógica 5: 30/36 generadas
+2025-07-27 13:03:12 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 5
+2025-07-27 13:03:12 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 5
+2025-07-27 13:03:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:14 - INFO - SesionPedagogicaService.get_sesion - ID: 5
+2025-07-27 13:03:14 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 5 no encontrada
+2025-07-27 13:03:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:16 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 5
+2025-07-27 13:03:16 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 5
+2025-07-27 13:03:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:19 - INFO - Cronograma sesión pedagógica 5: 10/36 generadas
+2025-07-27 13:03:20 - INFO - Cronograma sesión pedagógica 5: 20/36 generadas
+2025-07-27 13:03:20 - INFO - Cronograma sesión pedagógica 5: 30/36 generadas
+2025-07-27 13:03:21 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 5
+2025-07-27 13:03:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:23 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 5
+2025-07-27 13:03:23 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 5
+2025-07-27 13:03:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:27 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 5
+2025-07-27 13:03:27 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:03:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:29 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 5
+2025-07-27 13:03:29 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 5
+2025-07-27 13:03:29 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 4
+2025-07-27 13:03:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:31 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 5
+2025-07-27 13:03:31 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:03:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:34 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:03:34 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:03:34 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:03:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:38 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:38 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 4 sesiones encontradas para pedagogo 1
+2025-07-27 13:03:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:03:40 - INFO - SesionPedagogicaService.delete_sesion - ID: 5
+2025-07-27 13:03:40 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 5 no encontrada
+2025-07-27 13:04:16 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:04:23 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:04:23 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:04:23 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:04:23 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:04:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:25 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:04:25 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:04:25 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:04:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:27 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:04:27 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:04:27 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:04:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:30 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:04:30 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:04:30 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:04:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:32 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:04:32 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:04:32 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:04:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:34 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:04:34 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 6 creada exitosamente
+2025-07-27 13:04:35 - INFO - Cronograma sesión pedagógica 6: 10/36 generadas
+2025-07-27 13:04:35 - INFO - Cronograma sesión pedagógica 6: 20/36 generadas
+2025-07-27 13:04:36 - INFO - Cronograma sesión pedagógica 6: 30/36 generadas
+2025-07-27 13:04:36 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 6
+2025-07-27 13:04:36 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 6
+2025-07-27 13:04:38 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:38 - INFO - SesionPedagogicaService.get_sesion - ID: 6
+2025-07-27 13:04:38 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 6 encontrada
+2025-07-27 13:04:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:40 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 6
+2025-07-27 13:04:40 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 6
+2025-07-27 13:04:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:43 - INFO - Cronograma sesión pedagógica 6: 10/36 generadas
+2025-07-27 13:04:43 - INFO - Cronograma sesión pedagógica 6: 20/36 generadas
+2025-07-27 13:04:44 - INFO - Cronograma sesión pedagógica 6: 30/36 generadas
+2025-07-27 13:04:44 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 6
+2025-07-27 13:04:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:46 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 6
+2025-07-27 13:04:46 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 6
+2025-07-27 13:04:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:51 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 6
+2025-07-27 13:04:51 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:04:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:53 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 6
+2025-07-27 13:04:53 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 6
+2025-07-27 13:04:53 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 5
+2025-07-27 13:04:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:55 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 6
+2025-07-27 13:04:55 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:04:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:04:57 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:04:57 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:04:57 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:04:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:02 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 5 sesiones encontradas para pedagogo 1
+2025-07-27 13:05:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:04 - INFO - SesionPedagogicaService.delete_sesion - ID: 6
+2025-07-27 13:05:04 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 6 encontrada
+2025-07-27 13:05:04 - INFO - SesionPedagogicaComponent.delete_sesion - Sesión 6 cancelada
+2025-07-27 13:05:04 - INFO - SesionPedagogicaService.delete_sesion - Sesión 6 cancelada
+2025-07-27 13:05:30 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:05:36 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:05:36 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:05:37 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:05:37 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:05:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:39 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:05:39 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:05:39 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:05:41 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:41 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:05:41 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:05:41 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:05:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:43 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:05:43 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:05:43 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:05:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:45 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:05:46 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:05:46 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:05:48 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:48 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:05:48 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 7 creada exitosamente
+2025-07-27 13:05:48 - INFO - Cronograma sesión pedagógica 7: 10/36 generadas
+2025-07-27 13:05:49 - INFO - Cronograma sesión pedagógica 7: 20/36 generadas
+2025-07-27 13:05:49 - INFO - Cronograma sesión pedagógica 7: 30/36 generadas
+2025-07-27 13:05:50 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 7
+2025-07-27 13:05:50 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 7
+2025-07-27 13:05:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:52 - INFO - SesionPedagogicaService.get_sesion - ID: 7
+2025-07-27 13:05:52 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 7 encontrada
+2025-07-27 13:05:52 - INFO - SesionPedagogicaService.get_sesion - Sesión 7 encontrada
+2025-07-27 13:05:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:54 - INFO - SesionPedagogicaService.update_sesion - ID: 7
+2025-07-27 13:05:54 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 7 encontrada
+2025-07-27 13:05:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:56 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 7
+2025-07-27 13:05:56 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 7
+2025-07-27 13:05:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:05:59 - INFO - Cronograma sesión pedagógica 7: 10/36 generadas
+2025-07-27 13:06:00 - INFO - Cronograma sesión pedagógica 7: 20/36 generadas
+2025-07-27 13:06:01 - INFO - Cronograma sesión pedagógica 7: 30/36 generadas
+2025-07-27 13:06:01 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 7
+2025-07-27 13:06:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:03 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 7
+2025-07-27 13:06:03 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 7
+2025-07-27 13:06:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:08 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 7
+2025-07-27 13:06:08 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:06:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:10 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 7
+2025-07-27 13:06:10 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 7
+2025-07-27 13:06:10 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 6
+2025-07-27 13:06:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:12 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 7
+2025-07-27 13:06:12 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:06:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:14 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:06:14 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:06:14 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:06:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:19 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 6 sesiones encontradas para pedagogo 1
+2025-07-27 13:06:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:06:21 - INFO - SesionPedagogicaService.delete_sesion - ID: 7
+2025-07-27 13:06:21 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 7 encontrada
+2025-07-27 13:06:21 - INFO - SesionPedagogicaComponent.delete_sesion - Sesión 7 cancelada
+2025-07-27 13:06:21 - INFO - SesionPedagogicaService.delete_sesion - Sesión 7 cancelada
+2025-07-27 13:07:33 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:07:42 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:07:42 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:07:42 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:07:42 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:07:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:07:45 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:07:45 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:07:45 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:07:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:07:47 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:07:47 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:07:47 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:07:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:07:49 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:07:49 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:07:49 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:07:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:07:51 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:07:51 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:07:51 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:07:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:07:53 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:07:54 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 8 creada exitosamente
+2025-07-27 13:07:54 - INFO - Cronograma sesión pedagógica 8: 10/36 generadas
+2025-07-27 13:07:55 - INFO - Cronograma sesión pedagógica 8: 20/36 generadas
+2025-07-27 13:07:56 - INFO - Cronograma sesión pedagógica 8: 30/36 generadas
+2025-07-27 13:07:56 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 8
+2025-07-27 13:07:56 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 8
+2025-07-27 13:07:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:07:58 - INFO - SesionPedagogicaService.get_sesion - ID: 8
+2025-07-27 13:07:58 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 8 encontrada
+2025-07-27 13:07:58 - INFO - SesionPedagogicaService.get_sesion - Sesión 8 encontrada
+2025-07-27 13:08:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:00 - INFO - SesionPedagogicaService.update_sesion - ID: 8
+2025-07-27 13:08:01 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 8 encontrada
+2025-07-27 13:08:01 - INFO - SesionPedagogicaComponent.update_sesion - Sesión 8 actualizada
+2025-07-27 13:08:01 - INFO - SesionPedagogicaService.update_sesion - Sesión 8 actualizada
+2025-07-27 13:08:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:03 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:08:03 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:08:03 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:08:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:05 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 8
+2025-07-27 13:08:05 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 8
+2025-07-27 13:08:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:08 - INFO - Cronograma sesión pedagógica 8: 10/36 generadas
+2025-07-27 13:08:09 - INFO - Cronograma sesión pedagógica 8: 20/36 generadas
+2025-07-27 13:08:09 - INFO - Cronograma sesión pedagógica 8: 30/36 generadas
+2025-07-27 13:08:09 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 8
+2025-07-27 13:08:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:11 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 8
+2025-07-27 13:08:12 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 8
+2025-07-27 13:08:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:16 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 8
+2025-07-27 13:08:16 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:08:18 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:18 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 8
+2025-07-27 13:08:18 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 8
+2025-07-27 13:08:18 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 7
+2025-07-27 13:08:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:20 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 8
+2025-07-27 13:08:20 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:08:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:23 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:08:23 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:08:23 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:08:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:27 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 7 sesiones encontradas para pedagogo 1
+2025-07-27 13:08:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:08:29 - INFO - SesionPedagogicaService.delete_sesion - ID: 8
+2025-07-27 13:08:29 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 8 encontrada
+2025-07-27 13:08:29 - INFO - SesionPedagogicaComponent.delete_sesion - Sesión 8 cancelada
+2025-07-27 13:08:29 - INFO - SesionPedagogicaService.delete_sesion - Sesión 8 cancelada
+2025-07-27 13:15:46 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:15:47 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:15:47 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:15:47 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:15:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:15:47 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 7 sesiones encontradas para pedagogo 1
+2025-07-27 13:16:05 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-27 13:16:12 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:16:12 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:16:12 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:16:12 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:16:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:14 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:16:14 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:16:14 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:16:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:17 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:16:17 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:16:17 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:16:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:19 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:16:19 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:16:19 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:16:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:21 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:16:21 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:16:21 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:16:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:23 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:16:23 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 9 creada exitosamente
+2025-07-27 13:16:24 - INFO - Cronograma sesión pedagógica 9: 10/36 generadas
+2025-07-27 13:16:25 - INFO - Cronograma sesión pedagógica 9: 20/36 generadas
+2025-07-27 13:16:25 - INFO - Cronograma sesión pedagógica 9: 30/36 generadas
+2025-07-27 13:16:25 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 9
+2025-07-27 13:16:25 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 9
+2025-07-27 13:16:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:27 - INFO - SesionPedagogicaService.get_sesion - ID: 9
+2025-07-27 13:16:28 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 9 encontrada
+2025-07-27 13:16:28 - INFO - SesionPedagogicaService.get_sesion - Sesión 9 encontrada
+2025-07-27 13:16:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:30 - INFO - SesionPedagogicaService.update_sesion - ID: 9
+2025-07-27 13:16:30 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 9 encontrada
+2025-07-27 13:16:30 - INFO - SesionPedagogicaComponent.update_sesion - Sesión 9 actualizada
+2025-07-27 13:16:30 - INFO - SesionPedagogicaService.update_sesion - Sesión 9 actualizada
+2025-07-27 13:16:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:32 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:16:32 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:16:32 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:16:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:34 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 9
+2025-07-27 13:16:34 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 9
+2025-07-27 13:16:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:37 - INFO - Cronograma sesión pedagógica 9: 10/36 generadas
+2025-07-27 13:16:38 - INFO - Cronograma sesión pedagógica 9: 20/36 generadas
+2025-07-27 13:16:38 - INFO - Cronograma sesión pedagógica 9: 30/36 generadas
+2025-07-27 13:16:38 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 9
+2025-07-27 13:16:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:40 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 9
+2025-07-27 13:16:40 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 9
+2025-07-27 13:16:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:45 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 9
+2025-07-27 13:16:45 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:16:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:47 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 9
+2025-07-27 13:16:47 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 9
+2025-07-27 13:16:47 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 8
+2025-07-27 13:16:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:49 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 9
+2025-07-27 13:16:49 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:16:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:51 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:16:51 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:16:51 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:16:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:56 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 8 sesiones encontradas para pedagogo 1
+2025-07-27 13:16:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:16:58 - INFO - SesionPedagogicaService.delete_sesion - ID: 9
+2025-07-27 13:16:58 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 9 encontrada
+2025-07-27 13:16:58 - INFO - SesionPedagogicaComponent.delete_sesion - Sesión 9 cancelada
+2025-07-27 13:16:58 - INFO - SesionPedagogicaService.delete_sesion - Sesión 9 cancelada
+2025-07-27 13:17:37 - INFO - LoginService.login - Intento de autenticacion
+2025-07-27 13:17:37 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-27 13:17:38 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-27 13:17:38 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-27 13:17:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:40 - INFO - EspecialidadService.get_especialidades_by_area - Área: pedagogico
+2025-07-27 13:17:40 - INFO - EspecialidadComponent.get_especialidades_by_area - 34 especialidades de área pedagogico encontradas
+2025-07-27 13:17:40 - INFO - EspecialidadService.get_especialidades_by_area - Especialidades de pedagogico obtenidas
+2025-07-27 13:17:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:42 - INFO - PersonalService.get_personal - Iniciando
+2025-07-27 13:17:42 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados
+2025-07-27 13:17:42 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-07-27 13:17:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:44 - INFO - PacienteService.get_pacientes - Iniciando
+2025-07-27 13:17:44 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-07-27 13:17:44 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-07-27 13:17:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:46 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:17:46 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:17:46 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:17:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:49 - INFO - SesionPedagogicaService.create_sesion - Iniciando
+2025-07-27 13:17:49 - INFO - SesionPedagogicaComponent.create_sesion - Sesión 10 creada exitosamente
+2025-07-27 13:17:49 - INFO - Cronograma sesión pedagógica 10: 10/36 generadas
+2025-07-27 13:17:50 - INFO - Cronograma sesión pedagógica 10: 20/36 generadas
+2025-07-27 13:17:50 - INFO - Cronograma sesión pedagógica 10: 30/36 generadas
+2025-07-27 13:17:51 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 10
+2025-07-27 13:17:51 - INFO - SesionPedagogicaService.create_sesion - Sesión creada: 10
+2025-07-27 13:17:53 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:53 - INFO - SesionPedagogicaService.get_sesion - ID: 10
+2025-07-27 13:17:53 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 10 encontrada
+2025-07-27 13:17:53 - INFO - SesionPedagogicaService.get_sesion - Sesión 10 encontrada
+2025-07-27 13:17:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:55 - INFO - SesionPedagogicaService.update_sesion - ID: 10
+2025-07-27 13:17:55 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 10 encontrada
+2025-07-27 13:17:55 - INFO - SesionPedagogicaComponent.update_sesion - Sesión 10 actualizada
+2025-07-27 13:17:55 - INFO - SesionPedagogicaService.update_sesion - Sesión 10 actualizada
+2025-07-27 13:17:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:17:57 - INFO - SesionPedagogicaService.get_sesiones - Iniciando
+2025-07-27 13:17:57 - INFO - SesionPedagogicaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:17:57 - INFO - SesionPedagogicaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-27 13:18:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:00 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 10
+2025-07-27 13:18:00 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 10
+2025-07-27 13:18:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:02 - INFO - Cronograma sesión pedagógica 10: 10/36 generadas
+2025-07-27 13:18:03 - INFO - Cronograma sesión pedagógica 10: 20/36 generadas
+2025-07-27 13:18:03 - INFO - Cronograma sesión pedagógica 10: 30/36 generadas
+2025-07-27 13:18:03 - INFO - SesionPedagogicaComponent.generar_cronograma - 36 clases programadas para sesión 10
+2025-07-27 13:18:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:05 - INFO - SesionPedagogicaService.get_cronograma_sesion - Sesión: 10
+2025-07-27 13:18:06 - INFO - SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión 10
+2025-07-27 13:18:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:10 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 10
+2025-07-27 13:18:10 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:18:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:12 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Sesión: 10
+2025-07-27 13:18:12 - INFO - SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión 10
+2025-07-27 13:18:12 - INFO - SesionPedagogicaService.add_estudiante_to_sesion - Estudiante agregado: 9
+2025-07-27 13:18:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:14 - INFO - SesionPedagogicaService.get_estudiantes_sesion - Sesión: 10
+2025-07-27 13:18:14 - INFO - SesionPedagogicaComponent.get_estudiantes_sesion - 0 estudiantes encontrados
+2025-07-27 13:18:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:16 - INFO - SesionPedagogicaService.get_estadisticas - Iniciando
+2025-07-27 13:18:17 - INFO - SesionPedagogicaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-27 13:18:17 - INFO - SesionPedagogicaService.get_estadisticas - Estadísticas obtenidas
+2025-07-27 13:18:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:21 - INFO - SesionPedagogicaComponent.get_sesiones_by_pedagogo - 9 sesiones encontradas para pedagogo 1
+2025-07-27 13:18:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-27 13:18:23 - INFO - SesionPedagogicaService.delete_sesion - ID: 10
+2025-07-27 13:18:23 - INFO - SesionPedagogicaComponent.get_sesion_by_id - Sesión 10 encontrada
+2025-07-27 13:18:23 - INFO - SesionPedagogicaComponent.delete_sesion - Sesión 10 cancelada
+2025-07-27 13:18:23 - INFO - SesionPedagogicaService.delete_sesion - Sesión 10 cancelada

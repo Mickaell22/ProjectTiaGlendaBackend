@@ -515,6 +515,166 @@ CREATE TABLE asistencia_sesiones (
 );
 
 -- =============================================
+-- 9.5 TABLA: SESION_PEDAGOGICA (Sesiones pedagógicas/educativas)
+-- =============================================
+CREATE TABLE sesion_pedagogica (
+    id SERIAL PRIMARY KEY,
+    
+    -- Información básica de la sesión
+    codigo_sesion VARCHAR(30) UNIQUE NOT NULL, -- Código único para identificar la sesión (ej: SP-2025-001)
+    titulo VARCHAR(200) NOT NULL, -- Título descriptivo de la sesión/materia
+    
+    -- Relaciones principales
+    pedagogo_id INTEGER NOT NULL, -- ID del personal (pedagogo/profesor)
+    especialidad_id INTEGER NOT NULL, -- Materia/especialidad pedagógica
+    
+    -- Configuración de horarios académicos
+    fecha_inicio DATE NOT NULL, -- Fecha de inicio del período académico
+    fecha_fin DATE NOT NULL, -- Fecha de fin del período académico
+    dias_semana VARCHAR(60) NOT NULL, -- Días de la semana separados por comas (ej: "lunes,miercoles,viernes")
+    hora_inicio TIME NOT NULL, -- Hora de inicio de la clase
+    duracion_minutos INTEGER DEFAULT 60 CHECK (duracion_minutos BETWEEN 30 AND 180), -- Duración en minutos
+    
+    -- Información académica
+    numero_clases_programadas INTEGER NOT NULL CHECK (numero_clases_programadas > 0),
+    nivel_academico VARCHAR(20) CHECK (nivel_academico IN ('basico', 'intermedio', 'avanzado')),
+    capacidad_maxima INTEGER DEFAULT 15 CHECK (capacidad_maxima BETWEEN 1 AND 30), -- Máximo estudiantes
+    modalidad VARCHAR(15) DEFAULT 'presencial' CHECK (modalidad IN ('presencial', 'virtual', 'hibrida')),
+    
+    -- Información financiera
+    costo_total DECIMAL(10,2) NOT NULL CHECK (costo_total >= 0),
+    costo_por_clase DECIMAL(10,2) GENERATED ALWAYS AS (costo_total / numero_clases_programadas) STORED,
+    periodo_academico VARCHAR(20), -- Ej: "2025-1", "Verano 2025"
+    
+    -- Control y estado
+    estado VARCHAR(15) DEFAULT 'activo' CHECK (estado IN ('activo', 'suspendido', 'completado', 'cancelado')),
+    observaciones TEXT,
+    
+    -- Campos de auditoría
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+    
+    -- Claves foráneas
+    FOREIGN KEY (pedagogo_id) REFERENCES personal(id) ON DELETE RESTRICT,
+    FOREIGN KEY (especialidad_id) REFERENCES especialidad(id) ON DELETE RESTRICT
+);
+
+-- =============================================
+-- 9.6 TABLA: SESION_ESTUDIANTE (Relación N:N sesion_pedagogica - paciente)
+-- =============================================
+CREATE TABLE sesion_estudiante (
+    id SERIAL PRIMARY KEY,
+    
+    -- Relaciones principales
+    sesion_pedagogica_id INTEGER NOT NULL,
+    paciente_id INTEGER NOT NULL, -- Reutilizamos tabla paciente para estudiantes
+    
+    -- Información específica del estudiante en esta sesión
+    fecha_incorporacion DATE DEFAULT CURRENT_DATE,
+    costo_estudiante DECIMAL(10,2), -- Costo específico para este estudiante (puede tener descuentos)
+    observaciones_estudiante TEXT,
+    
+    -- Estado académico
+    estado VARCHAR(15) DEFAULT 'activo' CHECK (estado IN ('activo', 'retirado', 'transferido', 'completado')),
+    nota_final DECIMAL(5,2), -- Calificación final (0.00 - 10.00)
+    asistencia_porcentaje DECIMAL(5,2), -- Porcentaje de asistencia
+    
+    -- Campos de auditoría
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+    
+    -- Claves foráneas
+    FOREIGN KEY (sesion_pedagogica_id) REFERENCES sesion_pedagogica(id) ON DELETE CASCADE,
+    FOREIGN KEY (paciente_id) REFERENCES paciente(id) ON DELETE RESTRICT,
+    
+    -- Un estudiante no puede estar duplicado en la misma sesión
+    UNIQUE(sesion_pedagogica_id, paciente_id)
+);
+
+-- =============================================
+-- 9.7 TABLA: CRONOGRAMA_CLASES (Cronograma específico para sesiones pedagógicas)
+-- =============================================
+CREATE TABLE cronograma_clases (
+    id SERIAL PRIMARY KEY,
+    
+    -- Relación principal
+    sesion_pedagogica_id INTEGER NOT NULL,
+    
+    -- Información de la clase específica
+    numero_clase INTEGER NOT NULL,
+    fecha_programada DATE NOT NULL,
+    hora_programada TIME NOT NULL,
+    tema_clase VARCHAR(255), -- Tema específico de la clase
+    
+    -- Control de estado
+    estado VARCHAR(15) DEFAULT 'programada' CHECK (estado IN ('programada', 'realizada', 'cancelada', 'reprogramada')),
+    fecha_realizacion DATE, -- Fecha real cuando se realizó (puede diferir de la programada)
+    
+    -- Contenido educativo
+    objetivos_clase TEXT, -- Objetivos específicos de esta clase
+    material_requerido TEXT, -- Materiales necesarios para la clase
+    tareas_asignadas TEXT, -- Tareas para casa
+    
+    -- Evaluación
+    evaluacion_programada BOOLEAN DEFAULT FALSE,
+    tipo_evaluacion VARCHAR(20) CHECK (tipo_evaluacion IN ('quiz', 'examen', 'proyecto', 'presentacion', 'practica')),
+    
+    -- Campos de auditoría
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+    
+    -- Claves foráneas
+    FOREIGN KEY (sesion_pedagogica_id) REFERENCES sesion_pedagogica(id) ON DELETE CASCADE,
+    
+    -- Una sesión no puede tener dos clases con el mismo número
+    UNIQUE(sesion_pedagogica_id, numero_clase)
+);
+
+-- =============================================
+-- 9.8 TABLA: ASISTENCIA_CLASES (Control de asistencia para clases pedagógicas)
+-- =============================================
+CREATE TABLE asistencia_clases (
+    id SERIAL PRIMARY KEY,
+    
+    -- Relaciones principales
+    cronograma_clase_id INTEGER NOT NULL,
+    paciente_id INTEGER NOT NULL, -- El estudiante (usando tabla paciente)
+    
+    -- Control de asistencia
+    asistio BOOLEAN DEFAULT FALSE,
+    llegada_tardanza_minutos INTEGER DEFAULT 0,
+    observaciones_asistencia TEXT,
+    
+    -- Evaluación académica de la clase
+    participacion_clase DECIMAL(3,1) CHECK (participacion_clase >= 0 AND participacion_clase <= 10), -- 0.0 - 10.0
+    tareas_entregadas BOOLEAN DEFAULT FALSE,
+    notas_comportamiento TEXT,
+    
+    -- Evaluaciones específicas
+    calificacion_evaluacion DECIMAL(5,2), -- Si hubo evaluación en esta clase
+    observaciones_evaluacion TEXT,
+    
+    -- Campos de auditoría
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+    
+    -- Claves foráneas
+    FOREIGN KEY (cronograma_clase_id) REFERENCES cronograma_clases(id) ON DELETE CASCADE,
+    FOREIGN KEY (paciente_id) REFERENCES paciente(id) ON DELETE RESTRICT,
+    
+    -- Un estudiante solo puede tener un registro de asistencia por clase
+    UNIQUE(cronograma_clase_id, paciente_id)
+);
+
+-- =============================================
 -- 10. FUNCIONES ESPECIALIZADAS PARA SESIONES
 -- =============================================
 
@@ -663,6 +823,103 @@ CREATE TRIGGER trigger_codigo_sesion_terapia
     EXECUTE FUNCTION trigger_generar_codigo_sesion();
 
 -- =============================================
+-- 10.2 FUNCIÓN PARA GENERAR CRONOGRAMA PEDAGÓGICO
+-- =============================================
+CREATE OR REPLACE FUNCTION generar_cronograma_clases(p_sesion_pedagogica_id INTEGER)
+RETURNS VOID AS $$
+DECLARE
+    v_sesion RECORD;
+    v_fecha_actual DATE;
+    v_dias_array TEXT[];
+    v_dia_actual TEXT;
+    v_numero_clase INTEGER := 1;
+    v_clases_generadas INTEGER := 0;
+BEGIN
+    -- Obtener información de la sesión pedagógica
+    SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, numero_clases_programadas
+    INTO v_sesion
+    FROM sesion_pedagogica 
+    WHERE id = p_sesion_pedagogica_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Sesión pedagógica no encontrada: %', p_sesion_pedagogica_id;
+    END IF;
+    
+    -- Limpiar cronograma existente
+    DELETE FROM cronograma_clases WHERE sesion_pedagogica_id = p_sesion_pedagogica_id;
+    
+    -- Convertir string de días a array
+    v_dias_array := string_to_array(lower(v_sesion.dias_semana), ',');
+    
+    -- Generar cronograma clase por clase
+    v_fecha_actual := v_sesion.fecha_inicio;
+    
+    WHILE v_fecha_actual <= v_sesion.fecha_fin AND v_clases_generadas < v_sesion.numero_clases_programadas LOOP
+        -- Obtener nombre del día de la semana
+        v_dia_actual := trim(to_char(v_fecha_actual, 'Day'));
+        v_dia_actual := lower(regexp_replace(v_dia_actual, '\s+', ''));
+        
+        -- Mapear días en inglés a español
+        CASE v_dia_actual
+            WHEN 'monday' THEN v_dia_actual := 'lunes';
+            WHEN 'tuesday' THEN v_dia_actual := 'martes';
+            WHEN 'wednesday' THEN v_dia_actual := 'miercoles';
+            WHEN 'thursday' THEN v_dia_actual := 'jueves';
+            WHEN 'friday' THEN v_dia_actual := 'viernes';
+            WHEN 'saturday' THEN v_dia_actual := 'sabado';
+            WHEN 'sunday' THEN v_dia_actual := 'domingo';
+        END CASE;
+        
+        -- Si el día actual está en la lista de días programados
+        IF v_dia_actual = ANY(v_dias_array) THEN
+            INSERT INTO cronograma_clases (
+                sesion_pedagogica_id,
+                numero_clase,
+                fecha_programada,
+                hora_programada,
+                estado,
+                usuario_creacion
+            ) VALUES (
+                p_sesion_pedagogica_id,
+                v_numero_clase,
+                v_fecha_actual,
+                v_sesion.hora_inicio,
+                'programada',
+                1
+            );
+            
+            v_numero_clase := v_numero_clase + 1;
+            v_clases_generadas := v_clases_generadas + 1;
+        END IF;
+        
+        v_fecha_actual := v_fecha_actual + 1;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================
+-- 10.3 FUNCIÓN PARA GENERAR CÓDIGO DE SESIÓN PEDAGÓGICA
+-- =============================================
+CREATE OR REPLACE FUNCTION trigger_generar_codigo_sesion_pedagogica()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.codigo_sesion IS NULL OR NEW.codigo_sesion = '' THEN
+        SELECT 'SP-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || 
+               LPAD((COUNT(*) + 1)::TEXT, 3, '0')
+        INTO NEW.codigo_sesion
+        FROM sesion_pedagogica
+        WHERE EXTRACT(YEAR FROM fecha_creacion) = EXTRACT(YEAR FROM CURRENT_DATE);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_codigo_sesion_pedagogica
+    BEFORE INSERT ON sesion_pedagogica
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_generar_codigo_sesion_pedagogica();
+
+-- =============================================
 -- 12. ÍNDICES PARA SESIONES DE TERAPIA
 -- ==============================================
 
@@ -689,6 +946,65 @@ CREATE INDEX idx_cronograma_numero_sesion ON cronograma_sesiones(numero_sesion);
 CREATE INDEX idx_asistencia_cronograma ON asistencia_sesiones(cronograma_sesion_id);
 CREATE INDEX idx_asistencia_paciente ON asistencia_sesiones(paciente_id);
 CREATE INDEX idx_asistencia_asistio ON asistencia_sesiones(asistio);
+
+-- =============================================
+-- 12.2 ÍNDICES PARA SESIONES PEDAGÓGICAS
+-- =============================================
+
+-- Índices para SESION_PEDAGOGICA
+CREATE INDEX idx_sesion_pedagogica_pedagogo ON sesion_pedagogica(pedagogo_id);
+CREATE INDEX idx_sesion_pedagogica_especialidad ON sesion_pedagogica(especialidad_id);
+CREATE INDEX idx_sesion_pedagogica_fecha_inicio ON sesion_pedagogica(fecha_inicio);
+CREATE INDEX idx_sesion_pedagogica_fecha_fin ON sesion_pedagogica(fecha_fin);
+CREATE INDEX idx_sesion_pedagogica_estado ON sesion_pedagogica(estado);
+CREATE INDEX idx_sesion_pedagogica_codigo ON sesion_pedagogica(codigo_sesion);
+CREATE INDEX idx_sesion_pedagogica_periodo ON sesion_pedagogica(periodo_academico);
+CREATE INDEX idx_sesion_pedagogica_nivel ON sesion_pedagogica(nivel_academico);
+
+-- Índices para SESION_ESTUDIANTE
+CREATE INDEX idx_sesion_estudiante_sesion ON sesion_estudiante(sesion_pedagogica_id);
+CREATE INDEX idx_sesion_estudiante_paciente ON sesion_estudiante(paciente_id);
+CREATE INDEX idx_sesion_estudiante_estado ON sesion_estudiante(estado);
+CREATE INDEX idx_sesion_estudiante_incorporacion ON sesion_estudiante(fecha_incorporacion);
+
+-- Índices para CRONOGRAMA_CLASES
+CREATE INDEX idx_cronograma_clases_sesion ON cronograma_clases(sesion_pedagogica_id);
+CREATE INDEX idx_cronograma_clases_fecha ON cronograma_clases(fecha_programada);
+CREATE INDEX idx_cronograma_clases_estado ON cronograma_clases(estado);
+CREATE INDEX idx_cronograma_clases_numero ON cronograma_clases(numero_clase);
+
+-- Índices para ASISTENCIA_CLASES
+CREATE INDEX idx_asistencia_clases_cronograma ON asistencia_clases(cronograma_clase_id);
+CREATE INDEX idx_asistencia_clases_paciente ON asistencia_clases(paciente_id);
+CREATE INDEX idx_asistencia_clases_fecha ON asistencia_clases(fecha_creacion);
+
+-- =============================================
+-- 12.3 TRIGGERS DE FECHA_MODIFICACION PARA TABLAS PEDAGÓGICAS
+-- =============================================
+
+-- Triggers para SESION_PEDAGOGICA
+CREATE TRIGGER trigger_sesion_pedagogica_fecha_modificacion
+    BEFORE UPDATE ON sesion_pedagogica
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+-- Triggers para SESION_ESTUDIANTE
+CREATE TRIGGER trigger_sesion_estudiante_fecha_modificacion
+    BEFORE UPDATE ON sesion_estudiante
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+-- Triggers para CRONOGRAMA_CLASES
+CREATE TRIGGER trigger_cronograma_clases_fecha_modificacion
+    BEFORE UPDATE ON cronograma_clases
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+-- Triggers para ASISTENCIA_CLASES
+CREATE TRIGGER trigger_asistencia_clases_fecha_modificacion
+    BEFORE UPDATE ON asistencia_clases
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
 
 -- =============================================
 -- 13. CONSTRAINTS DE AUDITORÍA PARA SESIONES
@@ -726,6 +1042,46 @@ ADD CONSTRAINT fk_asistencia_sesiones_usuario_modificacion
 FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
 
 -- =============================================
+-- 13.2 CONSTRAINTS DE AUDITORÍA PARA SESIONES PEDAGÓGICAS
+-- =============================================
+
+-- Constraints para SESION_PEDAGOGICA
+ALTER TABLE sesion_pedagogica 
+ADD CONSTRAINT fk_sesion_pedagogica_usuario_creacion 
+FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+ALTER TABLE sesion_pedagogica 
+ADD CONSTRAINT fk_sesion_pedagogica_usuario_modificacion 
+FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+-- Constraints para SESION_ESTUDIANTE
+ALTER TABLE sesion_estudiante 
+ADD CONSTRAINT fk_sesion_estudiante_usuario_creacion 
+FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+ALTER TABLE sesion_estudiante 
+ADD CONSTRAINT fk_sesion_estudiante_usuario_modificacion 
+FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+-- Constraints para CRONOGRAMA_CLASES
+ALTER TABLE cronograma_clases 
+ADD CONSTRAINT fk_cronograma_clases_usuario_creacion 
+FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+ALTER TABLE cronograma_clases 
+ADD CONSTRAINT fk_cronograma_clases_usuario_modificacion 
+FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+-- Constraints para ASISTENCIA_CLASES
+ALTER TABLE asistencia_clases 
+ADD CONSTRAINT fk_asistencia_clases_usuario_creacion 
+FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+ALTER TABLE asistencia_clases 
+ADD CONSTRAINT fk_asistencia_clases_usuario_modificacion 
+FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+-- =============================================
 -- 14. DOCUMENTACIÓN SESIONES DE TERAPIA
 -- =============================================
 COMMENT ON TABLE sesion_terapia IS 'Sesiones de terapia programadas con información de contrato, horarios y costos';
@@ -736,6 +1092,30 @@ COMMENT ON TABLE asistencia_sesiones IS 'Control de asistencia y notas de progre
 COMMENT ON COLUMN sesion_terapia.dias_semana IS 'Días de la semana separados por comas: lunes,martes,miercoles,jueves,viernes,sabado,domingo';
 COMMENT ON COLUMN sesion_terapia.duracion_minutos IS 'Duración de la sesión en minutos (por defecto 45 min)';
 COMMENT ON COLUMN sesion_terapia.costo_por_sesion IS 'Campo calculado automáticamente: costo_total / numero_sesiones_contratadas';
+
+-- =============================================
+-- 14.2 DOCUMENTACIÓN SESIONES PEDAGÓGICAS
+-- =============================================
+COMMENT ON TABLE sesion_pedagogica IS 'Sesiones pedagógicas/educativas con información académica, horarios y costos';
+COMMENT ON TABLE sesion_estudiante IS 'Relación muchos a muchos entre sesiones pedagógicas y estudiantes (pacientes) - permite múltiples estudiantes por clase';
+COMMENT ON TABLE cronograma_clases IS 'Cronograma detallado de cada clase individual programada automáticamente con contenido educativo';
+COMMENT ON TABLE asistencia_clases IS 'Control de asistencia y evaluaciones académicas por estudiante y clase';
+
+COMMENT ON COLUMN sesion_pedagogica.codigo_sesion IS 'Código único con formato SP-YYYY-NNN (SP = Sesión Pedagógica)';
+COMMENT ON COLUMN sesion_pedagogica.pedagogo_id IS 'Referencia al personal con rol de pedagogo/profesor';
+COMMENT ON COLUMN sesion_pedagogica.capacidad_maxima IS 'Número máximo de estudiantes permitidos en la sesión';
+COMMENT ON COLUMN sesion_pedagogica.nivel_academico IS 'Nivel académico: basico, intermedio, avanzado';
+COMMENT ON COLUMN sesion_pedagogica.modalidad IS 'Modalidad de enseñanza: presencial, virtual, hibrida';
+COMMENT ON COLUMN sesion_pedagogica.costo_por_clase IS 'Campo calculado automáticamente: costo_total / numero_clases_programadas';
+
+COMMENT ON COLUMN sesion_estudiante.nota_final IS 'Calificación final del estudiante (0.00 - 10.00)';
+COMMENT ON COLUMN sesion_estudiante.asistencia_porcentaje IS 'Porcentaje de asistencia del estudiante';
+
+COMMENT ON COLUMN cronograma_clases.tema_clase IS 'Tema específico a tratar en esta clase';
+COMMENT ON COLUMN cronograma_clases.evaluacion_programada IS 'Indica si hay evaluación programada para esta clase';
+
+COMMENT ON COLUMN asistencia_clases.participacion_clase IS 'Calificación de participación en la clase (0.0 - 10.0)';
+COMMENT ON COLUMN asistencia_clases.calificacion_evaluacion IS 'Calificación obtenida en evaluación si la hubo';
 
 -- =============================================
 -- 15. MENSAJE FINAL

@@ -1,8 +1,8 @@
 {
   "module_name": "PERSONAL",
-  "timestamp": "2025-07-26T01:37:55.650354",
+  "timestamp": "2025-07-27T12:03:43.726123",
   "total_tests": 7,
-  "total_duration": 55.14244818687439,
+  "total_duration": 55.25644493103027,
   "summary": {
     "passed": 7,
     "failed": 0,
@@ -13,49 +13,49 @@
     {
       "name": "Autenticacion",
       "status": "passed",
-      "duration": 2.392005681991577,
+      "duration": 2.3718178272247314,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Configuracion de datos",
       "status": "passed",
-      "duration": 4.658539295196533,
+      "duration": 4.609837293624878,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "CRUD de personal",
       "status": "passed",
-      "duration": 9.11256217956543,
+      "duration": 9.079128503799438,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Gestión de especialidades",
       "status": "passed",
-      "duration": 11.144628047943115,
+      "duration": 11.451167583465576,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Personal por área",
       "status": "passed",
-      "duration": 4.368261337280273,
+      "duration": 4.336783409118652,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Endpoints adicionales",
       "status": "passed",
-      "duration": 2.2203807830810547,
+      "duration": 2.2165756225585938,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Validaciones",
       "status": "passed",
-      "duration": 12.963389873504639,
+      "duration": 12.990706443786621,
       "error_message": null,
       "retry_count": 1
     }

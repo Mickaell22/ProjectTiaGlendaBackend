@@ -29,6 +29,7 @@ python tests/test_tutores_api.py
 python tests/test_personas_api.py
 python tests/test_roles_api.py
 python tests/test_sesiones_terapia_api.py
+python tests/test_sesiones_pedagogicas_api.py
 
 # Unit tests
 python tests/test_units.py
@@ -98,6 +99,7 @@ Key environment variables:
 - `/api/tutores`: Guardian/tutor management
 - `/api/roles`: Role management
 - `/api/sesiones-terapia`: Therapy session management with cronograma generation
+- `/api/sesiones-pedagogicas`: Pedagogical session management with class scheduling
 - `/docs/`: Swagger UI documentation
 - `/health`: Application health endpoint
 
@@ -174,6 +176,15 @@ The therapy sessions (`/api/sesiones-terapia`) module includes:
 - Complex relationships between sessions, patients, therapists, and schedules
 - Custom business logic for session date calculations based on weekdays
 - Four main tables: `sesion_terapia`, `sesion_paciente`, `cronograma_sesiones`, `asistencia_sesiones`
+
+### Pedagogical Sessions Module
+The pedagogical sessions (`/api/sesiones-pedagogicas`) module includes:
+- Academic/educational session management for group classes
+- Automatic class schedule generation when creating sessions
+- Student enrollment and management within sessions
+- Complex relationships between sessions, students, educators, and class schedules
+- Four main tables: `sesion_pedagogica`, `sesion_estudiante`, `cronograma_clases`, `asistencia_clases`
+- Academic grading and attendance tracking capabilities
 
 ### Database Schema Notes
 - All tables include audit fields: `fecha_creacion`, `fecha_modificacion`, `usuario_creacion`, `usuario_modificacion`

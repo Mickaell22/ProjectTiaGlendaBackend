@@ -578,4 +578,326 @@ def register_routes(app):
     # ============================================
     register_sesiones_routes(app)
 
+    def register_sesiones_pedagogicas_routes(app):
+        """Registrar rutas para el módulo de Sesiones Pedagógicas"""
+
+        # ============================================
+        # RUTAS DE SESIONES PEDAGÓGICAS (Protegidas)
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas', methods=['GET'])
+        @token_required
+        def get_sesiones_pedagogicas():
+            """Obtener todas las sesiones pedagógicas"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_sesiones()
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>', methods=['GET'])
+        @token_required
+        def get_sesion_pedagogica(sesion_id):
+            """Obtener una sesión pedagógica específica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas', methods=['POST'])
+        @token_required  # Tanto admin como pedagogo pueden crear
+        def create_sesion_pedagogica():
+            """Crear nueva sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.create_sesion()
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>', methods=['PUT'])
+        @token_required  # Tanto admin como pedagogo pueden editar
+        def update_sesion_pedagogica(sesion_id):
+            """Actualizar sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.update_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>', methods=['DELETE'])
+        @admin_required  # Solo admin puede cancelar
+        def delete_sesion_pedagogica(sesion_id):
+            """Cancelar sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.delete_sesion(sesion_id)
+
+        # ============================================
+        # RUTAS DE GESTIÓN DE ESTUDIANTES EN SESIONES
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes', methods=['GET'])
+        @token_required
+        def get_estudiantes_sesion_pedagogica(sesion_id):
+            """Obtener estudiantes asignados a una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_estudiantes_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes', methods=['POST'])
+        @token_required
+        def add_estudiante_sesion_pedagogica(sesion_id):
+            """Agregar estudiante a una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.add_estudiante_to_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes/<int:paciente_id>', methods=['DELETE'])
+        @token_required
+        def remove_estudiante_sesion_pedagogica(sesion_id, paciente_id):
+            """Remover estudiante de una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.remove_estudiante_from_sesion(sesion_id, paciente_id)
+
+        # ============================================
+        # RUTAS DE GESTIÓN DE CRONOGRAMA DE CLASES
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/cronograma', methods=['GET'])
+        @token_required
+        def get_cronograma_sesion_pedagogica(sesion_id):
+            """Obtener cronograma de una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_cronograma_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/cronograma/generar', methods=['POST'])
+        @token_required
+        def generar_cronograma_sesion_pedagogica(sesion_id):
+            """Regenerar cronograma de una sesión pedagógica"""
+            from src.api.Components.SesionPedagogicaComponent import SesionPedagogicaComponent
+            try:
+                SesionPedagogicaComponent.generar_cronograma(sesion_id)
+                from src.utils.general.response import response_success
+                return response_success({'sesion_id': sesion_id}, "Cronograma de clases generado exitosamente")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                return response_error(f"Error al generar cronograma: {str(e)}", 500)
+
+        @app.route('/api/cronograma-clases/<int:cronograma_id>/realizar', methods=['PUT'])
+        @token_required
+        def marcar_clase_realizada(cronograma_id):
+            """Marcar clase como realizada"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                from datetime import datetime
+                
+                # Marcar clase como realizada
+                query = """
+                    UPDATE cronograma_clases 
+                    SET estado = 'realizada', fecha_realizacion = %s
+                    WHERE id = %s
+                """
+                params = (datetime.now().date(), cronograma_id)
+                DataBaseHandle.ExecuteNonQuery(query, params)
+                
+                return response_success({'cronograma_id': cronograma_id}, "Clase marcada como realizada exitosamente")
+            except Exception as e:
+                return response_error(f"Error al marcar clase como realizada: {str(e)}", 500)
+
+        @app.route('/api/cronograma-clases/<int:cronograma_id>/reprogramar', methods=['PUT'])
+        @token_required
+        def reprogramar_clase(cronograma_id):
+            """Reprogramar una clase específica"""
+            try:
+                from flask import request
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                from datetime import datetime
+                
+                data = request.get_json()
+                if not data or 'nueva_fecha' not in data:
+                    return response_error("Se requiere nueva_fecha", 400)
+                
+                try:
+                    nueva_fecha = datetime.strptime(data['nueva_fecha'], '%Y-%m-%d').date()
+                except ValueError:
+                    return response_error("Formato de fecha inválido (YYYY-MM-DD)", 400)
+                
+                # Reprogramar clase
+                query = """
+                    UPDATE cronograma_clases 
+                    SET estado = 'reprogramada', fecha_programada = %s
+                    WHERE id = %s
+                """
+                params = (nueva_fecha, cronograma_id)
+                DataBaseHandle.ExecuteNonQuery(query, params)
+                
+                return response_success({'cronograma_id': cronograma_id}, "Clase reprogramada exitosamente")
+            except Exception as e:
+                return response_error(f"Error al reprogramar clase: {str(e)}", 500)
+
+        # ============================================
+        # RUTAS DE ASISTENCIA DE CLASES
+        # ============================================
+
+        @app.route('/api/cronograma-clases/<int:cronograma_id>/asistencias', methods=['GET'])
+        @token_required
+        def get_asistencias_clase(cronograma_id):
+            """Obtener asistencias de una clase"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                query = """
+                    SELECT 
+                        ac.id,
+                        ac.paciente_id,
+                        CONCAT(p.nombre, ' ', p.apellido) as estudiante_nombre,
+                        ac.asistio,
+                        ac.llegada_tardanza_minutos,
+                        ac.observaciones_asistencia,
+                        ac.participacion_clase,
+                        ac.tareas_entregadas,
+                        ac.notas_comportamiento,
+                        ac.calificacion_evaluacion,
+                        ac.observaciones_evaluacion
+                    FROM asistencia_clases ac
+                    JOIN paciente pac ON ac.paciente_id = pac.id
+                    JOIN persona p ON pac.persona_id = p.id
+                    WHERE ac.cronograma_clase_id = %s
+                    ORDER BY p.apellido, p.nombre
+                """
+                
+                params = (cronograma_id,)
+                result = DataBaseHandle.getRecords(query, params)
+                
+                return response_success(result or [], "Asistencias obtenidas")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                return response_error(f"Error al obtener asistencias: {str(e)}", 500)
+
+        @app.route('/api/cronograma-clases/<int:cronograma_id>/asistencias/<int:paciente_id>', methods=['POST'])
+        @token_required
+        def registrar_asistencia_estudiante(cronograma_id, paciente_id):
+            """Registrar asistencia de un estudiante a una clase"""
+            try:
+                from flask import request
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                
+                data = request.get_json() or {}
+                
+                query = """
+                    INSERT INTO asistencia_clases (
+                        cronograma_clase_id, paciente_id, asistio, llegada_tardanza_minutos,
+                        observaciones_asistencia, participacion_clase, tareas_entregadas,
+                        notas_comportamiento, calificacion_evaluacion, observaciones_evaluacion,
+                        usuario_creacion
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (cronograma_clase_id, paciente_id)
+                    DO UPDATE SET
+                        asistio = EXCLUDED.asistio,
+                        llegada_tardanza_minutos = EXCLUDED.llegada_tardanza_minutos,
+                        observaciones_asistencia = EXCLUDED.observaciones_asistencia,
+                        participacion_clase = EXCLUDED.participacion_clase,
+                        tareas_entregadas = EXCLUDED.tareas_entregadas,
+                        notas_comportamiento = EXCLUDED.notas_comportamiento,
+                        calificacion_evaluacion = EXCLUDED.calificacion_evaluacion,
+                        observaciones_evaluacion = EXCLUDED.observaciones_evaluacion
+                """
+                
+                params = (
+                    cronograma_id,
+                    paciente_id,
+                    data.get('asistio', False),
+                    data.get('llegada_tardanza_minutos', 0),
+                    data.get('observaciones_asistencia'),
+                    data.get('participacion_clase'),
+                    data.get('tareas_entregadas', False),
+                    data.get('notas_comportamiento'),
+                    data.get('calificacion_evaluacion'),
+                    data.get('observaciones_evaluacion'),
+                    request.current_user['id']
+                )
+                
+                DataBaseHandle.ExecuteNonQuery(query, params)
+                
+                return response_success({
+                    'cronograma_id': cronograma_id,
+                    'paciente_id': paciente_id
+                }, "Asistencia registrada exitosamente")
+            except Exception as e:
+                return response_error(f"Error al registrar asistencia: {str(e)}", 500)
+
+        # ============================================
+        # RUTAS DE CONSULTAS Y REPORTES
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/pedagogo/<int:pedagogo_id>', methods=['GET'])
+        @token_required
+        def get_sesiones_by_pedagogo(pedagogo_id):
+            """Obtener sesiones de un pedagogo específico"""
+            try:
+                from src.api.Components.SesionPedagogicaComponent import SesionPedagogicaComponent
+                from src.utils.general.response import response_success
+                
+                result = SesionPedagogicaComponent.get_sesiones_by_pedagogo(pedagogo_id)
+                return response_success(result or [], "Sesiones del pedagogo obtenidas")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                return response_error(f"Error al obtener sesiones: {str(e)}", 500)
+
+        @app.route('/api/sesiones-pedagogicas/hoy', methods=['GET'])
+        @token_required
+        def get_clases_hoy():
+            """Obtener clases programadas para hoy"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                from datetime import datetime
+                
+                query = """
+                    SELECT 
+                        cc.id,
+                        cc.numero_clase,
+                        cc.fecha_programada,
+                        cc.hora_programada,
+                        cc.tema_clase,
+                        cc.estado,
+                        sp.titulo as sesion_titulo,
+                        sp.id as sesion_id,
+                        CONCAT(p.nombre, ' ', p.apellido) as pedagogo_nombre
+                    FROM cronograma_clases cc
+                    JOIN sesion_pedagogica sp ON cc.sesion_pedagogica_id = sp.id
+                    JOIN personal per ON sp.pedagogo_id = per.id
+                    JOIN persona p ON per.persona_id = p.id
+                    WHERE cc.fecha_programada = %s
+                    ORDER BY cc.hora_programada
+                """
+                
+                params = (datetime.now().date(),)
+                result = DataBaseHandle.getRecords(query, params)
+                
+                return response_success(result or [], "Clases de hoy obtenidas")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                return response_error(f"Error al obtener clases de hoy: {str(e)}", 500)
+
+        @app.route('/api/sesiones-pedagogicas/estadisticas', methods=['GET'])
+        @token_required
+        def get_estadisticas_sesiones_pedagogicas():
+            """Obtener estadísticas de sesiones pedagógicas"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_estadisticas()
+
+        # ============================================
+        # RUTAS DE DATOS AUXILIARES
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/estudiantes-disponibles', methods=['GET'])
+        @token_required
+        def get_estudiantes_disponibles_pedagogicas():
+            """Obtener estudiantes disponibles para asignar a sesiones pedagógicas"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_estudiantes_disponibles()
+
+        @app.route('/api/sesiones-pedagogicas/pedagogos-disponibles', methods=['GET'])
+        @token_required
+        def get_pedagogos_disponibles_pedagogicas():
+            """Obtener pedagogos disponibles para asignar a sesiones"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_pedagogos_disponibles()
+
+    # ============================================
+    # REGISTRAR RUTAS DE SESIONES PEDAGÓGICAS
+    # ============================================
+    register_sesiones_pedagogicas_routes(app)
+
 

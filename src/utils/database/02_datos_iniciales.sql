@@ -42,17 +42,36 @@ INSERT INTO persona (
     'activo'
 );
 
+-- Verificar que la persona se insertó correctamente
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM persona WHERE id = 1) THEN
+        RAISE EXCEPTION 'Error: No se pudo insertar la persona administrador';
+    END IF;
+END $$;
+
 -- =============================================
 -- 2.2 USUARIO ADMINISTRADOR INICIAL
 -- =============================================
--- Usuario Admin (ID persona: 1, ID rol: 1-Administrador)
-INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, estado) VALUES
-('admin', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', 1, 1, 'activo');
+-- Usuario Admin (usando el ID real de la persona insertada)
+INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, estado) 
+SELECT 'admin', '$2b$12$VjF6/ljvu.3svAAnnT/pf.YlD7d1gm/FhNoDFiTRrBoxX/WI7qTXW', p.id, 1, 'activo'
+FROM persona p 
+WHERE p.cedula = '00000000' 
+LIMIT 1;
 
--- Actualizar auditoría inicial
-UPDATE persona SET usuario_creacion = 1 WHERE id = 1;
-UPDATE rol SET usuario_creacion = 1 WHERE id IN (1,2,3,4);
-UPDATE usuario SET usuario_creacion = 1 WHERE id = 1;
+-- Verificar que el usuario se insertó correctamente
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM usuario WHERE persona_id = 1) THEN
+        RAISE EXCEPTION 'Error: No se pudo insertar el usuario administrador';
+    END IF;
+END $$;
+
+-- Actualizar auditoría inicial (solo si los registros existen)
+UPDATE persona SET usuario_creacion = (SELECT id FROM usuario WHERE persona_id = 1 LIMIT 1) WHERE id = 1;
+UPDATE rol SET usuario_creacion = (SELECT id FROM usuario WHERE persona_id = 1 LIMIT 1) WHERE id IN (1,2,3,4);
+UPDATE usuario SET usuario_creacion = (SELECT id FROM usuario WHERE persona_id = 1 LIMIT 1) WHERE persona_id = 1;
 
 -- =============================================
 -- 2.3 ESPECIALIDADES DEL CENTRO
@@ -122,6 +141,32 @@ INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
 ('Orientación Familiar', 'pedagogico', 1),
 ('Transición a la Vida Adulta', 'pedagogico', 1),
 ('Inclusión Educativa', 'pedagogico', 1);
+
+-- =============================================
+-- ESPECIALIDADES ACADÉMICAS ESPECÍFICAS
+-- =============================================
+INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
+-- Materias Básicas
+('Matemáticas Básicas', 'pedagogico', 1),
+('Lectoescritura', 'pedagogico', 1),
+('Ciencias Naturales', 'pedagogico', 1),
+('Estudios Sociales', 'pedagogico', 1),
+
+-- Habilidades de Vida
+('Habilidades Sociales', 'pedagogico', 1),
+('Autonomía Personal', 'pedagogico', 1),
+('Habilidades Laborales', 'pedagogico', 1),
+('Educación Financiera', 'pedagogico', 1),
+
+-- Artes y Expresión
+('Arte y Manualidades', 'pedagogico', 1),
+('Música y Ritmo', 'pedagogico', 1),
+('Educación Física Adaptada', 'pedagogico', 1),
+('Teatro y Expresión', 'pedagogico', 1),
+
+-- Tecnología
+('Computación Básica', 'pedagogico', 1),
+('Herramientas Digitales', 'pedagogico', 1);
 
 -- =============================================
 -- 2.4 PERSONAL DEL CENTRO

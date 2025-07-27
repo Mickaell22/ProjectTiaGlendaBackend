@@ -1,8 +1,8 @@
 {
   "module_name": "ESPECIALIDADES",
-  "timestamp": "2025-07-20T11:55:24.102410",
+  "timestamp": "2025-07-27T12:04:14.887926",
   "total_tests": 7,
-  "total_duration": 42.27448558807373,
+  "total_duration": 42.22504115104675,
   "summary": {
     "passed": 7,
     "failed": 0,
@@ -13,49 +13,49 @@
     {
       "name": "Autenticacion",
       "status": "passed",
-      "duration": 2.396998882293701,
+      "duration": 2.3719630241394043,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "CRUD de especialidades",
       "status": "passed",
-      "duration": 8.830989599227905,
+      "duration": 8.864810228347778,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Especialidades por área",
       "status": "passed",
-      "duration": 4.334540367126465,
+      "duration": 4.271959066390991,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Endpoints adicionales",
       "status": "passed",
-      "duration": 4.412975072860718,
+      "duration": 4.349288463592529,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Validaciones",
       "status": "passed",
-      "duration": 14.971815347671509,
+      "duration": 14.88552188873291,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Cambios de estado",
       "status": "passed",
-      "duration": 4.462469100952148,
+      "duration": 4.569584846496582,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Búsquedas y filtros",
       "status": "passed",
-      "duration": 2.158113956451416,
+      "duration": 2.205270767211914,
       "error_message": null,
       "retry_count": 0
     }

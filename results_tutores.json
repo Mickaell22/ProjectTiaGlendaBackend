@@ -1,8 +1,8 @@
 {
   "module_name": "TUTORES",
-  "timestamp": "2025-07-20T11:40:20.905733",
+  "timestamp": "2025-07-27T12:04:19.509582",
   "total_tests": 6,
-  "total_duration": 36.19649052619934,
+  "total_duration": 35.99323320388794,
   "summary": {
     "passed": 6,
     "failed": 0,
@@ -13,42 +13,42 @@
     {
       "name": "Autenticacion",
       "status": "passed",
-      "duration": 2.3669915199279785,
+      "duration": 2.3908896446228027,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Configuracion de datos",
       "status": "passed",
-      "duration": 2.382136821746826,
+      "duration": 2.3558433055877686,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "CRUD de tutores",
       "status": "passed",
-      "duration": 9.034101009368896,
+      "duration": 8.978333473205566,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Endpoints adicionales",
       "status": "passed",
-      "duration": 6.536803245544434,
+      "duration": 6.500835657119751,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Validaciones",
       "status": "passed",
-      "duration": 10.78780722618103,
+      "duration": 10.731148481369019,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Eliminacion",
       "status": "passed",
-      "duration": 4.485231399536133,
+      "duration": 4.430818557739258,
       "error_message": null,
       "retry_count": 0
     }
