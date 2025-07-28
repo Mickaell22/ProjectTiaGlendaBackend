@@ -1,7 +1,7 @@
 {
   "test_execution": {
-    "timestamp": "2025-07-20T12:33:18.593969",
-    "total_execution_time": 40.37,
+    "timestamp": "2025-07-28T14:57:15.727388",
+    "total_execution_time": 323.85,
     "server": "http://localhost:5000"
   },
   "summary": {
@@ -9,71 +9,71 @@
     "successful_modules": 0,
     "failed_modules": 8,
     "success_rate": 0.0,
-    "total_module_time": 20.63
+    "total_module_time": 304.16
   },
   "modules": {
     "AUTENTICACIÓN": {
       "success": false,
-      "execution_time": 2.52,
+      "execution_time": 58.52,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 101,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "ROLES": {
       "success": false,
-      "execution_time": 2.5,
+      "execution_time": 49.82,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 101,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "PERSONAS": {
       "success": false,
-      "execution_time": 2.49,
+      "execution_time": 25.96,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 79,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "ESPECIALIDADES": {
       "success": false,
-      "execution_time": 3.03,
+      "execution_time": 36.78,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 101,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "PERSONAL": {
       "success": false,
-      "execution_time": 2.49,
+      "execution_time": 37.36,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 101,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "TUTORES": {
       "success": false,
-      "execution_time": 2.51,
+      "execution_time": 31.67,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 90,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "PACIENTES": {
       "success": false,
-      "execution_time": 2.53,
+      "execution_time": 27.37,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 90,
+      "stderr_lines": 0,
       "detailed_results": null
     },
     "USUARIOS": {
       "success": false,
-      "execution_time": 2.56,
+      "execution_time": 36.68,
       "returncode": 1,
-      "stdout_lines": 3,
-      "stderr_lines": 26,
+      "stdout_lines": 101,
+      "stderr_lines": 0,
       "detailed_results": null
     }
   },

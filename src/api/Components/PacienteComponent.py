@@ -183,9 +183,9 @@ class PacienteComponent:
                 data['persona_id'],
                 data['tutor_id'],
                 data['fecha_ingreso'],
-                data.get('observaciones', '').strip() if data.get('observaciones') else None,
-                data.get('estado', 'activo'),
-                data.get('usuario_creacion', 1)
+                data['observaciones'],
+                data['estado'],
+                data['usuario_creacion']
             )
 
             new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
@@ -235,16 +235,8 @@ class PacienteComponent:
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
-                    if field == 'observaciones':
-                        if data[field].strip():
-                            update_fields.append(f"{field} = %s")
-                            params.append(data[field].strip())
-                        else:
-                            update_fields.append(f"{field} = %s")
-                            params.append(None)
-                    else:
-                        update_fields.append(f"{field} = %s")
-                        params.append(data[field])
+                    update_fields.append(f"{field} = %s")
+                    params.append(data[field])
 
             if not update_fields:
                 return internal_response(False, None, "No hay campos para actualizar")

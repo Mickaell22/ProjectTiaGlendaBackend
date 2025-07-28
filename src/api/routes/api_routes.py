@@ -65,6 +65,51 @@ def register_routes(app):
             HandleLogs.write_error(f"test_database - Error: {str(e)}")
             return response_error(f"Error de conexion: {str(e)}", 500)
 
+    @app.route('/api/test-db-status', methods=['GET'])
+    def test_database_with_status():
+        """Endpoint para demostrar getRecordsWithStatus vs getRecords"""
+        try:
+            from src.utils.database.connection_db import DataBaseHandle
+            
+            # Probar con consulta que retorna datos
+            query_valid = "SELECT COUNT(*) as total_usuarios FROM usuario"
+            
+            # Método antiguo
+            old_result = DataBaseHandle.getRecords(query_valid, size=1)
+            
+            # Método nuevo
+            new_result = DataBaseHandle.getRecordsWithStatus(query_valid, size=1)
+            
+            # Probar con consulta que no retorna datos
+            query_empty = "SELECT * FROM usuario WHERE id = -999"
+            old_empty = DataBaseHandle.getRecords(query_empty, size=1)
+            new_empty = DataBaseHandle.getRecordsWithStatus(query_empty, size=1)
+            
+            # Probar con consulta inválida
+            query_invalid = "SELECT * FROM tabla_inexistente"
+            old_error = DataBaseHandle.getRecords(query_invalid, size=1)  
+            new_error = DataBaseHandle.getRecordsWithStatus(query_invalid, size=1)
+            
+            HandleLogs.write_log("test_database_with_status - Comparación de métodos completada")
+            return response_success({
+                "valid_query": {
+                    "old_method": old_result,
+                    "new_method": new_result
+                },
+                "empty_result": {
+                    "old_method": old_empty,
+                    "new_method": new_empty
+                },
+                "error_query": {
+                    "old_method": old_error,
+                    "new_method": new_error
+                }
+            }, "Comparacion de metodos getRecords completada")
+            
+        except Exception as e:
+            HandleLogs.write_error(f"test_database_with_status - Error: {str(e)}")
+            return response_error("Error en test de metodos de base de datos", 500)
+
     # ============================================
     # RUTAS DE AUTENTICACIÓN
     # ============================================
@@ -572,6 +617,52 @@ def register_routes(app):
             """Obtener terapeutas disponibles para asignar a sesiones"""
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.get_terapeutas_disponibles()
+
+        # ============================================
+        # RUTAS DE ASISTENCIA DE SESIONES TERAPÉUTICAS
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/pacientes/<int:paciente_id>/asistencia', methods=['POST'])
+        @token_required
+        def registrar_asistencia_sesion(cronograma_id, paciente_id):
+            """Registrar asistencia de un paciente a una sesión específica del cronograma"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.registrar_asistencia(cronograma_id, paciente_id)
+
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/pacientes/<int:paciente_id>/asistencia', methods=['PUT'])
+        @token_required
+        def actualizar_asistencia_sesion(cronograma_id, paciente_id):
+            """Actualizar asistencia existente de un paciente"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.actualizar_asistencia(cronograma_id, paciente_id)
+
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/asistencia', methods=['GET'])
+        @token_required
+        def get_asistencia_cronograma(cronograma_id):
+            """Obtener asistencia de todos los pacientes para una sesión específica del cronograma"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_asistencia_cronograma(cronograma_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/asistencias', methods=['GET'])
+        @token_required
+        def get_asistencias_por_sesion(sesion_id):
+            """Obtener todas las asistencias de una sesión de terapia"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_asistencias_por_sesion(sesion_id)
+
+        @app.route('/api/sesiones-terapia/asistencias/paciente/<int:paciente_id>', methods=['GET'])
+        @token_required
+        def get_asistencias_por_paciente(paciente_id):
+            """Obtener historial de asistencias de un paciente específico"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_asistencias_por_paciente(paciente_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/estadisticas-asistencia', methods=['GET'])
+        @token_required
+        def get_estadisticas_asistencia(sesion_id):
+            """Obtener estadísticas de asistencia de una sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_estadisticas_asistencia(sesion_id)
 
     # ============================================
     # REGISTRAR RUTAS DE SESIONES DE TERAPIA

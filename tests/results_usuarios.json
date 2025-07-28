@@ -1,0 +1,63 @@
+{
+  "module_name": "USUARIOS",
+  "timestamp": "2025-07-28T14:57:00.494226",
+  "total_tests": 7,
+  "total_duration": 34.19515609741211,
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "errors": 7,
+    "success_rate": 0.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "error",
+      "duration": 2.3565258979797363,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Configuracion de datos",
+      "status": "error",
+      "duration": 2.342871904373169,
+      "error_message": "Error en setup persona: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "CRUD de usuarios",
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "Faltan datos de configuración para CRUD",
+      "retry_count": 1
+    },
+    {
+      "name": "Funciones de autenticación",
+      "status": "error",
+      "duration": 2.143594980239868,
+      "error_message": "Error en verificar token: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Gestión de roles",
+      "status": "error",
+      "duration": 2.2624242305755615,
+      "error_message": "Error en roles: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Validaciones",
+      "status": "error",
+      "duration": 2.0977671146392822,
+      "error_message": "Error en validación campos faltantes: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Validaciones de permisos",
+      "status": "error",
+      "duration": 2.0897674560546875,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    }
+  ]
+}

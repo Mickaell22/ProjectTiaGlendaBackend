@@ -12,7 +12,12 @@
       "Bash(timeout:*)",
       "Bash(ls:*)",
       "Bash(echo:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(start cmd /k:*)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

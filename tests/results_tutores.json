@@ -1,0 +1,56 @@
+{
+  "module_name": "TUTORES",
+  "timestamp": "2025-07-28T14:55:56.429657",
+  "total_tests": 6,
+  "total_duration": 29.181302070617676,
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "errors": 6,
+    "success_rate": 0.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "error",
+      "duration": 2.3567655086517334,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Configuracion de datos",
+      "status": "error",
+      "duration": 2.3974037170410156,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "CRUD de tutores",
+      "status": "error",
+      "duration": 2.1499602794647217,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Endpoints adicionales",
+      "status": "error",
+      "duration": 2.201199769973755,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Validaciones",
+      "status": "error",
+      "duration": 2.2247118949890137,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Eliminacion",
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    }
+  ]
+}

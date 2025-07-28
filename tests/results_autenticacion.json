@@ -1,0 +1,63 @@
+{
+  "module_name": "AUTENTICACIÓN",
+  "timestamp": "2025-07-28T14:52:54.827586",
+  "total_tests": 7,
+  "total_duration": 56.02288889884949,
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "errors": 7,
+    "success_rate": 0.0
+  },
+  "tests": [
+    {
+      "name": "Login exitoso",
+      "status": "error",
+      "duration": 2.3649890422821045,
+      "error_message": "Error en login exitoso: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Credenciales inválidas",
+      "status": "error",
+      "duration": 2.130988359451294,
+      "error_message": "Error en caso usuario inexistente: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Verificación de tokens",
+      "status": "error",
+      "duration": 2.1383376121520996,
+      "error_message": "Error en verificar token válido: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Usuario actual",
+      "status": "error",
+      "duration": 2.124760866165161,
+      "error_message": "Error en usuario actual: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Logout",
+      "status": "error",
+      "duration": 2.1208932399749756,
+      "error_message": "Error en logout: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Flujo completo",
+      "status": "error",
+      "duration": 11.364848375320435,
+      "error_message": "Error en flujo completo - logout: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Seguridad avanzada",
+      "status": "error",
+      "duration": 2.128077268600464,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    }
+  ]
+}

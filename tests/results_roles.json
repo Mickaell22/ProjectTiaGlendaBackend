@@ -1,0 +1,63 @@
+{
+  "module_name": "ROLES",
+  "timestamp": "2025-07-28T14:53:44.654162",
+  "total_tests": 7,
+  "total_duration": 47.32422065734863,
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "errors": 7,
+    "success_rate": 0.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "error",
+      "duration": 2.4233741760253906,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Listar roles",
+      "status": "error",
+      "duration": 2.192063331604004,
+      "error_message": "Error en listar roles: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Estructura de datos",
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Contenido del sistema",
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "Error validando contenido de roles: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Validaciones de seguridad",
+      "status": "error",
+      "duration": 2.0618181228637695,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Uso en el sistema",
+      "status": "error",
+      "duration": 2.1795339584350586,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Rendimiento",
+      "status": "error",
+      "duration": 11.154160976409912,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    }
+  ]
+}

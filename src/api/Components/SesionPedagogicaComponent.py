@@ -231,7 +231,7 @@ class SesionPedagogicaComponent:
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
-                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, numero_clases_programadas
+                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, numero_clases_programadas, usuario_creacion
                 FROM sesion_pedagogica 
                 WHERE id = %s
             """
@@ -307,9 +307,9 @@ class SesionPedagogicaComponent:
                         INSERT INTO cronograma_clases (
                             sesion_pedagogica_id, numero_clase, fecha_programada, 
                             hora_programada, estado, usuario_creacion
-                        ) VALUES (%s, %s, %s, %s, 'programada', 1)
+                        ) VALUES (%s, %s, %s, %s, 'programada', %s)
                     """
-                    params = (sesion_id, numero_clase, fecha_actual, hora_inicio)
+                    params = (sesion_id, numero_clase, fecha_actual, hora_inicio, sesion_data['usuario_creacion'])
                     DataBaseHandle.ExecuteNonQuery(insert_query, params)
                     
                     numero_clase += 1

@@ -7,8 +7,9 @@ class PersonalComponent:
 
     @staticmethod
     def get_all_personal():
-        """Obtener todo el personal con información completa"""
+        """Obtener todo el personal con información completa incluyendo especialidades"""
         try:
+            # Obtener información básica del personal
             query = """
             SELECT 
                 p.id,
@@ -26,23 +27,35 @@ class PersonalComponent:
                 pe.direccion,
                 u.id as usuario_id,
                 u.usuario as nombre_usuario,
-                r.nombre as rol_usuario,
-                COUNT(ps.especialidad_id) as total_especialidades
+                r.nombre as rol_usuario
             FROM personal p
             INNER JOIN persona pe ON p.persona_id = pe.id
             LEFT JOIN usuario u ON pe.id = u.persona_id
             LEFT JOIN rol r ON u.rol_id = r.id
-            LEFT JOIN personal_especialidad ps ON p.id = ps.personal_id
-            GROUP BY p.id, p.titulo_profesional, p.estado, p.fecha_creacion, p.fecha_modificacion,
-                     pe.id, pe.nombre, pe.apellido, pe.cedula, pe.telefono, pe.correo, pe.direccion,
-                     u.id, u.usuario, r.nombre
             ORDER BY pe.nombre, pe.apellido
             """
 
             personal = DataBaseHandle.getRecords(query)
 
             if personal is not None:
-                HandleLogs.write_log(f"PersonalComponent.get_all_personal - {len(personal)} miembros del personal encontrados")
+                # Para cada miembro del personal, obtener sus especialidades
+                for i, personal_item in enumerate(personal):
+                    query_especialidades = """
+                    SELECT 
+                        e.id,
+                        e.nombre,
+                        e.area,
+                        ps.fecha_creacion as fecha_asignacion
+                    FROM personal_especialidad ps
+                    INNER JOIN especialidad e ON ps.especialidad_id = e.id
+                    WHERE ps.personal_id = %s AND e.estado = 'activo'
+                    ORDER BY e.area, e.nombre
+                    """
+                    
+                    especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
+                    personal[i]['especialidades'] = especialidades if especialidades else []
+
+                HandleLogs.write_log(f"PersonalComponent.get_all_personal - {len(personal)} miembros del personal encontrados con especialidades")
                 return internal_response(True, personal, "Personal obtenido correctamente")
             else:
                 HandleLogs.write_error("PersonalComponent.get_all_personal - Error en consulta")

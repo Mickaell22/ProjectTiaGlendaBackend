@@ -2,6 +2,7 @@ from flask import request
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import response_success, response_error, response_inserted
 from src.utils.general.validators import Validators
+from src.utils.general.data_utils import DataUtils
 from src.api.Components.PacienteComponent import PacienteComponent
 
 
@@ -63,15 +64,18 @@ class PacienteService:
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Preparar datos para inserción
-            paciente_data = {
+            # Preparar datos para inserción usando DataUtils
+            base_data = {
                 'persona_id': int(data['persona_id']),
                 'tutor_id': int(data['tutor_id']),
                 'fecha_ingreso': data['fecha_ingreso'],
-                'observaciones': data.get('observaciones', '').strip() if data.get('observaciones') else None,
-                'estado': data.get('estado', 'activo'),
-                'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
+                'observaciones': data.get('observaciones'),
+                'estado': data.get('estado'),
+                'usuario_creacion': data.get('usuario_creacion')
             }
+            
+            current_user_id = getattr(request, 'current_user', {}).get('id')
+            paciente_data = DataUtils.prepare_create_data(base_data, current_user_id)
 
             result = PacienteComponent.create_paciente(paciente_data)
 
@@ -101,10 +105,12 @@ class PacienteService:
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Agregar usuario que modifica
-            data['usuario_modificacion'] = getattr(request, 'current_user', {}).get('id', 1)
+            # Preparar datos para actualización usando DataUtils
+            data['usuario_modificacion'] = data.get('usuario_modificacion')
+            current_user_id = getattr(request, 'current_user', {}).get('id')
+            prepared_data = DataUtils.prepare_update_data(data, current_user_id)
 
-            result = PacienteComponent.update_paciente(paciente_id, data)
+            result = PacienteComponent.update_paciente(paciente_id, prepared_data)
 
             if result['success']:
                 HandleLogs.write_log(f"PacienteService.update_paciente - Paciente {paciente_id} actualizado")

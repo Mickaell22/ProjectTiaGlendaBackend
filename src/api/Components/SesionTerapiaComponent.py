@@ -224,7 +224,7 @@ class SesionTerapiaComponent:
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
-                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, numero_sesiones_contratadas
+                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, numero_sesiones_contratadas, usuario_creacion
                 FROM sesion_terapia 
                 WHERE id = %s
             """
@@ -301,9 +301,9 @@ class SesionTerapiaComponent:
                         INSERT INTO cronograma_sesiones (
                             sesion_terapia_id, numero_sesion, fecha_programada, 
                             hora_programada, estado, usuario_creacion
-                        ) VALUES (%s, %s, %s, %s, 'programada', 1)
+                        ) VALUES (%s, %s, %s, %s, 'programada', %s)
                     """
-                    params = (sesion_id, numero_sesion, fecha_actual, hora_inicio)
+                    params = (sesion_id, numero_sesion, fecha_actual, hora_inicio, sesion_data['usuario_creacion'])
                     DataBaseHandle.ExecuteNonQuery(insert_query, params)
                     
                     numero_sesion += 1
@@ -374,12 +374,12 @@ class SesionTerapiaComponent:
     def add_paciente_to_sesion(sesion_id, paciente_data):
         """Agregar un paciente a una sesión"""
         try:
-            query = """
+            # Insertar usando ExecuteNonQuery
+            insert_query = """
                 INSERT INTO sesion_paciente (
                     sesion_terapia_id, paciente_id, fecha_incorporacion,
                     costo_paciente, observaciones_paciente, estado, usuario_creacion
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
             """
 
             params = (
@@ -392,7 +392,19 @@ class SesionTerapiaComponent:
                 paciente_data['usuario_creacion']
             )
 
-            result = DataBaseHandle.getRecords(query, params, size=1)
+            # Ejecutar el INSERT
+            insert_result = DataBaseHandle.ExecuteNonQuery(insert_query, params)
+            if not insert_result:
+                return None
+                
+            # Obtener el registro insertado
+            select_query = """
+                SELECT id FROM sesion_paciente 
+                WHERE sesion_terapia_id = %s AND paciente_id = %s 
+                ORDER BY fecha_creacion DESC LIMIT 1
+            """
+            select_params = (sesion_id, paciente_data['paciente_id'])
+            result = DataBaseHandle.getRecords(select_query, select_params, size=1)
             if result:
                 HandleLogs.write_log(
                     f"SesionTerapiaComponent.add_paciente_to_sesion - Paciente {paciente_data['paciente_id']} agregado a sesión {sesion_id}")
@@ -496,13 +508,12 @@ class SesionTerapiaComponent:
             """
             DataBaseHandle.ExecuteNonQuery(query_update, (cronograma_id,))
 
-            # Crear nueva sesión programada
-            query_nueva = """
+            # Crear nueva sesión programada usando ExecuteNonQuery
+            insert_query_nueva = """
                 INSERT INTO cronograma_sesiones (
                     sesion_terapia_id, numero_sesion, fecha_programada, hora_programada,
                     estado, sesion_original_id, motivo_reprogramacion, usuario_creacion
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
             """
 
             params_nueva = (
@@ -516,7 +527,18 @@ class SesionTerapiaComponent:
                 sesion_original['usuario_creacion']
             )
 
-            result = DataBaseHandle.getRecords(query_nueva, params_nueva, size=1)
+            # Ejecutar el INSERT
+            insert_result = DataBaseHandle.ExecuteNonQuery(insert_query_nueva, params_nueva)
+            if not insert_result:
+                raise Exception("Error al crear nueva sesión reprogramada")
+                
+            # Obtener el registro insertado
+            select_query = """
+                SELECT id FROM cronograma_sesiones 
+                WHERE sesion_original_id = %s AND estado = 'programada'
+                ORDER BY fecha_creacion DESC LIMIT 1
+            """
+            result = DataBaseHandle.getRecords(select_query, (cronograma_id,), size=1)
             HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Sesión {cronograma_id} reprogramada")
             return result
 
@@ -532,7 +554,8 @@ class SesionTerapiaComponent:
     def registrar_asistencia(cronograma_id, paciente_id, asistencia_data):
         """Registrar la asistencia de un paciente a una sesión"""
         try:
-            query = """
+            # Ejecutar UPSERT usando ExecuteNonQuery
+            upsert_query = """
                 INSERT INTO asistencia_sesiones (
                     cronograma_sesion_id, paciente_id, asistio, llegada_tardanza_minutos,
                     observaciones_asistencia, notas_progreso, tareas_asignadas,
@@ -547,7 +570,6 @@ class SesionTerapiaComponent:
                     tareas_asignadas = EXCLUDED.tareas_asignadas,
                     proximos_objetivos = EXCLUDED.proximos_objetivos,
                     usuario_modificacion = EXCLUDED.usuario_creacion
-                RETURNING id
             """
 
             params = (
@@ -562,7 +584,17 @@ class SesionTerapiaComponent:
                 asistencia_data['usuario_creacion']
             )
 
-            result = DataBaseHandle.getRecords(query, params, size=1)
+            # Ejecutar el UPSERT
+            upsert_result = DataBaseHandle.ExecuteNonQuery(upsert_query, params)
+            if not upsert_result:
+                raise Exception("Error al registrar asistencia")
+                
+            # Obtener el registro actualizado/insertado
+            select_query = """
+                SELECT id FROM asistencia_sesiones 
+                WHERE cronograma_sesion_id = %s AND paciente_id = %s
+            """
+            result = DataBaseHandle.getRecords(select_query, (cronograma_id, paciente_id), size=1)
             HandleLogs.write_log(
                 f"SesionTerapiaComponent.registrar_asistencia - Asistencia registrada para paciente {paciente_id}")
             return result

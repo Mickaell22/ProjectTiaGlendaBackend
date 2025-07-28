@@ -1,0 +1,63 @@
+{
+  "module_name": "PERSONAL",
+  "timestamp": "2025-07-28T14:55:24.760324",
+  "total_tests": 7,
+  "total_duration": 34.86229634284973,
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "errors": 7,
+    "success_rate": 0.0
+  },
+  "tests": [
+    {
+      "name": "Autenticacion",
+      "status": "error",
+      "duration": 2.3689751625061035,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Configuracion de datos",
+      "status": "error",
+      "duration": 2.4335572719573975,
+      "error_message": "Error en setup persona: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "CRUD de personal",
+      "status": "error",
+      "duration": 2.166208267211914,
+      "error_message": "Error en listar personal: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Gestión de especialidades",
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "Faltan datos para gestión de especialidades",
+      "retry_count": 1
+    },
+    {
+      "name": "Personal por área",
+      "status": "error",
+      "duration": 2.148500680923462,
+      "error_message": "Error en personal terapeutico: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Endpoints adicionales",
+      "status": "error",
+      "duration": 2.207813024520874,
+      "error_message": "Error en estadísticas: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    },
+    {
+      "name": "Validaciones",
+      "status": "error",
+      "duration": 2.149296283721924,
+      "error_message": "Error en validación campos faltantes: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
+    }
+  ]
+}
