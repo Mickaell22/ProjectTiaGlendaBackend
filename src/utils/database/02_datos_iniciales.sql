@@ -322,19 +322,19 @@ INSERT INTO tutor (persona_id, parentesco, es_contacto_emergencia, observaciones
 -- =============================================
 INSERT INTO paciente (persona_id, tutor_id, fecha_ingreso, observaciones, usuario_creacion) VALUES
 -- Pacientes del área terapéutica (personas 18-26, tutores 1-9)
-(18, 1, '2023-01-15', 'Paciente con necesidades de terapia ocupacional e integración sensorial. Excelente progreso inicial.', 1),  -- María José
-(19, 2, '2023-02-20', 'Requiere fisioterapia neurológica. Familia muy comprometida con el tratamiento.', 1),                       -- Pedro Antonio
-(20, 3, '2023-03-10', 'Necesidades de fonoaudiología pediátrica. Responde muy bien a estímulos auditivos.', 1),                  -- Valentina
+(18, 1, '2024-08-15', 'Paciente con necesidades de terapia ocupacional e integración sensorial. Excelente progreso inicial.', 1),  -- María José
+(19, 2, '2024-09-20', 'Requiere fisioterapia neurológica. Familia muy comprometida con el tratamiento.', 1),                       -- Pedro Antonio
+(20, 3, '2024-10-10', 'Necesidades de fonoaudiología pediátrica. Responde muy bien a estímulos auditivos.', 1),                  -- Valentina
 
 -- Alumnos del área pedagógica
-(21, 4, '2023-01-25', 'Alumno con trastorno del espectro autista. Requiere metodología especializada y seguimiento constante.', 1), -- Santiago
-(22, 5, '2023-02-15', 'Alumna con dificultades de aprendizaje. Excelente motivación y apoyo familiar.', 1),                        -- Isabella
-(23, 6, '2023-03-05', 'Estudiante con TDAH. Necesita estrategias de concentración y apoyo psicopedagógico.', 1),                   -- Sebastián
+(21, 4, '2024-08-25', 'Alumno con trastorno del espectro autista. Requiere metodología especializada y seguimiento constante.', 1), -- Santiago
+(22, 5, '2024-09-15', 'Alumna con dificultades de aprendizaje. Excelente motivación y apoyo familiar.', 1),                        -- Isabella
+(23, 6, '2024-10-05', 'Estudiante con TDAH. Necesita estrategias de concentración y apoyo psicopedagógico.', 1),                   -- Sebastián
 
 -- Pacientes/alumnos adicionales
-(24, 7, '2023-04-10', 'Niña con retraso en el desarrollo del lenguaje. Muy receptiva a la terapia.', 1),                           -- Sofía Gabriela
-(25, 8, '2023-05-02', 'Niño con necesidades de estimulación temprana. Familia muy colaborativa.', 1),                             -- Mateo Alejandro
-(26, 9, '2023-05-15', 'Niña con discapacidades múltiples. Requiere enfoque multidisciplinario.', 1);                              -- Camila Andrea
+(24, 7, '2024-11-10', 'Niña con retraso en el desarrollo del lenguaje. Muy receptiva a la terapia.', 1),                           -- Sofía Gabriela
+(25, 8, '2024-12-02', 'Niño con necesidades de estimulación temprana. Familia muy colaborativa.', 1),                             -- Mateo Alejandro
+(26, 9, '2024-12-15', 'Niña con discapacidades múltiples. Requiere enfoque multidisciplinario.', 1);                              -- Camila Andrea
 
 -- =============================================
 -- 3.5 ESPECIALIDADES ASIGNADAS A PACIENTES
@@ -342,87 +342,87 @@ INSERT INTO paciente (persona_id, tutor_id, fecha_ingreso, observaciones, usuari
 
 -- María José (Paciente 1) - Terapia Ocupacional e Integración Sensorial
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 1, id, '2023-01-15', 'Inicio con terapia ocupacional pediátrica. Objetivos: mejorar coordinación motora fina.', 1
+SELECT 1, id, '2024-08-15', 'Inicio con terapia ocupacional pediátrica. Objetivos: mejorar coordinación motora fina.', 1
 FROM especialidad WHERE nombre = 'Terapia Ocupacional Pediátrica';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 1, id, '2023-02-01', 'Integración sensorial iniciada después de evaluación completa.', 1
+SELECT 1, id, '2024-09-01', 'Integración sensorial iniciada después de evaluación completa.', 1
 FROM especialidad WHERE nombre = 'Integración Sensorial';
 
 -- Pedro Antonio (Paciente 2) - Fisioterapia
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 2, id, '2023-02-20', 'Fisioterapia pediátrica para fortalecimiento muscular.', 1
+SELECT 2, id, '2024-09-20', 'Fisioterapia pediátrica para fortalecimiento muscular.', 1
 FROM especialidad WHERE nombre = 'Fisioterapia Pediátrica';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 2, id, '2023-03-01', 'Fisioterapia neurológica para mejorar patrones de movimiento.', 1
+SELECT 2, id, '2024-10-01', 'Fisioterapia neurológica para mejorar patrones de movimiento.', 1
 FROM especialidad WHERE nombre = 'Fisioterapia Neurológica';
 
 -- Valentina (Paciente 3) - Fonoaudiología
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 3, id, '2023-03-10', 'Fonoaudiología pediátrica para desarrollo del lenguaje.', 1
+SELECT 3, id, '2024-10-10', 'Fonoaudiología pediátrica para desarrollo del lenguaje.', 1
 FROM especialidad WHERE nombre = 'Fonoaudiología Pediátrica';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 3, id, '2023-03-15', 'Terapia del lenguaje complementaria.', 1
+SELECT 3, id, '2024-10-15', 'Terapia del lenguaje complementaria.', 1
 FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
 
 -- Santiago (Paciente 4) - Educación Especial y TEA
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 4, id, '2023-01-25', 'Educación especial adaptada a necesidades individuales.', 1
+SELECT 4, id, '2024-08-25', 'Educación especial adaptada a necesidades individuales.', 1
 FROM especialidad WHERE nombre = 'Educación Especial';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 4, id, '2023-02-01', 'Programa especializado para trastornos del espectro autista.', 1
+SELECT 4, id, '2024-09-01', 'Programa especializado para trastornos del espectro autista.', 1
 FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista';
 
 -- Isabella (Paciente 5) - Estimulación Temprana y Psicopedagogía
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 5, id, '2023-02-15', 'Estimulación temprana para potenciar desarrollo cognitivo.', 1
+SELECT 5, id, '2024-09-15', 'Estimulación temprana para potenciar desarrollo cognitivo.', 1
 FROM especialidad WHERE nombre = 'Estimulación Temprana';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 5, id, '2023-03-01', 'Apoyo psicopedagógico para dificultades de aprendizaje.', 1
+SELECT 5, id, '2024-10-01', 'Apoyo psicopedagógico para dificultades de aprendizaje.', 1
 FROM especialidad WHERE nombre = 'Psicopedagogía';
 
 -- Sebastián (Paciente 6) - TDAH y Dislexia
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 6, id, '2023-03-05', 'Programa para TDAH con estrategias de concentración.', 1
+SELECT 6, id, '2024-10-05', 'Programa para TDAH con estrategias de concentración.', 1
 FROM especialidad WHERE nombre = 'TDAH (Trastorno por Déficit de Atención)';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 6, id, '2023-03-12', 'Tratamiento especializado para dislexia.', 1
+SELECT 6, id, '2024-10-12', 'Tratamiento especializado para dislexia.', 1
 FROM especialidad WHERE nombre = 'Dislexia';
 
 -- Sofía Gabriela (Paciente 7) - Desarrollo del Lenguaje y Estimulación Temprana
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 7, id, '2023-04-10', 'Terapia del lenguaje para retraso en desarrollo comunicativo.', 1
+SELECT 7, id, '2024-11-10', 'Terapia del lenguaje para retraso en desarrollo comunicativo.', 1
 FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 7, id, '2023-04-15', 'Estimulación temprana para desarrollo integral.', 1
+SELECT 7, id, '2024-11-15', 'Estimulación temprana para desarrollo integral.', 1
 FROM especialidad WHERE nombre = 'Estimulación Temprana';
 
 -- Mateo Alejandro (Paciente 8) - Estimulación Temprana y Desarrollo Psicomotor
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 8, id, '2023-05-02', 'Programa de estimulación temprana integral.', 1
+SELECT 8, id, '2024-12-02', 'Programa de estimulación temprana integral.', 1
 FROM especialidad WHERE nombre = 'Estimulación Temprana';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 8, id, '2023-05-10', 'Desarrollo psicomotor y coordinación.', 1
+SELECT 8, id, '2024-12-10', 'Desarrollo psicomotor y coordinación.', 1
 FROM especialidad WHERE nombre = 'Desarrollo Psicomotor';
 
 -- Camila Andrea (Paciente 9) - Múltiples especialidades (caso complejo)
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 9, id, '2023-05-15', 'Terapia ocupacional para desarrollo de habilidades básicas.', 1
+SELECT 9, id, '2024-12-15', 'Terapia ocupacional para desarrollo de habilidades básicas.', 1
 FROM especialidad WHERE nombre = 'Terapia Ocupacional Pediátrica';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 9, id, '2023-05-20', 'Fisioterapia pediátrica para movilidad.', 1
+SELECT 9, id, '2024-12-20', 'Fisioterapia pediátrica para movilidad.', 1
 FROM especialidad WHERE nombre = 'Fisioterapia Pediátrica';
 
 INSERT INTO paciente_especialidad (paciente_id, especialidad_id, fecha_inicio, observaciones_tratamiento, usuario_creacion) 
-SELECT 9, id, '2023-05-25', 'Terapia del lenguaje adaptada.', 1
+SELECT 9, id, '2024-12-25', 'Terapia del lenguaje adaptada.', 1
 FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
 
 -- =============================================
@@ -442,8 +442,8 @@ INSERT INTO sesion_terapia (
     'Terapia Ocupacional Grupo Infantil - Integración Sensorial',
     (SELECT id FROM personal WHERE persona_id = 3), -- Ana Patricia González
     (SELECT id FROM especialidad WHERE nombre = 'Integración Sensorial'),
-    '2024-01-15', -- Fecha inicio
-    '2024-04-15', -- Fecha fin (3 meses)
+    '2025-02-15', -- Fecha inicio
+    '2025-05-15', -- Fecha fin (3 meses)
     'lunes,miercoles,viernes', -- Días de la semana
     '09:00', -- Hora de inicio
     45, -- Duración en minutos
@@ -464,8 +464,8 @@ INSERT INTO sesion_terapia (
     'Fisioterapia Neurológica Individual - Pedro Antonio',
     (SELECT id FROM personal WHERE persona_id = 4), -- Carlos Manuel Jiménez
     (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia Neurológica'),
-    '2024-02-01',
-    '2024-05-01', -- 3 meses
+    '2025-03-01',
+    '2025-06-01', -- 3 meses
     'martes,jueves',
     '10:30',
     60, -- 1 hora por ser individual
@@ -486,8 +486,8 @@ INSERT INTO sesion_terapia (
     'Terapia del Lenguaje - Grupo de Desarrollo Comunicativo',
     (SELECT id FROM personal WHERE persona_id = 5), -- Sofía Elena Morales
     (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
-    '2024-01-22',
-    '2024-04-22',
+    '2025-02-22',
+    '2025-05-22',
     'lunes,miercoles',
     '14:00',
     45,
@@ -508,8 +508,8 @@ INSERT INTO sesion_terapia (
     'Programa TEA - Trastornos del Espectro Autista',
     (SELECT id FROM personal WHERE persona_id = 6), -- Roberto Luis Vargas
     (SELECT id FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista'),
-    '2024-02-05',
-    '2024-08-05', -- 6 meses (programa más largo)
+    '2025-02-05',
+    '2025-08-05', -- 6 meses (programa más largo)
     'lunes,martes,miercoles,jueves,viernes',
     '08:00',
     90, -- Sesiones más largas para TEA
@@ -530,8 +530,8 @@ INSERT INTO sesion_terapia (
     'Estimulación Temprana - Desarrollo Integral 0-3 años',
     (SELECT id FROM personal WHERE persona_id = 7), -- Laura María Castillo
     (SELECT id FROM especialidad WHERE nombre = 'Estimulación Temprana'),
-    '2024-03-01',
-    '2024-06-01',
+    '2025-03-01',
+    '2025-06-01',
     'martes,jueves',
     '09:30',
     45,
@@ -551,51 +551,51 @@ INSERT INTO sesion_terapia (
 -- Sesión de Terapia Ocupacional - 3 pacientes
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 1, '2024-01-15', 432000.00, 'María José - Paciente principal del grupo. Excelente progreso esperado.', 'activo', 1
+    st.id, 1, '2025-02-15', 432000.00, 'María José - Paciente principal del grupo. Excelente progreso esperado.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%';
 
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 7, '2024-01-22', 432000.00, 'Sofía Gabriela - Se incorpora una semana después. Necesita adaptación gradual.', 'activo', 1
+    st.id, 7, '2025-02-22', 432000.00, 'Sofía Gabriela - Se incorpora una semana después. Necesita adaptación gradual.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%';
 
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 9, '2024-02-01', 432000.00, 'Camila Andrea - Caso complejo. Requiere atención especializada dentro del grupo.', 'activo', 1
+    st.id, 9, '2025-03-01', 432000.00, 'Camila Andrea - Caso complejo. Requiere atención especializada dentro del grupo.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia Ocupacional Grupo Infantil%';
 
 -- Sesión de Fisioterapia Individual - 1 paciente
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 2, '2024-02-01', 480000.00, 'Pedro Antonio - Sesión individual personalizada. Seguimiento neurológico estricto.', 'activo', 1
+    st.id, 2, '2025-03-01', 480000.00, 'Pedro Antonio - Sesión individual personalizada. Seguimiento neurológico estricto.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Fisioterapia Neurológica Individual%';
 
 -- Sesión de Terapia del Lenguaje - 2 pacientes
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 3, '2024-01-22', 288000.00, 'Valentina - Retraso leve en desarrollo del lenguaje. Muy colaborativa.', 'activo', 1
+    st.id, 3, '2025-02-22', 288000.00, 'Valentina - Retraso leve en desarrollo del lenguaje. Muy colaborativa.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia del Lenguaje - Grupo%';
 
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 7, '2024-01-29', 288000.00, 'Sofía Gabriela - Combinará con terapia ocupacional. Coordinación entre terapeutas.', 'activo', 1
+    st.id, 7, '2025-03-01', 288000.00, 'Sofía Gabriela - Combinará con terapia ocupacional. Coordinación entre terapeutas.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Terapia del Lenguaje - Grupo%';
 
 -- Programa TEA - 1 paciente (intensivo)
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 4, '2024-02-05', 1440000.00, 'Santiago Torres - Programa intensivo personalizado. Seguimiento diario de avances.', 'activo', 1
+    st.id, 4, '2025-02-05', 1440000.00, 'Santiago Torres - Programa intensivo personalizado. Seguimiento diario de avances.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Programa TEA%';
 
 -- Estimulación Temprana - 2 pacientes
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 8, '2024-03-01', 360000.00, 'Mateo Alejandro - Estimulación temprana integral. Familia muy comprometida.', 'activo', 1
+    st.id, 8, '2025-03-01', 360000.00, 'Mateo Alejandro - Estimulación temprana integral. Familia muy comprometida.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Estimulación Temprana%';
 
 INSERT INTO sesion_paciente (sesion_terapia_id, paciente_id, fecha_incorporacion, costo_paciente, observaciones_paciente, estado, usuario_creacion) 
 SELECT 
-    st.id, 5, '2024-03-08', 360000.00, 'Isabella Rojas - Se incorpora para refuerzo de desarrollo cognitivo.', 'activo', 1
+    st.id, 5, '2025-03-08', 360000.00, 'Isabella Rojas - Se incorpora para refuerzo de desarrollo cognitivo.', 'activo', 1
 FROM sesion_terapia st WHERE st.titulo LIKE '%Estimulación Temprana%';
 
 -- =============================================

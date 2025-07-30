@@ -1,0 +1,114 @@
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:02 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 00:55:12 - ERROR - ExecuteNonQuery - Error: llave duplicada viola restricción de unicidad «sesion_paciente_sesion_terapia_id_paciente_id_key»
+DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(16, 9).
+
+2025-07-30 00:55:17 - ERROR - SesionTerapiaService.get_sesiones_hoy - Error: Object of type time is not JSON serializable
+2025-07-30 00:55:22 - ERROR - SesionTerapiaService.get_sesiones_hoy - Error: Object of type time is not JSON serializable
+2025-07-30 01:00:24 - ERROR - Advertencia: Solo se generaron 8 de 10 sesiones solicitadas
+2025-07-30 01:00:45 - ERROR - Advertencia: Solo se generaron 8 de 10 sesiones solicitadas
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:00 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:02:23 - ERROR - ExecuteNonQuery - Error: llave duplicada viola restricción de unicidad «sesion_paciente_sesion_terapia_id_paciente_id_key»
+DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(17, 9).
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:28 - ERROR - ExecuteNonQuery - Error: no existe la columna «duracion_minutos» en la relación «cronograma_sesiones»
+LINE 3: ...numero_sesion, fecha_programada, hora_programada, duracion_m...
+                                                             ^
+
+2025-07-30 01:04:51 - ERROR - ExecuteNonQuery - Error: llave duplicada viola restricción de unicidad «sesion_paciente_sesion_terapia_id_paciente_id_key»
+DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(19, 9).
+
+2025-07-30 01:05:42 - ERROR - Advertencia: Solo se generaron 8 de 10 sesiones solicitadas
+2025-07-30 01:05:43 - ERROR - Advertencia: Solo se generaron 8 de 10 sesiones solicitadas
+2025-07-30 01:07:57 - ERROR - ExecuteNonQuery - Error: llave duplicada viola restricción de unicidad «sesion_paciente_sesion_terapia_id_paciente_id_key»
+DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(20, 9).
+

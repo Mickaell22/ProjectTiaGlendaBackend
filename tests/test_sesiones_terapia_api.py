@@ -185,6 +185,7 @@ def test_sesiones_terapia_crud():
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
         "dias_semana": ["lunes", "miercoles", "viernes"],  # SIN TILDES
+        "estado": "activo",  # Especificar estado explícitamente
         "hora_inicio": "09:00",
         "duracion_minutos": 45,
         "numero_sesiones_contratadas": 12,
@@ -303,32 +304,50 @@ def test_cronograma_sesiones():
 
     auth_headers = {**HEADERS, "Authorization": f"Bearer {token}"}
 
-    # 1. Obtener cronograma de la sesión
-    try:
-        response = requests.get(
-            f"{BASE_URL}/api/sesiones-terapia/{created_sesion_id}/cronograma",
-            headers=auth_headers,
-            timeout=10
-        )
+    # 1. Obtener cronograma de la sesión (con reintentos para timing)
+    import time
+    max_intentos = 3
+    
+    for intento in range(max_intentos):
+        try:
+            # Pequeño delay para permitir generación del cronograma
+            if intento > 0:
+                time.sleep(1)
+                
+            response = requests.get(
+                f"{BASE_URL}/api/sesiones-terapia/{created_sesion_id}/cronograma",
+                headers=auth_headers,
+                timeout=10
+            )
 
-        success = response.status_code == 200
-        response_data = response.json()
+            success = response.status_code == 200
+            response_data = response.json()
 
-        if success and response_data.get("data"):
-            cronograma = response_data["data"]
-            if len(cronograma) > 0:
+            if success and response_data.get("data") and len(response_data["data"]) > 0:
+                cronograma = response_data["data"]
                 created_cronograma_id = cronograma[0]["id"]
-            print_test_info("Obtener cronograma", "SUCCESS", {
-                "total_sesiones_programadas": len(cronograma),
-                "cronograma_id": created_cronograma_id
-            })
-        else:
-            raise Exception(f"Error obteniendo cronograma: {response_data}")
+                print_test_info("Obtener cronograma", "SUCCESS", {
+                    "total_sesiones_programadas": len(cronograma),
+                    "cronograma_id": created_cronograma_id,
+                    "intentos": intento + 1
+                })
+                break
+            elif intento == max_intentos - 1:
+                # Último intento fallido
+                raise Exception(f"Error obteniendo cronograma después de {max_intentos} intentos: {response_data}")
+            else:
+                # Reintento
+                continue
 
-    except Exception as e:
-        if "Error obteniendo cronograma:" in str(e):
-            raise e
-        raise Exception(f"Error en obtención de cronograma: {str(e)}")
+        except Exception as e:
+            if intento == max_intentos - 1:
+                # Último intento, propagar error
+                if "Error obteniendo cronograma después de" in str(e):
+                    raise e
+                raise Exception(f"Error en obtención de cronograma: {str(e)}")
+            else:
+                # Reintentamos
+                continue
 
     # 2. Generar cronograma (si no existe)
     if not created_cronograma_id:

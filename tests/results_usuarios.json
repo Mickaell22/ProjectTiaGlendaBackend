@@ -1,8 +1,8 @@
 {
   "module_name": "USUARIOS",
-  "timestamp": "2025-07-28T14:57:00.494226",
+  "timestamp": "2025-07-29T19:07:36.069922",
   "total_tests": 7,
-  "total_duration": 34.19515609741211,
+  "total_duration": 35.185126066207886,
   "summary": {
     "passed": 0,
     "failed": 0,
@@ -13,14 +13,14 @@
     {
       "name": "Autenticacion",
       "status": "error",
-      "duration": 2.3565258979797363,
+      "duration": 2.6440467834472656,
       "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Configuracion de datos",
       "status": "error",
-      "duration": 2.342871904373169,
+      "duration": 2.551969289779663,
       "error_message": "Error en setup persona: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
@@ -34,28 +34,28 @@
     {
       "name": "Funciones de autenticación",
       "status": "error",
-      "duration": 2.143594980239868,
+      "duration": 2.1464476585388184,
       "error_message": "Error en verificar token: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Gestión de roles",
       "status": "error",
-      "duration": 2.2624242305755615,
+      "duration": 2.1953678131103516,
       "error_message": "Error en roles: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Validaciones",
       "status": "error",
-      "duration": 2.0977671146392822,
+      "duration": 2.1356492042541504,
       "error_message": "Error en validación campos faltantes: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Validaciones de permisos",
       "status": "error",
-      "duration": 2.0897674560546875,
+      "duration": 2.059460401535034,
       "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     }

@@ -1,8 +1,8 @@
 {
   "module_name": "PACIENTES",
-  "timestamp": "2025-07-28T14:56:23.797520",
+  "timestamp": "2025-07-29T19:06:58.311018",
   "total_tests": 6,
-  "total_duration": 24.828104496002197,
+  "total_duration": 26.031173944473267,
   "summary": {
     "passed": 0,
     "failed": 0,
@@ -13,14 +13,14 @@
     {
       "name": "Autenticacion",
       "status": "error",
-      "duration": 2.3744451999664307,
+      "duration": 2.673602342605591,
       "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Configuracion de datos",
       "status": "error",
-      "duration": 2.3354969024658203,
+      "duration": 2.5658676624298096,
       "error_message": "Error en creación persona tutor: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
@@ -41,14 +41,14 @@
     {
       "name": "Endpoints adicionales",
       "status": "error",
-      "duration": 2.2204947471618652,
+      "duration": 2.362891912460327,
       "error_message": "Error en estadísticas: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Validaciones",
       "status": "error",
-      "duration": 2.155649185180664,
+      "duration": 2.161129951477051,
       "error_message": "Error en validación campos faltantes: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     }

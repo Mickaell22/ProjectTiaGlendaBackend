@@ -1,8 +1,8 @@
 {
   "module_name": "ROLES",
-  "timestamp": "2025-07-28T14:53:44.654162",
+  "timestamp": "2025-07-29T19:04:14.268286",
   "total_tests": 7,
-  "total_duration": 47.32422065734863,
+  "total_duration": 47.431374073028564,
   "summary": {
     "passed": 0,
     "failed": 0,
@@ -13,14 +13,14 @@
     {
       "name": "Autenticacion",
       "status": "error",
-      "duration": 2.4233741760253906,
+      "duration": 2.4073238372802734,
       "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Listar roles",
       "status": "error",
-      "duration": 2.192063331604004,
+      "duration": 2.17244553565979,
       "error_message": "Error en listar roles: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
@@ -41,21 +41,21 @@
     {
       "name": "Validaciones de seguridad",
       "status": "error",
-      "duration": 2.0618181228637695,
+      "duration": 2.060323476791382,
       "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Uso en el sistema",
       "status": "error",
-      "duration": 2.1795339584350586,
+      "duration": 2.2182798385620117,
       "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     },
     {
       "name": "Rendimiento",
       "status": "error",
-      "duration": 11.154160976409912,
+      "duration": 11.124952554702759,
       "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
       "retry_count": 1
     }

@@ -1,0 +1,447 @@
+2025-07-30 00:54:19 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 00:54:19 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 00:54:25 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 00:54:25 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 00:54:39 - INFO - LoginService.login - Intento de autenticacion
+2025-07-30 00:54:39 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-30 00:54:40 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-30 00:54:40 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-30 00:54:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:42 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-30 00:54:42 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-30 00:54:42 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-30 00:54:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:44 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-30 00:54:44 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 00:54:44 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 00:54:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:47 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-30 00:54:47 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 00:54:47 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 00:54:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:49 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 3 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 00:54:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 00:54:50 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 00:54:50 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 00:54:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:52 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-30 00:54:52 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 16, Código: ST-2025-010
+2025-07-30 00:54:53 - INFO - Cronograma sesión 16: 10/12 generadas
+2025-07-30 00:54:53 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 16
+2025-07-30 00:54:53 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 16
+2025-07-30 00:54:54 - INFO - Cronograma sesión 16: 10/12 generadas
+2025-07-30 00:54:54 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 16
+2025-07-30 00:54:54 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 16
+2025-07-30 00:54:54 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 16
+2025-07-30 00:54:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:56 - INFO - SesionTerapiaService.get_sesion - ID: 16
+2025-07-30 00:54:56 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 16 encontrada
+2025-07-30 00:54:57 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 00:54:57 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 00:54:57 - INFO - SesionTerapiaService.get_sesion - Sesión 16 encontrada
+2025-07-30 00:54:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:54:59 - INFO - SesionTerapiaService.update_sesion - ID: 16
+2025-07-30 00:54:59 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 16 encontrada
+2025-07-30 00:54:59 - INFO - SesionTerapiaComponent.update_sesion - Sesión 16 actualizada
+2025-07-30 00:54:59 - INFO - SesionTerapiaService.update_sesion - Cambios en cronograma detectados, actualizando...
+2025-07-30 00:54:59 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Sesión ID: 16
+2025-07-30 00:54:59 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 00:55:00 - INFO - Eliminada sesión futura del 2025-08-01 sin asistencias
+2025-07-30 00:55:00 - INFO - Eliminada sesión futura del 2025-08-04 sin asistencias
+2025-07-30 00:55:00 - INFO - Eliminada sesión futura del 2025-08-06 sin asistencias
+2025-07-30 00:55:00 - INFO - Eliminada sesión futura del 2025-08-08 sin asistencias
+2025-07-30 00:55:01 - INFO - Eliminada sesión futura del 2025-08-11 sin asistencias
+2025-07-30 00:55:01 - INFO - Eliminada sesión futura del 2025-08-13 sin asistencias
+2025-07-30 00:55:01 - INFO - Eliminada sesión futura del 2025-08-15 sin asistencias
+2025-07-30 00:55:01 - INFO - Eliminada sesión futura del 2025-08-18 sin asistencias
+2025-07-30 00:55:01 - INFO - Eliminada sesión futura del 2025-08-20 sin asistencias
+2025-07-30 00:55:01 - INFO - Eliminada sesión futura del 2025-08-22 sin asistencias
+2025-07-30 00:55:02 - INFO - Eliminada sesión futura del 2025-08-25 sin asistencias
+2025-07-30 00:55:02 - INFO - Eliminada sesión futura del 2025-08-27 sin asistencias
+2025-07-30 00:55:02 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Cronograma actualizado preservando asistencias
+2025-07-30 00:55:02 - INFO - SesionTerapiaService.update_sesion - Sesión 16 actualizada
+2025-07-30 00:55:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:05 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 16
+2025-07-30 00:55:05 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 00:55:05 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 00:55:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:08 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 16
+2025-07-30 00:55:08 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 00:55:08 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 00:55:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:10 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 00:55:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:12 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 16
+2025-07-30 00:55:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:15 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-30 00:55:15 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-30 00:55:15 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-30 00:55:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:17 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-30 00:55:17 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 1 sesiones hoy
+2025-07-30 00:55:17 - INFO - SesionTerapiaService.get_sesiones_hoy - 1 sesiones hoy
+2025-07-30 00:55:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:20 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-30 00:55:20 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-30 00:55:20 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-30 00:55:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:22 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-30 00:55:22 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 1 sesiones hoy
+2025-07-30 00:55:22 - INFO - SesionTerapiaService.get_sesiones_hoy - 1 sesiones hoy
+2025-07-30 00:55:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 00:55:25 - INFO - SesionTerapiaService.delete_sesion - ID: 16
+2025-07-30 00:55:25 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 16 cancelada
+2025-07-30 00:55:25 - INFO - SesionTerapiaService.delete_sesion - Sesión 16 cancelada
+2025-07-30 00:59:56 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 00:59:56 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:07 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:08 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:19 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:19 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:24 - INFO - SesionTerapiaComponent.generar_cronograma - 8 sesiones programadas para sesión 16
+2025-07-30 01:00:40 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:40 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:00:45 - INFO - SesionTerapiaComponent.generar_cronograma - 8 sesiones programadas para sesión 16
+2025-07-30 01:01:10 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:01:10 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:01:37 - INFO - LoginService.login - Intento de autenticacion
+2025-07-30 01:01:37 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-30 01:01:37 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-30 01:01:37 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-30 01:01:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:39 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-30 01:01:40 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-30 01:01:40 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-30 01:01:42 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:42 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-30 01:01:42 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 01:01:42 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 01:01:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:44 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-30 01:01:44 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 01:01:44 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 01:01:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:46 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-30 01:01:46 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 01:01:46 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 3 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:01:47 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 01:01:50 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:50 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-30 01:01:50 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 17, Código: ST-2025-011
+2025-07-30 01:01:51 - INFO - Cronograma sesión 17: 10/12 generadas
+2025-07-30 01:01:51 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 17
+2025-07-30 01:01:51 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 17
+2025-07-30 01:01:52 - INFO - Cronograma sesión 17: 10/12 generadas
+2025-07-30 01:01:52 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 17
+2025-07-30 01:01:52 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 17
+2025-07-30 01:01:52 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 17
+2025-07-30 01:01:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:54 - INFO - SesionTerapiaService.get_sesion - ID: 17
+2025-07-30 01:01:54 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 17 encontrada
+2025-07-30 01:01:54 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:01:54 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:01:54 - INFO - SesionTerapiaService.get_sesion - Sesión 17 encontrada
+2025-07-30 01:01:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:01:57 - INFO - SesionTerapiaService.update_sesion - ID: 17
+2025-07-30 01:01:57 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 17 encontrada
+2025-07-30 01:01:57 - INFO - SesionTerapiaComponent.update_sesion - Sesión 17 actualizada
+2025-07-30 01:01:57 - INFO - SesionTerapiaService.update_sesion - Cambios en cronograma detectados, actualizando...
+2025-07-30 01:01:57 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Sesión ID: 17
+2025-07-30 01:01:57 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:01:58 - INFO - Eliminada sesión futura del 2025-08-01 sin asistencias
+2025-07-30 01:01:58 - INFO - Eliminada sesión futura del 2025-08-04 sin asistencias
+2025-07-30 01:01:58 - INFO - Eliminada sesión futura del 2025-08-06 sin asistencias
+2025-07-30 01:01:58 - INFO - Eliminada sesión futura del 2025-08-08 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-11 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-13 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-15 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-18 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-20 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-22 sin asistencias
+2025-07-30 01:01:59 - INFO - Eliminada sesión futura del 2025-08-25 sin asistencias
+2025-07-30 01:02:00 - INFO - Eliminada sesión futura del 2025-08-27 sin asistencias
+2025-07-30 01:02:00 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Cronograma actualizado preservando asistencias
+2025-07-30 01:02:00 - INFO - SesionTerapiaService.update_sesion - Sesión 17 actualizada
+2025-07-30 01:02:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:03 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 17
+2025-07-30 01:02:03 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:02:03 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:02:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:06 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 17
+2025-07-30 01:02:06 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:02:06 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:02:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:09 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 17
+2025-07-30 01:02:09 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:02:09 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:02:12 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:12 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 17
+2025-07-30 01:02:12 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:02:12 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:02:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:15 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 17
+2025-07-30 01:02:15 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:02:15 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:02:19 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:19 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 17
+2025-07-30 01:02:19 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:02:19 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:02:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:21 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:02:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:23 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 17
+2025-07-30 01:02:25 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:25 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-30 01:02:26 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-30 01:02:26 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-30 01:02:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:28 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-30 01:02:28 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 1 sesiones hoy
+2025-07-30 01:02:28 - INFO - SesionTerapiaService.get_sesiones_hoy - 1 sesiones hoy
+2025-07-30 01:02:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:30 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - ID: 1
+2025-07-30 01:02:30 - INFO - SesionTerapiaComponent.get_sesiones_by_terapeuta - 2 sesiones encontradas
+2025-07-30 01:02:30 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - Sesiones obtenidas
+2025-07-30 01:02:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:02:32 - INFO - SesionTerapiaService.delete_sesion - ID: 17
+2025-07-30 01:02:32 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 17 cancelada
+2025-07-30 01:02:32 - INFO - SesionTerapiaService.delete_sesion - Sesión 17 cancelada
+2025-07-30 01:03:04 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 18, Código: ST-2025-012
+2025-07-30 01:03:05 - INFO - Cronograma sesión 18: 10/12 generadas
+2025-07-30 01:03:05 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 18
+2025-07-30 01:03:05 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 18
+2025-07-30 01:03:05 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:03:47 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:04:03 - INFO - LoginService.login - Intento de autenticacion
+2025-07-30 01:04:03 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-30 01:04:04 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-30 01:04:04 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-30 01:04:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:06 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-30 01:04:06 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-30 01:04:06 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-30 01:04:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:09 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-30 01:04:09 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 01:04:09 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 01:04:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:11 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-30 01:04:11 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 01:04:11 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 01:04:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:13 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-30 01:04:13 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 3 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:14 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 01:04:16 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:16 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-30 01:04:17 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 19, Código: ST-2025-013
+2025-07-30 01:04:18 - INFO - Cronograma sesión 19: 10/12 generadas
+2025-07-30 01:04:18 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 19
+2025-07-30 01:04:18 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 19
+2025-07-30 01:04:19 - INFO - Cronograma sesión 19: 10/12 generadas
+2025-07-30 01:04:19 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 19
+2025-07-30 01:04:20 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 19
+2025-07-30 01:04:20 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 19
+2025-07-30 01:04:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:22 - INFO - SesionTerapiaService.get_sesion - ID: 19
+2025-07-30 01:04:22 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 19 encontrada
+2025-07-30 01:04:22 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:22 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:04:22 - INFO - SesionTerapiaService.get_sesion - Sesión 19 encontrada
+2025-07-30 01:04:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:24 - INFO - SesionTerapiaService.update_sesion - ID: 19
+2025-07-30 01:04:24 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 19 encontrada
+2025-07-30 01:04:24 - INFO - SesionTerapiaComponent.update_sesion - Sesión 19 actualizada
+2025-07-30 01:04:24 - INFO - SesionTerapiaService.update_sesion - Cambios en cronograma detectados, actualizando...
+2025-07-30 01:04:24 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Sesión ID: 19
+2025-07-30 01:04:25 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:04:26 - INFO - Eliminada sesión futura del 2025-08-01 sin asistencias
+2025-07-30 01:04:26 - INFO - Eliminada sesión futura del 2025-08-04 sin asistencias
+2025-07-30 01:04:26 - INFO - Eliminada sesión futura del 2025-08-06 sin asistencias
+2025-07-30 01:04:26 - INFO - Eliminada sesión futura del 2025-08-08 sin asistencias
+2025-07-30 01:04:26 - INFO - Eliminada sesión futura del 2025-08-11 sin asistencias
+2025-07-30 01:04:26 - INFO - Eliminada sesión futura del 2025-08-13 sin asistencias
+2025-07-30 01:04:27 - INFO - Eliminada sesión futura del 2025-08-15 sin asistencias
+2025-07-30 01:04:27 - INFO - Eliminada sesión futura del 2025-08-18 sin asistencias
+2025-07-30 01:04:27 - INFO - Eliminada sesión futura del 2025-08-20 sin asistencias
+2025-07-30 01:04:27 - INFO - Eliminada sesión futura del 2025-08-22 sin asistencias
+2025-07-30 01:04:27 - INFO - Eliminada sesión futura del 2025-08-25 sin asistencias
+2025-07-30 01:04:27 - INFO - Eliminada sesión futura del 2025-08-27 sin asistencias
+2025-07-30 01:04:28 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Cronograma actualizado preservando asistencias
+2025-07-30 01:04:28 - INFO - SesionTerapiaService.update_sesion - Sesión 19 actualizada
+2025-07-30 01:04:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:30 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 19
+2025-07-30 01:04:30 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:04:30 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:04:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:34 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 19
+2025-07-30 01:04:34 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:04:34 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:04:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:37 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 19
+2025-07-30 01:04:37 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:04:37 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:04:40 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:40 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 19
+2025-07-30 01:04:40 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:04:40 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:04:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:43 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 19
+2025-07-30 01:04:44 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:04:44 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:04:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:47 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 19
+2025-07-30 01:04:47 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 0 sesiones programadas
+2025-07-30 01:04:47 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:04:49 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:49 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:04:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:51 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 19
+2025-07-30 01:04:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:54 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-30 01:04:54 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-30 01:04:54 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-30 01:04:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:56 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-30 01:04:56 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 1 sesiones hoy
+2025-07-30 01:04:56 - INFO - SesionTerapiaService.get_sesiones_hoy - 1 sesiones hoy
+2025-07-30 01:04:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:04:58 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - ID: 1
+2025-07-30 01:04:58 - INFO - SesionTerapiaComponent.get_sesiones_by_terapeuta - 3 sesiones encontradas
+2025-07-30 01:04:58 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - Sesiones obtenidas
+2025-07-30 01:05:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:05:01 - INFO - SesionTerapiaService.delete_sesion - ID: 19
+2025-07-30 01:05:01 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 19 cancelada
+2025-07-30 01:05:01 - INFO - SesionTerapiaService.delete_sesion - Sesión 19 cancelada
+2025-07-30 01:05:20 - INFO - LoginService.login - Intento de autenticacion
+2025-07-30 01:05:37 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:05:38 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-07-30 01:05:42 - INFO - SesionTerapiaComponent.generar_cronograma - 8 sesiones programadas para sesión 16
+2025-07-30 01:05:43 - INFO - SesionTerapiaComponent.generar_cronograma - 8 sesiones programadas para sesión 19
+2025-07-30 01:07:24 - INFO - LoginService.login - Intento de autenticacion
+2025-07-30 01:07:24 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-07-30 01:07:24 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-07-30 01:07:24 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-07-30 01:07:26 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:26 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-07-30 01:07:26 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-07-30 01:07:26 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-07-30 01:07:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:29 - INFO - SesionTerapiaService.get_terapeutas_disponibles - Iniciando
+2025-07-30 01:07:29 - INFO - SesionTerapiaComponent.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 01:07:29 - INFO - SesionTerapiaService.get_terapeutas_disponibles - 6 terapeutas disponibles
+2025-07-30 01:07:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:31 - INFO - SesionTerapiaService.get_pacientes_disponibles - Iniciando
+2025-07-30 01:07:31 - INFO - SesionTerapiaComponent.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 01:07:31 - INFO - SesionTerapiaService.get_pacientes_disponibles - 9 pacientes disponibles
+2025-07-30 01:07:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:33 - INFO - SesionTerapiaService.get_sesiones - Iniciando
+2025-07-30 01:07:33 - INFO - SesionTerapiaComponent.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 01:07:33 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 0 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 3 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 2 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:34 - INFO - SesionTerapiaService.get_sesiones - Sesiones obtenidas exitosamente
+2025-07-30 01:07:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:36 - INFO - SesionTerapiaService.create_sesion - Iniciando
+2025-07-30 01:07:37 - INFO - SesionTerapiaComponent.create_sesion - Sesión creada con ID: 20, Código: ST-2025-014
+2025-07-30 01:07:38 - INFO - Cronograma sesión 20: 10/12 generadas
+2025-07-30 01:07:38 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 20
+2025-07-30 01:07:38 - INFO - SesionTerapiaComponent.create_sesion - Cronograma generado para sesión 20
+2025-07-30 01:07:39 - INFO - Cronograma sesión 20: 10/12 generadas
+2025-07-30 01:07:39 - INFO - SesionTerapiaComponent.generar_cronograma - 12 sesiones programadas para sesión 20
+2025-07-30 01:07:39 - INFO - SesionTerapiaComponent.add_paciente_to_sesion - Paciente 9 agregado a sesión 20
+2025-07-30 01:07:39 - INFO - SesionTerapiaService.create_sesion - Sesión creada con ID: 20
+2025-07-30 01:07:41 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:41 - INFO - SesionTerapiaService.get_sesion - ID: 20
+2025-07-30 01:07:41 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 20 encontrada
+2025-07-30 01:07:42 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:42 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:07:42 - INFO - SesionTerapiaService.get_sesion - Sesión 20 encontrada
+2025-07-30 01:07:44 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:44 - INFO - SesionTerapiaService.update_sesion - ID: 20
+2025-07-30 01:07:44 - INFO - SesionTerapiaComponent.get_sesion_by_id - Sesión 20 encontrada
+2025-07-30 01:07:44 - INFO - SesionTerapiaComponent.update_sesion - Sesión 20 actualizada
+2025-07-30 01:07:44 - INFO - SesionTerapiaService.update_sesion - Cambios en cronograma detectados, actualizando...
+2025-07-30 01:07:44 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Sesión ID: 20
+2025-07-30 01:07:44 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 12 sesiones programadas
+2025-07-30 01:07:45 - INFO - Eliminada sesión futura del 2025-08-01 sin asistencias
+2025-07-30 01:07:45 - INFO - Eliminada sesión futura del 2025-08-04 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-06 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-08 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-11 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-13 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-15 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-18 sin asistencias
+2025-07-30 01:07:46 - INFO - Eliminada sesión futura del 2025-08-20 sin asistencias
+2025-07-30 01:07:47 - INFO - Eliminada sesión futura del 2025-08-22 sin asistencias
+2025-07-30 01:07:47 - INFO - Eliminada sesión futura del 2025-08-25 sin asistencias
+2025-07-30 01:07:47 - INFO - Eliminada sesión futura del 2025-08-27 sin asistencias
+2025-07-30 01:07:48 - INFO - SesionTerapiaComponent.actualizar_cronograma_inteligente - Cronograma actualizado preservando asistencias
+2025-07-30 01:07:48 - INFO - SesionTerapiaService.update_sesion - Sesión 20 actualizada
+2025-07-30 01:07:50 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:50 - INFO - SesionTerapiaService.get_cronograma_sesion - ID: 20
+2025-07-30 01:07:50 - INFO - SesionTerapiaComponent.get_cronograma_sesion - 8 sesiones programadas
+2025-07-30 01:07:50 - INFO - SesionTerapiaService.get_cronograma_sesion - Cronograma obtenido
+2025-07-30 01:07:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:52 - INFO - SesionTerapiaService.marcar_sesion_realizada - Cronograma ID: 465
+2025-07-30 01:07:52 - INFO - SesionTerapiaComponent.marcar_sesion_realizada - Sesión 465 marcada como realizada
+2025-07-30 01:07:52 - INFO - SesionTerapiaService.marcar_sesion_realizada - Sesión 465 marcada como realizada
+2025-07-30 01:07:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:54 - INFO - SesionTerapiaComponent.get_pacientes_sesion - 1 pacientes encontrados
+2025-07-30 01:07:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:57 - INFO - SesionTerapiaService.add_paciente_to_sesion - Sesion ID: 20
+2025-07-30 01:07:59 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:07:59 - INFO - SesionTerapiaService.get_estadisticas - Iniciando
+2025-07-30 01:07:59 - INFO - SesionTerapiaComponent.get_estadisticas_sesiones - Estadísticas obtenidas
+2025-07-30 01:07:59 - INFO - SesionTerapiaService.get_estadisticas - Estadísticas obtenidas
+2025-07-30 01:08:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:08:01 - INFO - SesionTerapiaService.get_sesiones_hoy - Iniciando
+2025-07-30 01:08:01 - INFO - SesionTerapiaComponent.get_sesiones_activas_hoy - 1 sesiones hoy
+2025-07-30 01:08:01 - INFO - SesionTerapiaService.get_sesiones_hoy - 1 sesiones hoy
+2025-07-30 01:08:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:08:04 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - ID: 1
+2025-07-30 01:08:04 - INFO - SesionTerapiaComponent.get_sesiones_by_terapeuta - 3 sesiones encontradas
+2025-07-30 01:08:04 - INFO - SesionTerapiaService.get_sesiones_by_terapeuta - Sesiones obtenidas
+2025-07-30 01:08:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-07-30 01:08:06 - INFO - SesionTerapiaService.delete_sesion - ID: 20
+2025-07-30 01:08:06 - INFO - SesionTerapiaComponent.delete_sesion - Sesión 20 cancelada
+2025-07-30 01:08:06 - INFO - SesionTerapiaService.delete_sesion - Sesión 20 cancelada

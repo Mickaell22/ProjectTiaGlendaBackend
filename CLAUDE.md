@@ -129,10 +129,12 @@ The project uses a sophisticated testing framework (`tests/utils/advanced_test_r
 ### Database Patterns
 - Custom DataBaseHandle class for connection management with specific methods:
   - `getRecords()`: For SELECT queries (returns dict/list)
+  - `getRecordsWithStatus()`: For SELECT with detailed error handling and status info
   - `ExecuteNonQuery()`: For INSERT/UPDATE/DELETE without return values
   - `ExecuteInsert()`: For INSERT with ID return (limited use)
 - **Important**: Never use `getRecords()` with INSERT RETURNING - use ExecuteNonQuery + separate SELECT
 - **Important**: No `updateRecords()` method exists - use `ExecuteNonQuery()` for updates
+- **Important**: Use `getRecordsWithStatus()` for operations where you need to distinguish between "no data" vs "query error"
 - PostgreSQL time objects require conversion to strings for JSON serialization
 - Support for parameterized queries and proper connection cleanup
 
@@ -140,12 +142,17 @@ The project uses a sophisticated testing framework (`tests/utils/advanced_test_r
 
 Main dependencies include:
 - Flask: Web framework
+- flask-swagger-ui: Swagger UI integration
 - psycopg2: PostgreSQL driver
 - PyJWT: JWT token handling
 - bcrypt: Password hashing
 - flask-cors: CORS support
 - configparser: Configuration management
 - validators: Input validation
+- python-dotenv: Environment variable loading
+- gunicorn: Production WSGI server
+- openpyxl, pillow, reportlab: Document/report generation
+- requests: HTTP client for testing
 
 ## API Documentation
 
@@ -170,6 +177,13 @@ When working with database responses, always convert PostgreSQL-specific types t
 ### Test Runner Compatibility
 The advanced test runner (`tests/utils/advanced_test_runner.py`) is Windows-compatible with ASCII-only characters in progress bars. Unicode characters have been replaced with ASCII equivalents to prevent encoding errors.
 
+### Debug Utilities
+The project includes specialized debugging tools for development:
+- `debug_cronograma.py`: Debug therapy session scheduling/cronograma generation
+- `debug_endpoint.py`: Direct endpoint testing with authentication
+- `debug_test_flow.py`: Test workflow debugging
+These can be run directly with `python <script_name>.py` for targeted debugging.
+
 ### Therapy Sessions Module
 The therapy sessions (`/api/sesiones-terapia`) module includes:
 - Automatic cronograma (schedule) generation when creating sessions
@@ -191,3 +205,6 @@ The pedagogical sessions (`/api/sesiones-pedagogicas`) module includes:
 - Foreign key relationships are strictly enforced
 - Triggers automatically update `fecha_modificacion` on record updates
 - Session codes are auto-generated with format "ST-YYYY-NNN" via database triggers
+- Database initialization scripts are located in `src/utils/database/`:
+  - `01_estructura_tablas.sql`: Complete database schema
+  - `02_datos_iniciales.sql`: Initial/seed data

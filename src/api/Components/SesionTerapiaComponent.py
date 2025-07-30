@@ -36,15 +36,16 @@ class SesionTerapiaComponent:
                     st.observaciones,
                     st.fecha_creacion,
                     st.fecha_modificacion,
-                    COUNT(sp.paciente_id) as total_pacientes,
-                    COUNT(cs.id) as sesiones_programadas,
-                    COUNT(CASE WHEN cs.estado = 'realizada' THEN 1 END) as sesiones_realizadas
+                    COUNT(DISTINCT sp.paciente_id) as total_pacientes,
+                    COUNT(DISTINCT cs.id) as sesiones_programadas,
+                    COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.cronograma_sesion_id END) as sesiones_realizadas
                 FROM sesion_terapia st
                 JOIN personal per ON st.terapeuta_id = per.id
                 JOIN persona p_ter ON per.persona_id = p_ter.id
                 JOIN especialidad e ON st.especialidad_id = e.id
                 LEFT JOIN sesion_paciente sp ON st.id = sp.sesion_terapia_id AND sp.estado = 'activo'
                 LEFT JOIN cronograma_sesiones cs ON st.id = cs.sesion_terapia_id
+                LEFT JOIN asistencia_sesiones ass ON cs.id = ass.cronograma_sesion_id
                 GROUP BY st.id, p_ter.nombre, p_ter.apellido, e.nombre, e.area
                 ORDER BY st.fecha_creacion DESC
             """
@@ -824,3 +825,276 @@ class SesionTerapiaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.get_terapeutas_disponibles - Error: {str(e)}")
             raise Exception(f"Error al obtener terapeutas disponibles: {str(e)}")
+
+    @staticmethod
+    def get_asistencias_por_sesion(sesion_id):
+        """Obtener todas las asistencias de una sesión de terapia"""
+        try:
+            query = """
+                SELECT 
+                    a.id,
+                    a.cronograma_sesion_id,
+                    a.paciente_id,
+                    CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                    p.cedula as paciente_cedula,
+                    a.asistio,
+                    a.llegada_tardanza_minutos,
+                    a.observaciones_asistencia,
+                    a.notas_progreso,
+                    a.tareas_asignadas,
+                    a.proximos_objetivos,
+                    a.fecha_creacion as fecha_registro,
+                    cs.fecha_programada,
+                    cs.hora_programada,
+                    cs.numero_sesion,
+                    cs.estado as estado_sesion
+                FROM asistencia_sesiones a
+                JOIN cronograma_sesiones cs ON a.cronograma_sesion_id = cs.id
+                JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
+                JOIN paciente pac ON a.paciente_id = pac.id
+                JOIN persona p ON pac.persona_id = p.id
+                WHERE st.id = %s
+                ORDER BY cs.fecha_programada, cs.hora_programada, p.apellido, p.nombre
+            """
+
+            params = (sesion_id,)
+            result = DataBaseHandle.getRecords(query, params)
+            HandleLogs.write_log(
+                f"SesionTerapiaComponent.get_asistencias_por_sesion - {len(result) if result else 0} asistencias encontradas para sesión {sesion_id}")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_asistencias_por_sesion - Error: {str(e)}")
+            raise Exception(f"Error al obtener asistencias de la sesión: {str(e)}")
+
+    @staticmethod
+    def get_asistencias_por_paciente(paciente_id):
+        """Obtener historial de asistencias de un paciente específico"""
+        try:
+            query = """
+                SELECT 
+                    a.id,
+                    a.cronograma_sesion_id,
+                    a.paciente_id,
+                    a.asistio,
+                    a.llegada_tardanza_minutos,
+                    a.observaciones_asistencia,
+                    a.notas_progreso,
+                    a.tareas_asignadas,
+                    a.proximos_objetivos,
+                    a.fecha_creacion as fecha_registro,
+                    cs.fecha_programada,
+                    cs.hora_programada,
+                    cs.numero_sesion,
+                    st.titulo as sesion_titulo,
+                    st.codigo_sesion,
+                    CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
+                    e.nombre as especialidad_nombre
+                FROM asistencia_sesiones a
+                JOIN cronograma_sesiones cs ON a.cronograma_sesion_id = cs.id
+                JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
+                JOIN personal per ON st.terapeuta_id = per.id
+                JOIN persona p_ter ON per.persona_id = p_ter.id
+                JOIN especialidad e ON st.especialidad_id = e.id
+                WHERE a.paciente_id = %s
+                ORDER BY cs.fecha_programada DESC, cs.hora_programada DESC
+            """
+
+            params = (paciente_id,)
+            result = DataBaseHandle.getRecords(query, params)
+            HandleLogs.write_log(
+                f"SesionTerapiaComponent.get_asistencias_por_paciente - {len(result) if result else 0} asistencias encontradas para paciente {paciente_id}")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_asistencias_por_paciente - Error: {str(e)}")
+            raise Exception(f"Error al obtener asistencias del paciente: {str(e)}")
+
+    @staticmethod
+    def get_estadisticas_asistencia_sesion(sesion_id):
+        """Obtener estadísticas de asistencia de una sesión"""
+        try:
+            query = """
+                SELECT 
+                    COUNT(*) as total_asistencias_registradas,
+                    COUNT(CASE WHEN a.asistio = true THEN 1 END) as asistencias_confirmadas,
+                    COUNT(CASE WHEN a.asistio = false THEN 1 END) as inasistencias,
+                    ROUND(AVG(CASE WHEN a.asistio = true THEN a.llegada_tardanza_minutos ELSE NULL END), 2) as promedio_tardanza_minutos,
+                    COUNT(CASE WHEN a.llegada_tardanza_minutos > 0 AND a.asistio = true THEN 1 END) as asistencias_con_tardanza,
+                    COUNT(DISTINCT a.paciente_id) as pacientes_unicos_registrados,
+                    COUNT(DISTINCT cs.id) as sesiones_con_asistencia_registrada
+                FROM cronograma_sesiones cs
+                LEFT JOIN asistencia_sesiones a ON cs.id = a.cronograma_sesion_id
+                WHERE cs.sesion_terapia_id = %s
+            """
+
+            params = (sesion_id,)
+            result = DataBaseHandle.getRecords(query, params, size=1)
+            
+            if result:
+                # Calcular porcentajes
+                total = result.get('total_asistencias_registradas', 0)
+                confirmadas = result.get('asistencias_confirmadas', 0)
+                
+                estadisticas = {
+                    'total_asistencias_registradas': total,
+                    'asistencias_confirmadas': confirmadas,
+                    'inasistencias': result.get('inasistencias', 0),
+                    'porcentaje_asistencia': round((confirmadas / total * 100), 2) if total > 0 else 0,
+                    'promedio_tardanza_minutos': float(result.get('promedio_tardanza_minutos', 0)) if result.get('promedio_tardanza_minutos') else 0,
+                    'asistencias_con_tardanza': result.get('asistencias_con_tardanza', 0),
+                    'pacientes_unicos_registrados': result.get('pacientes_unicos_registrados', 0),
+                    'sesiones_con_asistencia_registrada': result.get('sesiones_con_asistencia_registrada', 0)
+                }
+                
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_estadisticas_asistencia_sesion - Estadísticas calculadas para sesión {sesion_id}")
+                return estadisticas
+            else:
+                return {}
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_estadisticas_asistencia_sesion - Error: {str(e)}")
+            raise Exception(f"Error al obtener estadísticas de asistencia: {str(e)}")
+    
+    @staticmethod
+    def actualizar_cronograma_inteligente(sesion_id, sesion_data):
+        """Actualizar cronograma preservando asistencias existentes"""
+        try:
+            from datetime import datetime, timedelta
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.actualizar_cronograma_inteligente - Sesión ID: {sesion_id}")
+            
+            # Obtener cronograma actual
+            cronograma_actual = SesionTerapiaComponent.get_cronograma_sesion(sesion_id)
+            
+            # Determinar fecha de corte (hoy) - solo actualizar sesiones futuras
+            fecha_corte = datetime.now().date()
+            
+            # Preservar sesiones pasadas con asistencias
+            sesiones_a_preservar = []
+            if cronograma_actual:
+                for sesion_cron in cronograma_actual:
+                    fecha_sesion = sesion_cron['fecha_programada']
+                    if isinstance(fecha_sesion, str):
+                        fecha_sesion = datetime.strptime(fecha_sesion, '%Y-%m-%d').date()
+                    
+                    # Preservar si es del pasado O si ya tiene asistencias registradas
+                    tiene_asistencias = SesionTerapiaComponent._cronograma_tiene_asistencias(sesion_cron['id'])
+                    
+                    if fecha_sesion <= fecha_corte or tiene_asistencias:
+                        sesiones_a_preservar.append(sesion_cron)
+                        HandleLogs.write_log(f"Preservando sesión del {fecha_sesion} (tiene asistencias: {tiene_asistencias})")
+            
+            # Eliminar solo sesiones futuras sin asistencias
+            if cronograma_actual:
+                for sesion_cron in cronograma_actual:
+                    fecha_sesion = sesion_cron['fecha_programada']
+                    if isinstance(fecha_sesion, str):
+                        fecha_sesion = datetime.strptime(fecha_sesion, '%Y-%m-%d').date()
+                    
+                    tiene_asistencias = SesionTerapiaComponent._cronograma_tiene_asistencias(sesion_cron['id'])
+                    
+                    if fecha_sesion > fecha_corte and not tiene_asistencias:
+                        # Eliminar sesión futura sin asistencias
+                        delete_query = "DELETE FROM cronograma_sesiones WHERE id = %s"
+                        DataBaseHandle.ExecuteNonQuery(delete_query, (sesion_cron['id'],))
+                        HandleLogs.write_log(f"Eliminada sesión futura del {fecha_sesion} sin asistencias")
+            
+            # Generar nuevas sesiones futuras con los nuevos parámetros
+            SesionTerapiaComponent._generar_cronograma_desde_fecha(sesion_id, sesion_data, fecha_corte + timedelta(days=1))
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.actualizar_cronograma_inteligente - Cronograma actualizado preservando asistencias")
+            return True
+            
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.actualizar_cronograma_inteligente - Error: {str(e)}")
+            raise e
+    
+    @staticmethod
+    def _cronograma_tiene_asistencias(cronograma_id):
+        """Verificar si una sesión del cronograma tiene asistencias registradas"""
+        try:
+            query = "SELECT COUNT(*) as count FROM asistencia_sesiones WHERE cronograma_sesion_id = %s"
+            result = DataBaseHandle.getRecords(query, params=(cronograma_id,), size=1)
+            return result and result.get('count', 0) > 0
+        except Exception:
+            return False
+    
+    @staticmethod
+    def _generar_cronograma_desde_fecha(sesion_id, sesion_data, fecha_inicio):
+        """Generar cronograma desde una fecha específica"""
+        try:
+            from datetime import datetime, timedelta
+            
+            # Convertir días de la semana a números
+            dias_semana_map = {
+                'lunes': 0, 'martes': 1, 'miercoles': 2, 'jueves': 3,
+                'viernes': 4, 'sabado': 5, 'domingo': 6
+            }
+            
+            dias_sesion = []
+            if isinstance(sesion_data['dias_semana'], str):
+                dias_nombres = [d.strip().lower() for d in sesion_data['dias_semana'].split(',')]
+            else:
+                dias_nombres = [d.strip().lower() for d in sesion_data['dias_semana']]
+            
+            for dia_nombre in dias_nombres:
+                if dia_nombre in dias_semana_map:
+                    dias_sesion.append(dias_semana_map[dia_nombre])
+            
+            if not dias_sesion:
+                return
+            
+            # Generar sesiones desde fecha_inicio hasta fecha_fin
+            fecha_actual = fecha_inicio
+            fecha_fin = sesion_data['fecha_fin']
+            if isinstance(fecha_fin, str):
+                fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+            
+            numero_sesion = SesionTerapiaComponent._get_ultimo_numero_sesion(sesion_id) + 1
+            
+            while fecha_actual <= fecha_fin:
+                if fecha_actual.weekday() in dias_sesion:
+                    # Crear sesión en el cronograma
+                    cronograma_data = {
+                        'sesion_terapia_id': sesion_id,
+                        'numero_sesion': numero_sesion,
+                        'fecha_programada': fecha_actual,
+                        'hora_programada': sesion_data['hora_inicio'],
+                        'estado': 'programada',
+                        'usuario_creacion': sesion_data.get('usuario_modificacion', 1)
+                    }
+                    
+                    insert_query = """
+                        INSERT INTO cronograma_sesiones 
+                        (sesion_terapia_id, numero_sesion, fecha_programada, hora_programada, estado, usuario_creacion)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    
+                    params = (
+                        cronograma_data['sesion_terapia_id'],
+                        cronograma_data['numero_sesion'],
+                        cronograma_data['fecha_programada'],
+                        cronograma_data['hora_programada'],
+                        cronograma_data['estado'],
+                        cronograma_data['usuario_creacion']
+                    )
+                    
+                    DataBaseHandle.ExecuteNonQuery(insert_query, params)
+                    numero_sesion += 1
+                
+                fecha_actual += timedelta(days=1)
+            
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent._generar_cronograma_desde_fecha - Error: {str(e)}")
+            raise e
+    
+    @staticmethod
+    def _get_ultimo_numero_sesion(sesion_id):
+        """Obtener el último número de sesión en el cronograma"""
+        try:
+            query = "SELECT COALESCE(MAX(numero_sesion), 0) as max_numero FROM cronograma_sesiones WHERE sesion_terapia_id = %s"
+            result = DataBaseHandle.getRecords(query, params=(sesion_id,), size=1)
+            return result.get('max_numero', 0) if result else 0
+        except Exception:
+            return 0

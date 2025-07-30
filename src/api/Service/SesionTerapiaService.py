@@ -23,19 +23,46 @@ class SesionTerapiaService:
                 # Formatear datos para respuesta
                 sesiones_formateadas = []
                 for sesion in sesiones:
+                    # Obtener información de pacientes para esta sesión
+                    pacientes = SesionTerapiaComponent.get_pacientes_sesion(sesion['id'])
+                    pacientes_data = []
+                    
+                    if pacientes:
+                        for paciente in pacientes:
+                            pacientes_data.append({
+                                'paciente_id': paciente['paciente_id'],
+                                'paciente_nombre': paciente['paciente_nombre'],
+                                'paciente_cedula': paciente['paciente_cedula'],
+                                'fecha_asignacion': paciente['fecha_asignacion'].isoformat() if paciente.get('fecha_asignacion') else None
+                            })
+                    
+                    # Determinar tipo de sesión basado en número de pacientes
+                    tipo_sesion = 'grupal' if len(pacientes_data) > 1 else 'individual'
+                    
                     sesion_data = {
                         'id': sesion['id'],
                         'codigo_sesion': sesion['codigo_sesion'],
                         'titulo': sesion['titulo'],
+                        'tipo_sesion': tipo_sesion,
                         'terapeuta': {
                             'id': sesion['terapeuta_id'],
                             'nombre': sesion['terapeuta_nombre']
                         },
+                        'terapeuta_id': sesion['terapeuta_id'],
+                        'terapeuta_nombre': sesion['terapeuta_nombre'],
                         'especialidad': {
                             'id': sesion['especialidad_id'],
                             'nombre': sesion['especialidad_nombre'],
                             'area': sesion['especialidad_area']
                         },
+                        'especialidad_id': sesion['especialidad_id'],
+                        'especialidad_nombre': sesion['especialidad_nombre'],
+                        'especialidad_area': sesion['especialidad_area'],
+                        'pacientes': pacientes_data,
+                        # Para compatibilidad con frontend, incluir datos del primer paciente como campos planos
+                        'paciente_id': pacientes_data[0]['paciente_id'] if pacientes_data else None,
+                        'paciente_nombre': pacientes_data[0]['paciente_nombre'] if pacientes_data else None,
+                        'paciente_cedula': pacientes_data[0]['paciente_cedula'] if pacientes_data else None,
                         'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                         'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
                         'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
@@ -189,7 +216,22 @@ class SesionTerapiaService:
                 except Exception as cron_error:
                     HandleLogs.write_error(f"Error generando cronograma: {str(cron_error)}")
 
-                # Agregar pacientes si se proporcionaron
+                # Agregar paciente si es sesión individual
+                if data.get('paciente_id'):
+                    try:
+                        paciente_info = {
+                            'paciente_id': data['paciente_id'],
+                            'fecha_incorporacion': sesion_data['fecha_inicio'],
+                            'costo_paciente': None,
+                            'observaciones_paciente': None,
+                            'usuario_creacion': current_user['id']
+                        }
+                        SesionTerapiaComponent.add_paciente_to_sesion(sesion_id, paciente_info)
+                        HandleLogs.write_log(f"SesionTerapiaService.create_sesion - Paciente {data['paciente_id']} agregado a sesión {sesion_id}")
+                    except Exception as pac_error:
+                        HandleLogs.write_error(f"Error agregando paciente: {str(pac_error)}")
+
+                # Agregar pacientes adicionales si se proporcionaron
                 if data.get('pacientes'):
                     for paciente_data in data['pacientes']:
                         try:
@@ -302,9 +344,28 @@ class SesionTerapiaService:
 
             sesiones = SesionTerapiaComponent.get_sesiones_activas_hoy()
 
-            HandleLogs.write_log(
-                f"SesionTerapiaService.get_sesiones_hoy - {len(sesiones) if sesiones else 0} sesiones hoy")
-            return response_success(sesiones or [], "Sesiones de hoy obtenidas exitosamente")
+            # Formatear datos para evitar errores de serialización JSON
+            if sesiones:
+                sesiones_formateadas = []
+                for sesion in sesiones:
+                    sesion_formateada = {}
+                    for key, value in sesion.items():
+                        # Convertir objetos time a string
+                        if hasattr(value, 'strftime') and hasattr(value, 'hour'):  # Es un objeto time
+                            sesion_formateada[key] = str(value)
+                        # Convertir objetos date a string
+                        elif hasattr(value, 'isoformat') and hasattr(value, 'year'):  # Es un objeto date
+                            sesion_formateada[key] = value.isoformat()
+                        # Mantener otros valores como están
+                        else:
+                            sesion_formateada[key] = value
+                    sesiones_formateadas.append(sesion_formateada)
+                
+                HandleLogs.write_log(
+                    f"SesionTerapiaService.get_sesiones_hoy - {len(sesiones_formateadas)} sesiones hoy")
+                return response_success(sesiones_formateadas, "Sesiones de hoy obtenidas exitosamente")
+            else:
+                return response_success([], "No hay sesiones programadas para hoy")
 
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.get_sesiones_hoy - Error: {str(e)}")
@@ -341,6 +402,41 @@ class SesionTerapiaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.get_pacientes_disponibles - Error: {str(e)}")
             return response_error(f"Error al obtener pacientes disponibles: {str(e)}", 500)
+
+    @staticmethod
+    def get_cronograma_sesion(sesion_id):
+        """Obtener cronograma de una sesión específica"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_cronograma_sesion - Iniciando para sesión {sesion_id}")
+
+            cronograma = SesionTerapiaComponent.get_cronograma_sesion(sesion_id)
+
+            # Formatear datos para evitar errores de serialización JSON
+            if cronograma:
+                cronograma_formateado = []
+                for sesion in cronograma:
+                    sesion_formateada = {}
+                    for key, value in sesion.items():
+                        # Convertir objetos time a string
+                        if hasattr(value, 'strftime') and hasattr(value, 'hour'):  # Es un objeto time
+                            sesion_formateada[key] = str(value)
+                        # Convertir objetos date a string
+                        elif hasattr(value, 'isoformat') and hasattr(value, 'year'):  # Es un objeto date
+                            sesion_formateada[key] = value.isoformat()
+                        # Mantener otros valores como están
+                        else:
+                            sesion_formateada[key] = value
+                    cronograma_formateado.append(sesion_formateada)
+
+                HandleLogs.write_log(
+                    f"SesionTerapiaService.get_cronograma_sesion - {len(cronograma_formateado)} sesiones programadas")
+                return response_success(cronograma_formateado, "Cronograma obtenido exitosamente")
+            else:
+                return response_success([], "No hay sesiones programadas para esta sesión")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_cronograma_sesion - Error: {str(e)}")
+            return response_error(f"Error al obtener cronograma: {str(e)}", 500)
 
     # ============================================
     # MÉTODOS DE VALIDACIÓN
@@ -496,10 +592,31 @@ class SesionTerapiaService:
                 'usuario_modificacion': current_user['id']
             }
 
+            # Obtener datos actuales de la sesión para comparar cambios
+            sesion_actual = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
+            
             # Actualizar sesión
             result = SesionTerapiaComponent.update_sesion(sesion_id, sesion_data)
 
             if result:
+                # Verificar si hubo cambios en horario, días o fechas que requieran actualizar cronograma
+                cronograma_changed = (
+                    str(sesion_actual.get('hora_inicio', '')) != str(sesion_data['hora_inicio']) or
+                    sesion_actual.get('duracion_minutos') != sesion_data['duracion_minutos'] or
+                    sesion_actual.get('dias_semana', '') != sesion_data['dias_semana'] or
+                    str(sesion_actual.get('fecha_inicio', '')) != str(sesion_data['fecha_inicio']) or
+                    str(sesion_actual.get('fecha_fin', '')) != str(sesion_data['fecha_fin'])
+                )
+                
+                if cronograma_changed:
+                    HandleLogs.write_log(f"SesionTerapiaService.update_sesion - Cambios en cronograma detectados, actualizando...")
+                    try:
+                        # Actualizar cronograma preservando asistencias existentes
+                        SesionTerapiaComponent.actualizar_cronograma_inteligente(sesion_id, sesion_data)
+                    except Exception as cron_error:
+                        HandleLogs.write_error(f"Error actualizando cronograma: {str(cron_error)}")
+                        # No fallar la actualización por errores de cronograma
+                
                 HandleLogs.write_log(f"SesionTerapiaService.update_sesion - Sesión {sesion_id} actualizada")
                 return response_success({'id': sesion_id}, "Sesión actualizada exitosamente")
             else:
@@ -853,3 +970,63 @@ class SesionTerapiaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.registrar_asistencia - Error: {str(e)}")
             return response_error(f"Error al registrar asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def get_asistencias_por_sesion(sesion_id):
+        """Obtener todas las asistencias de una sesión de terapia"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_asistencias_por_sesion - Sesion ID: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            # Obtener asistencias de la sesión mediante cronograma
+            asistencias = SesionTerapiaComponent.get_asistencias_por_sesion(sesion_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.get_asistencias_por_sesion - {len(asistencias) if asistencias else 0} asistencias encontradas")
+            return response_success(asistencias or [], "Asistencias obtenidas exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_asistencias_por_sesion - Error: {str(e)}")
+            return response_error(f"Error al obtener asistencias de la sesión: {str(e)}", 500)
+
+    @staticmethod
+    def get_asistencias_por_paciente(paciente_id):
+        """Obtener historial de asistencias de un paciente específico"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_asistencias_por_paciente - Paciente ID: {paciente_id}")
+
+            # Validar ID
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente debe ser un número positivo", 400)
+
+            # Obtener asistencias del paciente
+            asistencias = SesionTerapiaComponent.get_asistencias_por_paciente(paciente_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.get_asistencias_por_paciente - {len(asistencias) if asistencias else 0} asistencias encontradas")
+            return response_success(asistencias or [], "Asistencias del paciente obtenidas exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_asistencias_por_paciente - Error: {str(e)}")
+            return response_error(f"Error al obtener asistencias del paciente: {str(e)}", 500)
+
+    @staticmethod
+    def get_estadisticas_asistencia(sesion_id):
+        """Obtener estadísticas de asistencia de una sesión"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_estadisticas_asistencia - Sesion ID: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            # Obtener estadísticas
+            estadisticas = SesionTerapiaComponent.get_estadisticas_asistencia_sesion(sesion_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.get_estadisticas_asistencia - Estadísticas obtenidas")
+            return response_success(estadisticas or {}, "Estadísticas de asistencia obtenidas exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_estadisticas_asistencia - Error: {str(e)}")
+            return response_error(f"Error al obtener estadísticas de asistencia: {str(e)}", 500)

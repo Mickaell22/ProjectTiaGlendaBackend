@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "API Centro Tía Glenda",
-    "version": "1.0.0",
-    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de tutores y relaciones familiares\n- Gestión de pacientes y seguimiento terapéutico\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro\n- Control de roles y permisos\n- Estadísticas y reportes\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`",
+    "version": "1.2.0",
+    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación con JWT\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de tutores y relaciones familiares\n- Gestión de pacientes y seguimiento terapéutico\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro y especialidades\n- **Sesiones de Terapia con Cronograma Automático** 🔥\n  - Creación automática de cronogramas basados en días de la semana\n  - Gestión de asistencias y seguimiento de progreso\n  - Estados: programada, realizada, cancelada, reprogramada\n- **Sesiones Pedagógicas con Clases Programadas**\n  - Sistema de clases grupales y seguimiento académico\n  - Control de asistencia y evaluaciones\n- Control de roles y permisos (admin/usuario)\n- Estadísticas avanzadas y reportes\n- Logs detallados y debugging\n\n## Novedades v1.2.0\n- ✅ Cronograma automático completamente funcional\n- ✅ Endpoints de estadísticas y sesiones de hoy\n- ✅ Serialización JSON mejorada para tipos PostgreSQL\n- ✅ Tests automatizados con 100% de éxito\n- ✅ Gestión inteligente de estados y filtros\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`\n3. Usuarios: admin/admin123 (desarrollo)",
     "contact": {
       "name": "Sistema Tía Glenda",
       "email": "admin@centro-tia-glenda.com"
@@ -200,10 +200,21 @@
       "CronogramaResponse": {
         "type": "object",
         "properties": {
-          "fecha": {"type": "string", "format": "date", "example": "2025-07-26"},
-          "dia_semana": {"type": "string", "example": "sabado"},
-          "hora_inicio": {"type": "string", "example": "10:00:00"},
-          "hora_fin": {"type": "string", "example": "11:00:00"}
+          "id": {"type": "integer", "example": 465, "description": "ID único del cronograma"},
+          "sesion_terapia_id": {"type": "integer", "example": 20, "description": "ID de la sesión de terapia"},
+          "numero_sesion": {"type": "integer", "example": 1, "description": "Número correlativo de la sesión"},
+          "fecha_programada": {"type": "string", "format": "date", "example": "2025-08-04", "description": "Fecha programada para la sesión"},
+          "hora_programada": {"type": "string", "format": "time", "example": "09:00:00", "description": "Hora programada para la sesión"},
+          "estado": {"type": "string", "enum": ["programada", "realizada", "cancelada", "reprogramada"], "example": "programada", "description": "Estado actual de la sesión"},
+          "fecha_realizacion": {"type": "string", "format": "date", "nullable": true, "example": null, "description": "Fecha real cuando se realizó la sesión"},
+          "observaciones_cronograma": {"type": "string", "nullable": true, "example": null, "description": "Observaciones específicas del cronograma"},
+          "sesion_original_id": {"type": "integer", "nullable": true, "example": null, "description": "ID de la sesión original si es reprogramación"},
+          "motivo_reprogramacion": {"type": "string", "nullable": true, "example": null, "description": "Motivo de la reprogramación"},
+          "estado_actual": {"type": "string", "example": "programada", "description": "Estado calculado considerando fecha actual"},
+          "fecha_creacion": {"type": "string", "format": "date-time", "example": "2025-07-30T01:04:01", "description": "Fecha de creación del registro"},
+          "fecha_modificacion": {"type": "string", "format": "date-time", "example": "2025-07-30T01:04:01", "description": "Fecha de última modificación"},
+          "usuario_creacion": {"type": "integer", "example": 1, "description": "ID del usuario que creó el registro"},
+          "usuario_modificacion": {"type": "integer", "nullable": true, "example": null, "description": "ID del usuario que modificó el registro"}
         }
       },
       "SesionTerapiaUpdateRequest": {
@@ -1792,6 +1803,223 @@
             "content": {
               "application/json": {
                 "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/{id}/cronograma/generar": {
+      "post": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Regenerar cronograma de sesión",
+        "description": "Regenerar el cronograma completo de una sesión de terapia, eliminando el cronograma anterior",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cronograma regenerado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Cronograma generado exitosamente"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sesion_id": {"type": "integer", "example": 20},
+                        "sesiones_generadas": {"type": "integer", "example": 8}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-sesiones/{cronograma_id}/realizar": {
+      "put": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Marcar sesión como realizada",
+        "description": "Marcar una sesión específica del cronograma como realizada",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "observaciones": {
+                    "type": "string",
+                    "example": "Sesión realizada exitosamente",
+                    "description": "Observaciones sobre la sesión realizada"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión marcada como realizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Sesión marcada como realizada exitosamente"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "cronograma_id": {"type": "integer", "example": 465}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cronograma no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/hoy": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener sesiones de hoy",
+        "description": "Obtener todas las sesiones programadas para el día actual",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Sesiones de hoy obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Sesiones de hoy obtenidas exitosamente"},
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "cronograma_id": {"type": "integer", "example": 465},
+                          "numero_sesion": {"type": "integer", "example": 1},
+                          "hora_programada": {"type": "string", "format": "time", "example": "09:00:00"},
+                          "titulo": {"type": "string", "example": "Terapia Ocupacional - Juan Pérez"},
+                          "codigo_sesion": {"type": "string", "example": "ST-2025-014"},
+                          "terapeuta_nombre": {"type": "string", "example": "Dr. María González"},
+                          "especialidad_nombre": {"type": "string", "example": "Terapia Ocupacional"},
+                          "total_pacientes": {"type": "integer", "example": 1},
+                          "estado": {"type": "string", "example": "programada"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/estadisticas": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener estadísticas de sesiones",
+        "description": "Obtener estadísticas generales del sistema de sesiones de terapia",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Estadísticas obtenidas exitosamente"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sesiones": {
+                          "type": "object",
+                          "properties": {
+                            "total": {"type": "integer", "example": 14},
+                            "activas": {"type": "integer", "example": 3},
+                            "completadas": {"type": "integer", "example": 0},
+                            "suspendidas": {"type": "integer", "example": 0},
+                            "canceladas": {"type": "integer", "example": 11}
+                          }
+                        },
+                        "cronograma": {
+                          "type": "object",
+                          "properties": {
+                            "total_sesiones_programadas": {"type": "integer", "example": 50},
+                            "sesiones_realizadas": {"type": "integer", "example": 12},
+                            "sesiones_pendientes": {"type": "integer", "example": 38},
+                            "sesiones_canceladas": {"type": "integer", "example": 0}
+                          }
+                        },
+                        "porcentajes": {
+                          "type": "object",
+                          "properties": {
+                            "sesiones_activas": {"type": "number", "format": "float", "example": 21.43},
+                            "sesiones_completadas": {"type": "number", "format": "float", "example": 24.0},
+                            "cronograma_realizado": {"type": "number", "format": "float", "example": 24.0}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
