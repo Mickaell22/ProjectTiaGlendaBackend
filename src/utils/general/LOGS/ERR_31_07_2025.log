@@ -1,0 +1,10 @@
+2025-07-31 11:50:52 - ERROR - ExecuteNonQuery - Error: llave duplicada viola restricción de unicidad «sesion_paciente_sesion_terapia_id_paciente_id_key»
+DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(21, 9).
+
+2025-07-31 11:58:56 - ERROR - PersonalService.assign_especialidad - Error: Esta especialidad ya está asignada a este personal
+2025-07-31 11:59:19 - ERROR - PersonalService.create_personal - Error: Esta persona ya está registrada como personal
+2025-07-31 11:59:26 - ERROR - ExecuteInsert - Error: inserción o actualización en la tabla «personal» viola la llave foránea «personal_persona_id_fkey»
+DETAIL:  La llave (persona_id)=(99999) no está presente en la tabla «persona».
+
+2025-07-31 11:59:26 - ERROR - PersonalComponent.create_personal - Error insertando personal
+2025-07-31 11:59:26 - ERROR - PersonalService.create_personal - Error: Error creando personal

@@ -21,9 +21,9 @@ created_persona_id = None
 def print_test_info(test_name, status, data=None, error=None):
     """Función helper para logging de tests individuales"""
     if data and isinstance(data, dict):
-        print(f"   📋 Datos: {json.dumps(data, indent=2, ensure_ascii=False)[:200]}...")
+        print(f"   Datos: {json.dumps(data, indent=2, ensure_ascii=False)[:200]}...")
     if error:
-        print(f"   ⚠️  Error: {error}")
+        print(f"   Error: {error}")
 
 
 def test_login():

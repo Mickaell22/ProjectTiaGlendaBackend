@@ -1,8 +1,8 @@
 {
   "module_name": "PACIENTES",
-  "timestamp": "2025-07-27T12:04:09.457107",
+  "timestamp": "2025-07-31T11:57:54.624262",
   "total_tests": 6,
-  "total_duration": 42.827091217041016,
+  "total_duration": 43.04142618179321,
   "summary": {
     "passed": 6,
     "failed": 0,
@@ -13,42 +13,42 @@
     {
       "name": "Autenticacion",
       "status": "passed",
-      "duration": 2.39615797996521,
+      "duration": 2.4329545497894287,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Configuracion de datos",
       "status": "passed",
-      "duration": 6.974647760391235,
+      "duration": 7.047410726547241,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "CRUD de pacientes",
       "status": "passed",
-      "duration": 9.05611777305603,
+      "duration": 9.16324234008789,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Cambios de estado",
       "status": "passed",
-      "duration": 6.637845277786255,
+      "duration": 6.659076929092407,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Endpoints adicionales",
       "status": "passed",
-      "duration": 6.56644344329834,
+      "duration": 6.574906587600708,
       "error_message": null,
       "retry_count": 0
     },
     {
       "name": "Validaciones",
       "status": "passed",
-      "duration": 10.590417623519897,
+      "duration": 10.558736324310303,
       "error_message": null,
       "retry_count": 0
     }

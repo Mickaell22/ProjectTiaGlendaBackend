@@ -1,49 +1,49 @@
 {
   "module_name": "PERSONAS",
-  "timestamp": "2025-07-27T12:03:13.541214",
+  "timestamp": "2025-07-31T11:49:19.814660",
   "total_tests": 5,
-  "total_duration": 33.59953474998474,
+  "total_duration": 23.490819692611694,
   "summary": {
-    "passed": 5,
+    "passed": 0,
     "failed": 0,
-    "errors": 0,
-    "success_rate": 100.0
+    "errors": 5,
+    "success_rate": 0.0
   },
   "tests": [
     {
       "name": "Autenticacion",
-      "status": "passed",
-      "duration": 2.406008005142212,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.453063488006592,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "CRUD de personas",
-      "status": "passed",
-      "duration": 9.059851884841919,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.1625187397003174,
+      "error_message": "Error en listar personas: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Endpoints adicionales",
-      "status": "passed",
-      "duration": 2.150263547897339,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.1621575355529785,
+      "error_message": "Error en personas disponibles: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Validaciones",
-      "status": "passed",
-      "duration": 14.949493169784546,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.1813387870788574,
+      "error_message": "Error en validación campos faltantes: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Eliminacion",
-      "status": "passed",
-      "duration": 4.528282880783081,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "No hay persona creada para eliminar",
+      "retry_count": 1
     }
   ]
 }

@@ -18,7 +18,10 @@
       "Bash(taskkill:*)",
       "Bash(npm run dev:*)",
       "Bash(find:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(for file in test_autenticacion_api.py test_roles_api.py test_usuarios_api.py test_personal_api.py test_especialidades_api.py test_tutores_api.py)",
+      "Bash(do echo \"Fixing $file...\")",
+      "Bash(done)"
     ],
     "deny": []
   }

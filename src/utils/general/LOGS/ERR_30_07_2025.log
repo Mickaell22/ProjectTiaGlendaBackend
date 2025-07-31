@@ -112,3 +112,11 @@ DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(19, 9).
 2025-07-30 01:07:57 - ERROR - ExecuteNonQuery - Error: llave duplicada viola restricción de unicidad «sesion_paciente_sesion_terapia_id_paciente_id_key»
 DETAIL:  Ya existe la llave (sesion_terapia_id, paciente_id)=(20, 9).
 
+2025-07-30 13:25:26 - ERROR - getRecords - Error: no existe la relación «tabla_inexistente»
+LINE 1: SELECT * FROM tabla_inexistente
+                      ^
+
+2025-07-30 13:25:27 - ERROR - getRecordsWithStatus - Error: no existe la relación «tabla_inexistente»
+LINE 1: SELECT * FROM tabla_inexistente
+                      ^
+

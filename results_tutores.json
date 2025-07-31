@@ -1,56 +1,56 @@
 {
   "module_name": "TUTORES",
-  "timestamp": "2025-07-27T12:04:19.509582",
+  "timestamp": "2025-07-31T11:48:53.021789",
   "total_tests": 6,
-  "total_duration": 35.99323320388794,
+  "total_duration": 39.372504234313965,
   "summary": {
-    "passed": 6,
+    "passed": 0,
     "failed": 0,
-    "errors": 0,
-    "success_rate": 100.0
+    "errors": 6,
+    "success_rate": 0.0
   },
   "tests": [
     {
       "name": "Autenticacion",
-      "status": "passed",
-      "duration": 2.3908896446228027,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 3.114255428314209,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Configuracion de datos",
-      "status": "passed",
-      "duration": 2.3558433055877686,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.5451717376708984,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "CRUD de tutores",
-      "status": "passed",
-      "duration": 8.978333473205566,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 3.2442455291748047,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Endpoints adicionales",
-      "status": "passed",
-      "duration": 6.500835657119751,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.1478829383850098,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Validaciones",
-      "status": "passed",
-      "duration": 10.731148481369019,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.1880617141723633,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Eliminacion",
-      "status": "passed",
-      "duration": 4.430818557739258,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 0.001316070556640625,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     }
   ]
 }

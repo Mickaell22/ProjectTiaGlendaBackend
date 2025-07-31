@@ -1,63 +1,63 @@
 {
   "module_name": "ESPECIALIDADES",
-  "timestamp": "2025-07-27T12:04:14.887926",
+  "timestamp": "2025-07-31T11:47:32.493932",
   "total_tests": 7,
-  "total_duration": 42.22504115104675,
+  "total_duration": 34.574031352996826,
   "summary": {
-    "passed": 7,
+    "passed": 0,
     "failed": 0,
-    "errors": 0,
-    "success_rate": 100.0
+    "errors": 7,
+    "success_rate": 0.0
   },
   "tests": [
     {
       "name": "Autenticacion",
-      "status": "passed",
-      "duration": 2.3719630241394043,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.591921806335449,
+      "error_message": "'charmap' codec can't encode characters in position 3-4: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "CRUD de especialidades",
-      "status": "passed",
-      "duration": 8.864810228347778,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.2651686668395996,
+      "error_message": "Error en listar especialidades: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Especialidades por área",
-      "status": "passed",
-      "duration": 4.271959066390991,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.146613121032715,
+      "error_message": "Error en especialidades terapeutico: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Endpoints adicionales",
-      "status": "passed",
-      "duration": 4.349288463592529,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.272031784057617,
+      "error_message": "Error en especialidades activas: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Validaciones",
-      "status": "passed",
-      "duration": 14.88552188873291,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.112030267715454,
+      "error_message": "Error en validación campos faltantes: 'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     },
     {
       "name": "Cambios de estado",
-      "status": "passed",
-      "duration": 4.569584846496582,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 0.0,
+      "error_message": "Faltan datos para cambios de estado",
+      "retry_count": 1
     },
     {
       "name": "Búsquedas y filtros",
-      "status": "passed",
-      "duration": 2.205270767211914,
-      "error_message": null,
-      "retry_count": 0
+      "status": "error",
+      "duration": 2.184610366821289,
+      "error_message": "'charmap' codec can't encode character '\\U0001f4cb' in position 3: character maps to <undefined>",
+      "retry_count": 1
     }
   ]
 }
