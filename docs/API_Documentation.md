@@ -508,6 +508,43 @@ Estadísticas generales de sesiones pedagógicas
 ### GET /api/sesiones-pedagogicas/hoy
 Clases programadas para hoy
 
+### GET /api/sesiones-pedagogicas/estudiantes-disponibles
+Obtener estudiantes disponibles para asignar a sesiones pedagógicas
+
+**Response:**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "nombre_completo": "Ana Sofía Morales",
+      "cedula": "12345678",
+      "edad": 8,
+      "tutor": "María Morales"
+    }
+  ]
+}
+```
+
+### GET /api/sesiones-pedagogicas/pedagogos-disponibles
+Obtener pedagogos disponibles para asignar a sesiones
+
+**Response:**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 2,
+      "nombre_completo": "Prof. Carlos Méndez",
+      "especialidades": ["Matemáticas Básicas", "Lectoescritura"],
+      "titulo_profesional": "Licenciado en Educación"
+    }
+  ]
+}
+```
+
 ---
 
 ## Instrucciones para Desarrollo de Frontend Debug
@@ -757,10 +794,10 @@ const debugCronogramaIssues = async (sessionId) => {
 
 1. **Autenticación**: Todos los endpoints excepto `/api/login`, `/health`, `/api/test` y `/api/test-db` requieren token JWT
 2. **Permisos**: Endpoints marcados como "solo administradores" requieren rol de administrador
-3. **Cronogramas**: Al crear sesiones de terapia, el sistema genera automáticamente el cronograma basado en los días de la semana especificados
+3. **Cronogramas**: Al crear sesiones (terapia o pedagógicas), el sistema genera automáticamente el cronograma basado en los días de la semana especificados
 4. **Estados**: Los recursos tienen estados que controlan su visibilidad y funcionalidad en el sistema
 5. **Fechas**: Usar formato ISO (YYYY-MM-DD) para fechas y HH:MM:SS para horas
-6. **Códigos de sesión**: Se generan automáticamente con formato "ST-YYYY-NNN"
+6. **Códigos de sesión**: Se generan automáticamente con formato "ST-YYYY-NNN" para terapia y "SP-YYYY-NNN" para pedagógicas
 
 ---
 

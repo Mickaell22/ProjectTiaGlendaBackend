@@ -932,7 +932,7 @@ def register_routes(app):
             try:
                 from src.utils.database.connection_db import DataBaseHandle
                 from src.utils.general.response import response_success
-                from datetime import datetime
+                from datetime import datetime, date, time
                 
                 query = """
                     SELECT 
@@ -955,6 +955,14 @@ def register_routes(app):
                 
                 params = (datetime.now().date(),)
                 result = DataBaseHandle.getRecords(query, params)
+                
+                # Convert datetime objects to strings for JSON serialization
+                if result:
+                    for row in result:
+                        if 'fecha_programada' in row and isinstance(row['fecha_programada'], date):
+                            row['fecha_programada'] = row['fecha_programada'].isoformat()
+                        if 'hora_programada' in row and isinstance(row['hora_programada'], time):
+                            row['hora_programada'] = str(row['hora_programada'])
                 
                 return response_success(result or [], "Clases de hoy obtenidas")
             except Exception as e:

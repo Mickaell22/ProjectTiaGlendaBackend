@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(more:*)",
@@ -21,7 +22,16 @@
       "Bash(cat:*)",
       "Bash(for file in test_autenticacion_api.py test_roles_api.py test_usuarios_api.py test_personal_api.py test_especialidades_api.py test_tutores_api.py)",
       "Bash(do echo \"Fixing $file...\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm test)",
+      "Bash(npm test:*)",
+      "Bash(del vitest.config.js)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run build:*)",
+      "Bash(awk:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }
