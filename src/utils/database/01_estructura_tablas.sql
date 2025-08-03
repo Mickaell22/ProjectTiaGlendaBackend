@@ -1118,6 +1118,168 @@ COMMENT ON COLUMN asistencia_clases.participacion_clase IS 'Calificación de par
 COMMENT ON COLUMN asistencia_clases.calificacion_evaluacion IS 'Calificación obtenida en evaluación si la hubo';
 
 -- =============================================
--- 15. MENSAJE FINAL
+-- 15. MÓDULO DOCUMENTOS PACIENTE
 -- =============================================
-SELECT 'Sistema completo Centro Tía Glenda creado exitosamente' AS mensaje;
+
+-- =============================================
+-- 15.1 TABLA: DOCUMENTOS_PACIENTE (Documentos PDF por paciente)
+-- =============================================
+CREATE TABLE documentos_paciente (
+    id SERIAL PRIMARY KEY,
+    
+    -- Relación con paciente
+    paciente_id INTEGER NOT NULL,
+    
+    -- Información del documento
+    nombre_archivo VARCHAR(255) NOT NULL,
+    nombre_original VARCHAR(255) NOT NULL, -- Nombre original del archivo subido
+    ruta_archivo VARCHAR(500) NOT NULL, -- Ruta completa donde se almacena el archivo
+    tipo_documento VARCHAR(50) DEFAULT 'general' CHECK (tipo_documento IN (
+        'general', 'historia_clinica', 'examenes_medicos', 'consentimientos', 
+        'reportes_terapia', 'evaluaciones', 'otros'
+    )),
+    
+    -- Metadatos del archivo
+    tamaño_archivo BIGINT NOT NULL, -- Tamaño en bytes
+    tipo_mime VARCHAR(50) DEFAULT 'application/pdf',
+    
+    -- Información adicional
+    descripcion TEXT,
+    es_confidencial BOOLEAN DEFAULT FALSE,
+    fecha_vencimiento DATE, -- Para documentos que tienen fecha de vencimiento
+    
+    -- Control y estado
+    estado VARCHAR(15) DEFAULT 'activo' CHECK (estado IN ('activo', 'archivado', 'eliminado')),
+    
+    -- Campos de auditoría
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+    
+    -- Claves foráneas
+    FOREIGN KEY (paciente_id) REFERENCES paciente(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- 15.2 FUNCIÓN PARA GENERAR RUTA DE DOCUMENTO
+-- =============================================
+CREATE OR REPLACE FUNCTION generar_ruta_documento(
+    p_paciente_id INTEGER,
+    p_nombre_archivo VARCHAR(255)
+) RETURNS VARCHAR(500) AS $$
+DECLARE
+    v_persona RECORD;
+    v_iniciales VARCHAR(10);
+    v_carpeta VARCHAR(100);
+    v_ruta_completa VARCHAR(500);
+BEGIN
+    -- Obtener información del paciente y persona
+    SELECT p.nombre, p.apellido
+    INTO v_persona
+    FROM paciente pac
+    JOIN persona p ON pac.persona_id = p.id
+    WHERE pac.id = p_paciente_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Paciente no encontrado: %', p_paciente_id;
+    END IF;
+    
+    -- Generar iniciales: Primera letra del nombre + Primera letra del apellido
+    v_iniciales := UPPER(LEFT(v_persona.nombre, 1)) || UPPER(LEFT(v_persona.apellido, 1));
+    
+    -- Crear nombre de carpeta: Iniciales + ID del paciente
+    v_carpeta := v_iniciales || '_' || p_paciente_id::TEXT;
+    
+    -- Generar ruta completa
+    v_ruta_completa := 'documentos_pacientes/' || v_carpeta || '/' || p_nombre_archivo;
+    
+    RETURN v_ruta_completa;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================
+-- 15.3 FUNCIÓN PARA SANITIZAR NOMBRE DE ARCHIVO
+-- =============================================
+CREATE OR REPLACE FUNCTION sanitizar_nombre_archivo(p_nombre_original VARCHAR(255))
+RETURNS VARCHAR(255) AS $$
+DECLARE
+    v_nombre_limpio VARCHAR(255);
+    v_timestamp VARCHAR(20);
+BEGIN
+    -- Obtener timestamp actual
+    v_timestamp := TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDDHH24MISS');
+    
+    -- Limpiar el nombre del archivo
+    v_nombre_limpio := regexp_replace(p_nombre_original, '[^a-zA-Z0-9._-]', '_', 'g');
+    v_nombre_limpio := regexp_replace(v_nombre_limpio, '_+', '_', 'g');
+    v_nombre_limpio := trim(v_nombre_limpio, '_');
+    
+    -- Si el nombre está vacío, usar un nombre por defecto
+    IF LENGTH(v_nombre_limpio) = 0 THEN
+        v_nombre_limpio := 'documento';
+    END IF;
+    
+    -- Asegurar que termine en .pdf
+    IF NOT v_nombre_limpio ILIKE '%.pdf' THEN
+        v_nombre_limpio := v_nombre_limpio || '.pdf';
+    END IF;
+    
+    -- Agregar timestamp para evitar duplicados
+    v_nombre_limpio := SPLIT_PART(v_nombre_limpio, '.pdf', 1) || '_' || v_timestamp || '.pdf';
+    
+    RETURN v_nombre_limpio;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================
+-- 15.4 TRIGGERS PARA DOCUMENTOS PACIENTE
+-- =============================================
+
+-- Trigger para actualizar fecha_modificacion
+CREATE TRIGGER trigger_documentos_paciente_fecha_modificacion
+    BEFORE UPDATE ON documentos_paciente
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+-- =============================================
+-- 15.5 ÍNDICES PARA DOCUMENTOS PACIENTE
+-- =============================================
+
+-- Índices para DOCUMENTOS_PACIENTE
+CREATE INDEX idx_documentos_paciente_paciente ON documentos_paciente(paciente_id);
+CREATE INDEX idx_documentos_paciente_tipo ON documentos_paciente(tipo_documento);
+CREATE INDEX idx_documentos_paciente_estado ON documentos_paciente(estado);
+CREATE INDEX idx_documentos_paciente_fecha_creacion ON documentos_paciente(fecha_creacion);
+CREATE INDEX idx_documentos_paciente_confidencial ON documentos_paciente(es_confidencial);
+CREATE INDEX idx_documentos_paciente_vencimiento ON documentos_paciente(fecha_vencimiento);
+
+-- =============================================
+-- 15.6 CONSTRAINTS DE AUDITORÍA PARA DOCUMENTOS
+-- =============================================
+
+-- Constraints para DOCUMENTOS_PACIENTE
+ALTER TABLE documentos_paciente 
+ADD CONSTRAINT fk_documentos_paciente_usuario_creacion 
+FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+ALTER TABLE documentos_paciente 
+ADD CONSTRAINT fk_documentos_paciente_usuario_modificacion 
+FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
+
+-- =============================================
+-- 15.7 DOCUMENTACIÓN DOCUMENTOS PACIENTE
+-- =============================================
+COMMENT ON TABLE documentos_paciente IS 'Documentos PDF asociados a pacientes con metadatos y control de versiones';
+COMMENT ON COLUMN documentos_paciente.nombre_archivo IS 'Nombre del archivo sanitizado almacenado en el sistema';
+COMMENT ON COLUMN documentos_paciente.nombre_original IS 'Nombre original del archivo como fue subido por el usuario';
+COMMENT ON COLUMN documentos_paciente.ruta_archivo IS 'Ruta completa del archivo: documentos_pacientes/iniciales_id/archivo.pdf';
+COMMENT ON COLUMN documentos_paciente.tipo_documento IS 'Categoría del documento: general, historia_clinica, examenes_medicos, etc.';
+COMMENT ON COLUMN documentos_paciente.tamaño_archivo IS 'Tamaño del archivo en bytes';
+COMMENT ON COLUMN documentos_paciente.es_confidencial IS 'Marca si el documento contiene información confidencial';
+COMMENT ON COLUMN documentos_paciente.fecha_vencimiento IS 'Fecha de vencimiento del documento (opcional)';
+
+-- =============================================
+-- 16. MENSAJE FINAL
+-- =============================================
+SELECT 'Sistema completo Centro Tía Glenda creado exitosamente - Incluyendo módulo de documentos PDF' AS mensaje;

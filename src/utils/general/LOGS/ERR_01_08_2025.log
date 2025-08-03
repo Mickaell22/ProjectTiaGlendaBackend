@@ -1,0 +1,10 @@
+2025-08-01 15:44:51 - ERROR - SesionPedagogicaService.get_pedagogos_disponibles - Error: type object 'PersonalComponent' has no attribute 'get_personal_by_area_disponible'
+2025-08-01 15:44:51 - ERROR - SesionPedagogicaService.get_pedagogos_disponibles - Error: type object 'PersonalComponent' has no attribute 'get_personal_by_area_disponible'
+2025-08-01 15:51:19 - ERROR - SesionTerapiaService.get_asistencias_por_sesion - Error: Object of type time is not JSON serializable
+2025-08-01 15:51:19 - ERROR - SesionTerapiaService.get_asistencias_por_sesion - Error: Object of type time is not JSON serializable
+2025-08-01 15:51:44 - ERROR - SesionPedagogicaService.get_pedagogos_disponibles - Error: type object 'PersonalComponent' has no attribute 'get_personal_by_area_disponible'
+2025-08-01 15:51:44 - ERROR - SesionPedagogicaService.get_pedagogos_disponibles - Error: type object 'PersonalComponent' has no attribute 'get_personal_by_area_disponible'
+2025-08-01 16:07:45 - ERROR - SesionPedagogicaService.get_pedagogos_disponibles - Error: type object 'PersonalComponent' has no attribute 'get_personal_by_area_disponible'
+2025-08-01 16:07:45 - ERROR - SesionPedagogicaService.get_pedagogos_disponibles - Error: type object 'PersonalComponent' has no attribute 'get_personal_by_area_disponible'
+2025-08-01 22:04:05 - ERROR - LoginService.login - Error: 415 Unsupported Media Type: Did not attempt to load JSON data because the request Content-Type was not 'application/json'.
+2025-08-01 22:04:12 - ERROR - LoginService.login - Error: 415 Unsupported Media Type: Did not attempt to load JSON data because the request Content-Type was not 'application/json'.

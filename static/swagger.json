@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "API Centro Tía Glenda",
-    "version": "1.2.0",
-    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación con JWT\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de tutores y relaciones familiares\n- Gestión de pacientes y seguimiento terapéutico\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro y especialidades\n- **Sesiones de Terapia con Cronograma Automático** 🔥\n  - Creación automática de cronogramas basados en días de la semana\n  - Gestión de asistencias y seguimiento de progreso\n  - Estados: programada, realizada, cancelada, reprogramada\n- **Sesiones Pedagógicas con Clases Programadas**\n  - Sistema de clases grupales y seguimiento académico\n  - Control de asistencia y evaluaciones\n- Control de roles y permisos (admin/usuario)\n- Estadísticas avanzadas y reportes\n- Logs detallados y debugging\n\n## Novedades v1.2.0\n- ✅ Cronograma automático completamente funcional\n- ✅ Endpoints de estadísticas y sesiones de hoy\n- ✅ Serialización JSON mejorada para tipos PostgreSQL\n- ✅ Tests automatizados con 100% de éxito\n- ✅ Gestión inteligente de estados y filtros\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`\n3. Usuarios: admin/admin123 (desarrollo)",
+    "version": "1.3.0",
+    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación con JWT\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de tutores y relaciones familiares\n- Gestión de pacientes y seguimiento terapéutico\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro y especialidades\n- **Sesiones de Terapia con Cronograma Automático** 🔥\n  - Creación automática de cronogramas basados en días de la semana\n  - Gestión de asistencias y seguimiento de progreso\n  - Estados: programada, realizada, cancelada, reprogramada\n  - Control de pacientes por sesión y estadísticas detalladas\n- **Sesiones Pedagógicas con Clases Programadas** 📚\n  - Sistema de clases grupales y seguimiento académico\n  - Control de asistencia y evaluaciones académicas\n  - Gestión de estudiantes y cronogramas de clases\n  - Registro de participación, tareas y calificaciones\n- Control de roles y permisos (admin/usuario)\n- Estadísticas avanzadas y reportes\n- Logs detallados y debugging\n- Comparación de métodos de base de datos\n\n## Novedades v1.3.0\n- ✅ Documentación completa de sesiones pedagógicas\n- ✅ Endpoints de asistencia y gestión de estudiantes\n- ✅ Control avanzado de cronogramas de clases\n- ✅ Registro de evaluaciones y seguimiento académico\n- ✅ Endpoints de reprogramación y estadísticas\n- ✅ Métodos auxiliares para datos disponibles\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`\n3. Usuarios: admin/admin123 (desarrollo)",
     "contact": {
       "name": "Sistema Tía Glenda",
       "email": "admin@centro-tia-glenda.com"
@@ -103,6 +103,49 @@
         "required": ["estado"],
         "properties": {
           "estado": {"type": "string", "enum": ["activo", "inactivo", "alta", "derivado"], "example": "activo"}
+        }
+      },
+      "DocumentoInfo": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "example": 1},
+          "paciente_id": {"type": "integer", "example": 5},
+          "nombre_archivo": {"type": "string", "example": "abc123_historia_clinica.pdf"},
+          "nombre_original": {"type": "string", "example": "Historia Clínica Juan Pérez.pdf"},
+          "ruta_archivo": {"type": "string", "example": "documentos_pacientes/JP_5/abc123_historia_clinica.pdf"},
+          "tipo_documento": {"type": "string", "enum": ["general", "historia_clinica", "examenes_medicos", "consentimientos", "reportes_terapia", "evaluaciones", "otros"], "example": "historia_clinica"},
+          "tamaño_archivo": {"type": "integer", "example": 2048576, "description": "Tamaño en bytes"},
+          "tipo_mime": {"type": "string", "example": "application/pdf"},
+          "descripcion": {"type": "string", "example": "Historia clínica inicial del paciente"},
+          "es_confidencial": {"type": "boolean", "example": true},
+          "fecha_vencimiento": {"type": "string", "format": "date", "example": "2025-12-31", "nullable": true},
+          "estado": {"type": "string", "enum": ["activo", "archivado", "eliminado"], "example": "activo"},
+          "fecha_creacion": {"type": "string", "format": "date-time", "example": "2025-01-15T10:30:00"},
+          "fecha_modificacion": {"type": "string", "format": "date-time", "example": "2025-01-15T10:30:00"},
+          "usuario_creacion_nombre": {"type": "string", "example": "admin"},
+          "usuario_modificacion_nombre": {"type": "string", "example": "admin"}
+        }
+      },
+      "DocumentoResponse": {
+        "type": "object",
+        "properties": {
+          "status": {"type": "string", "example": "success"},
+          "message": {"type": "string", "example": "Documento subido exitosamente"},
+          "data": {"$ref": "#/components/schemas/DocumentoInfo"}
+        }
+      },
+      "DocumentoUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "tipo_documento": {
+            "type": "string",
+            "enum": ["general", "historia_clinica", "examenes_medicos", "consentimientos", "reportes_terapia", "evaluaciones", "otros"],
+            "example": "historia_clinica"
+          },
+          "descripcion": {"type": "string", "example": "Historia clínica actualizada"},
+          "es_confidencial": {"type": "boolean", "example": true},
+          "fecha_vencimiento": {"type": "string", "format": "date", "example": "2025-12-31", "nullable": true},
+          "estado": {"type": "string", "enum": ["activo", "archivado"], "example": "activo"}
         }
       },
       "EspecialidadRequest": {
@@ -285,6 +328,31 @@
           },
           "500": {
             "description": "Error de conexión",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/test-db-status": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Comparar métodos de base de datos",
+        "description": "Demostrar diferencias entre getRecords y getRecordsWithStatus",
+        "responses": {
+          "200": {
+            "description": "Comparación completada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "500": {
+            "description": "Error en test",
             "content": {
               "application/json": {
                 "schema": {"$ref": "#/components/schemas/ErrorResponse"}
@@ -931,6 +999,281 @@
         "responses": {
           "200": {
             "description": "Personas disponibles",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/{id}/documentos": {
+      "post": {
+        "tags": ["Documentos de Pacientes"],
+        "summary": "Subir documento PDF",
+        "description": "Subir un documento PDF para un paciente específico. Solo se permiten archivos PDF con tamaño máximo de 10MB.",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["archivo"],
+                "properties": {
+                  "archivo": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo PDF a subir (máximo 10MB)"
+                  },
+                  "tipo_documento": {
+                    "type": "string",
+                    "enum": ["general", "historia_clinica", "examenes_medicos", "consentimientos", "reportes_terapia", "evaluaciones", "otros"],
+                    "default": "general",
+                    "description": "Tipo de documento"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "description": "Descripción opcional del documento"
+                  },
+                  "es_confidencial": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Marca si el documento es confidencial"
+                  },
+                  "fecha_vencimiento": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Fecha de vencimiento del documento (opcional)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Documento subido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/DocumentoResponse"}
+              }
+            }
+          },
+          "400": {
+            "description": "Error en la validación del archivo",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Documentos de Pacientes"],
+        "summary": "Listar documentos del paciente",
+        "description": "Obtener lista de todos los documentos de un paciente específico",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos del paciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "success"},
+                    "message": {"type": "string", "example": "Documentos obtenidos correctamente"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/DocumentoInfo"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/{id}/documentos/{documento_id}": {
+      "get": {
+        "tags": ["Documentos de Pacientes"],
+        "summary": "Descargar documento",
+        "description": "Descargar un documento específico de un paciente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          },
+          {
+            "name": "documento_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del documento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archivo PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Documento o paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Documentos de Pacientes"],
+        "summary": "Actualizar información del documento",
+        "description": "Actualizar metadatos de un documento (no el archivo físico)",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          },
+          {
+            "name": "documento_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del documento"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/DocumentoUpdateRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Documento actualizado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/DocumentoResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Documento o paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Documentos de Pacientes"],
+        "summary": "Eliminar documento",
+        "description": "Eliminar un documento de un paciente (archivo físico y registro en BD)",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          },
+          {
+            "name": "documento_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del documento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento eliminado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Documento o paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documentos/estadisticas": {
+      "get": {
+        "tags": ["Documentos de Pacientes"],
+        "summary": "Estadísticas de documentos",
+        "description": "Obtener estadísticas de documentos por tipo, tamaño total y cantidad",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Estadísticas de documentos",
             "content": {
               "application/json": {
                 "schema": {"$ref": "#/components/schemas/SuccessResponse"}
@@ -1765,6 +2108,392 @@
         }
       }
     },
+    "/api/sesiones-terapia/{id}/pacientes": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener pacientes de sesión",
+        "description": "Obtener lista de pacientes asignados a una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión de terapia"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pacientes obtenida",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Agregar paciente a sesión",
+        "description": "Agregar un paciente a una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión de terapia"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["paciente_id"],
+                "properties": {
+                  "paciente_id": {"type": "integer", "example": 1}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paciente agregado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/{id}/pacientes/{paciente_id}": {
+      "delete": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Remover paciente de sesión",
+        "description": "Remover un paciente de una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión de terapia"
+          },
+          {
+            "name": "paciente_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paciente removido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-sesiones/{cronograma_id}/reprogramar": {
+      "put": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Reprogramar sesión de terapia",
+        "description": "Reprogramar una sesión específica del cronograma de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nueva_fecha"],
+                "properties": {
+                  "nueva_fecha": {"type": "string", "format": "date", "example": "2025-08-15"},
+                  "motivo_reprogramacion": {"type": "string", "example": "Enfermedad del paciente"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión reprogramada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-sesiones/{cronograma_id}/asistencias": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener asistencias de sesión",
+        "description": "Obtener todas las asistencias registradas para una sesión específica del cronograma",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asistencias obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-sesiones/{cronograma_id}/asistencias/{paciente_id}": {
+      "post": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Registrar asistencia de paciente",
+        "description": "Registrar la asistencia de un paciente específico a una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma"
+          },
+          {
+            "name": "paciente_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "asistio": {"type": "boolean", "example": true},
+                  "llegada_tardanza_minutos": {"type": "integer", "example": 0},
+                  "observaciones_asistencia": {"type": "string", "example": "Participó activamente en la sesión"},
+                  "progreso_terapeutico": {"type": "string", "example": "Mejoría notable en la movilidad"},
+                  "observaciones_progreso": {"type": "string", "example": "Paciente muestra mayor confianza"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asistencia registrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Actualizar asistencia de paciente",
+        "description": "Actualizar la asistencia existente de un paciente a una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma"
+          },
+          {
+            "name": "paciente_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "asistio": {"type": "boolean", "example": true},
+                  "llegada_tardanza_minutos": {"type": "integer", "example": 0},
+                  "observaciones_asistencia": {"type": "string", "example": "Participó activamente en la sesión"},
+                  "progreso_terapeutico": {"type": "string", "example": "Mejoría notable en la movilidad"},
+                  "observaciones_progreso": {"type": "string", "example": "Paciente muestra mayor confianza"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asistencia actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/{id}/asistencias": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener todas las asistencias de sesión",
+        "description": "Obtener todas las asistencias de una sesión de terapia",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión de terapia"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asistencias obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/asistencias/paciente/{paciente_id}": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener historial de asistencias por paciente",
+        "description": "Obtener el historial completo de asistencias de un paciente específico",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "paciente_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de asistencias obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/{id}/estadisticas-asistencia": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener estadísticas de asistencia",
+        "description": "Obtener estadísticas de asistencia de una sesión de terapia específica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión de terapia"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estadísticas de asistencia obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/pacientes-disponibles": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener pacientes disponibles",
+        "description": "Obtener lista de pacientes disponibles para asignar a sesiones de terapia",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Pacientes disponibles obtenidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-terapia/terapeutas-disponibles": {
+      "get": {
+        "tags": ["Sesiones de Terapia"],
+        "summary": "Obtener terapeutas disponibles",
+        "description": "Obtener lista de terapeutas disponibles para asignar a sesiones",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Terapeutas disponibles obtenidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sesiones-terapia/terapeuta/{terapeuta_id}": {
       "get": {
         "tags": ["Sesiones de Terapia"],
@@ -2025,6 +2754,611 @@
           }
         }
       }
+    },
+    "/api/sesiones-pedagogicas": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener todas las sesiones pedagógicas",
+        "description": "Obtener lista de todas las sesiones pedagógicas registradas",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de sesiones pedagógicas obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "401": {
+            "description": "Token requerido",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Crear nueva sesión pedagógica",
+        "description": "Crear una nueva sesión pedagógica con cronograma automático de clases",
+        "security": [{"Bearer": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pedagogo_id", "asignatura", "nivel_educativo", "fecha_inicio", "hora_inicio", "duracion_minutos", "dias_semana"],
+                "properties": {
+                  "pedagogo_id": {"type": "integer", "example": 1},
+                  "asignatura": {"type": "string", "example": "Matemáticas Básicas"},
+                  "nivel_educativo": {"type": "string", "example": "Primaria"},
+                  "fecha_inicio": {"type": "string", "format": "date", "example": "2025-08-01"},
+                  "hora_inicio": {"type": "string", "format": "time", "example": "09:00:00"},
+                  "duracion_minutos": {"type": "integer", "example": 60},
+                  "dias_semana": {"type": "string", "example": "lunes,miercoles,viernes"},
+                  "titulo": {"type": "string", "example": "Clase de Matemáticas - Nivel Primaria"},
+                  "descripcion": {"type": "string", "example": "Clase de matemáticas básicas para estudiantes de primaria"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión pedagógica creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/{id}": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener sesión pedagógica específica",
+        "description": "Obtener información detallada de una sesión pedagógica por su ID",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesión pedagógica encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Actualizar sesión pedagógica",
+        "description": "Actualizar información de una sesión pedagógica existente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pedagogo_id": {"type": "integer", "example": 1},
+                  "asignatura": {"type": "string", "example": "Matemáticas Avanzadas"},
+                  "nivel_educativo": {"type": "string", "example": "Secundaria"},
+                  "fecha_inicio": {"type": "string", "format": "date", "example": "2025-08-01"},
+                  "hora_inicio": {"type": "string", "format": "time", "example": "10:00:00"},
+                  "duracion_minutos": {"type": "integer", "example": 90},
+                  "dias_semana": {"type": "string", "example": "martes,jueves"},
+                  "titulo": {"type": "string", "example": "Clase Actualizada"},
+                  "descripcion": {"type": "string", "example": "Descripción actualizada"},
+                  "estado": {"type": "string", "enum": ["activa", "suspendida", "completada", "cancelada"], "example": "activa"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión pedagógica actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Eliminar sesión pedagógica",
+        "description": "Eliminar una sesión pedagógica del sistema (solo administradores)",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesión pedagógica eliminada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "403": {
+            "description": "Sin permisos de administrador",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Sesión no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/{id}/estudiantes": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener estudiantes de sesión pedagógica",
+        "description": "Obtener lista de estudiantes asignados a una sesión pedagógica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de estudiantes obtenida",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Agregar estudiante a sesión pedagógica",
+        "description": "Agregar un estudiante a una sesión pedagógica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["paciente_id"],
+                "properties": {
+                  "paciente_id": {"type": "integer", "example": 1}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estudiante agregado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/{id}/estudiantes/{paciente_id}": {
+      "delete": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Remover estudiante de sesión pedagógica",
+        "description": "Remover un estudiante de una sesión pedagógica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          },
+          {
+            "name": "paciente_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del estudiante"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estudiante removido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/{id}/cronograma": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener cronograma de clases",
+        "description": "Obtener el cronograma completo de una sesión pedagógica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cronograma de clases obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/{id}/cronograma/generar": {
+      "post": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Regenerar cronograma de clases",
+        "description": "Regenerar el cronograma completo de una sesión pedagógica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la sesión pedagógica"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cronograma de clases regenerado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-clases/{cronograma_id}/realizar": {
+      "put": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Marcar clase como realizada",
+        "description": "Marcar una clase específica del cronograma como realizada",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma de clase"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Clase marcada como realizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-clases/{cronograma_id}/reprogramar": {
+      "put": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Reprogramar clase",
+        "description": "Reprogramar una clase específica del cronograma",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma de clase"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nueva_fecha"],
+                "properties": {
+                  "nueva_fecha": {"type": "string", "format": "date", "example": "2025-08-15"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Clase reprogramada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-clases/{cronograma_id}/asistencias": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener asistencias de clase",
+        "description": "Obtener todas las asistencias registradas para una clase específica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma de clase"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asistencias obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cronograma-clases/{cronograma_id}/asistencias/{paciente_id}": {
+      "post": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Registrar asistencia de estudiante",
+        "description": "Registrar la asistencia de un estudiante específico a una clase",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "cronograma_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del cronograma de clase"
+          },
+          {
+            "name": "paciente_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del estudiante"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "asistio": {"type": "boolean", "example": true},
+                  "llegada_tardanza_minutos": {"type": "integer", "example": 0},
+                  "observaciones_asistencia": {"type": "string", "example": "Llegó puntual"},
+                  "participacion_clase": {"type": "string", "example": "Muy activa"},
+                  "tareas_entregadas": {"type": "boolean", "example": true},
+                  "notas_comportamiento": {"type": "string", "example": "Excelente comportamiento"},
+                  "calificacion_evaluacion": {"type": "number", "format": "float", "example": 8.5},
+                  "observaciones_evaluacion": {"type": "string", "example": "Buen desempeño"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asistencia registrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/pedagogo/{pedagogo_id}": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener sesiones por pedagogo",
+        "description": "Obtener todas las sesiones asignadas a un pedagogo específico",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "pedagogo_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del pedagogo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesiones del pedagogo obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/hoy": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener clases de hoy",
+        "description": "Obtener todas las clases programadas para el día actual",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Clases de hoy obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/estadisticas": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener estadísticas de sesiones pedagógicas",
+        "description": "Obtener estadísticas generales del sistema de sesiones pedagógicas",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/estudiantes-disponibles": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener estudiantes disponibles",
+        "description": "Obtener lista de estudiantes disponibles para asignar a sesiones pedagógicas",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Estudiantes disponibles obtenidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sesiones-pedagogicas/pedagogos-disponibles": {
+      "get": {
+        "tags": ["Sesiones Pedagógicas"],
+        "summary": "Obtener pedagogos disponibles",
+        "description": "Obtener lista de pedagogos disponibles para asignar a sesiones",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Pedagogos disponibles obtenidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -2067,6 +3401,10 @@
     {
       "name": "Sesiones de Terapia",
       "description": "Gestión de sesiones de terapia, cronogramas y seguimiento"
+    },
+    {
+      "name": "Sesiones Pedagógicas",
+      "description": "Gestión de sesiones pedagógicas, cronogramas de clases y seguimiento académico"
     }
   ]
 }

@@ -444,6 +444,91 @@ def register_routes(app):
         from src.api.Service.PacienteService import PacienteService
         return PacienteService.get_personas_disponibles()
 
+    # ============================================
+    # RUTAS DE DOCUMENTOS DE PACIENTES (Protegidas)
+    # ============================================
+    @app.route('/api/pacientes/<int:paciente_id>/documentos', methods=['POST'])
+    @token_required
+    def upload_documento_paciente(paciente_id):
+        """Subir documento PDF para un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.upload_documento(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/documentos', methods=['GET'])
+    @token_required
+    def get_documentos_paciente(paciente_id):
+        """Obtener lista de documentos de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_documentos(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['GET'])
+    @token_required
+    def download_documento_paciente(paciente_id, documento_id):
+        """Descargar un documento específico de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        from flask import send_file
+        
+        result = PacienteService.download_documento(paciente_id, documento_id)
+        
+        if result['success']:
+            try:
+                return send_file(
+                    result['data']['ruta_archivo'],
+                    as_attachment=True,
+                    download_name=result['data']['nombre_original'],
+                    mimetype=result['data']['tipo_mime']
+                )
+            except Exception as e:
+                return response_error(f"Error enviando archivo: {str(e)}", 500)
+        else:
+            return result
+
+    @app.route('/api/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['PUT'])
+    @token_required
+    def update_documento_paciente(paciente_id, documento_id):
+        """Actualizar información de un documento (no el archivo físico)"""
+        from src.api.Service.PacienteService import PacienteService
+        from flask import request
+        from src.utils.general.logs import HandleLogs
+        from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+        from src.utils.general.data_utils import DataUtils
+        
+        try:
+            data = request.get_json()
+            current_user_id = getattr(request, 'current_user', {}).get('id')
+            prepared_data = DataUtils.prepare_update_data(data, current_user_id)
+            
+            result = DocumentoPacienteComponent.update_documento(documento_id, paciente_id, prepared_data)
+            
+            if result['success']:
+                return response_success(result['data'], result['message'])
+            else:
+                return response_error(result['message'], 400)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"update_documento_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @app.route('/api/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['DELETE'])
+    @token_required
+    def delete_documento_paciente(paciente_id, documento_id):
+        """Eliminar un documento de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.delete_documento(paciente_id, documento_id)
+
+    @app.route('/api/documentos/estadisticas', methods=['GET'])
+    @token_required
+    def get_estadisticas_documentos():
+        """Obtener estadísticas de documentos por tipo"""
+        from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+        
+        result = DocumentoPacienteComponent.get_estadisticas_documentos()
+        
+        if result['success']:
+            return response_success(result['data'], result['message'])
+        else:
+            return response_error(result['message'], 500)
+
     # Agregar estas rutas al archivo src/api/routes/api_routes.py
 
     def register_sesiones_routes(app):

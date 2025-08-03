@@ -1,0 +1,12 @@
+2025-08-02 21:15:39 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:39 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:15:39 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:15:40 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:40 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:40 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'

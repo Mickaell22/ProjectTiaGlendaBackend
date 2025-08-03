@@ -511,7 +511,14 @@ class SesionPedagogicaService:
             from src.api.Components.PacienteComponent import PacienteComponent
             
             # Obtener pacientes activos
-            pacientes = PacienteComponent.get_pacientes_disponibles()
+            pacientes_result = PacienteComponent.get_all_pacientes()
+            
+            if pacientes_result['success']:
+                # Filtrar solo pacientes activos
+                all_pacientes = pacientes_result['data']
+                pacientes = [p for p in all_pacientes if p.get('estado') == 'activo'] if all_pacientes else []
+            else:
+                pacientes = []
 
             if pacientes:
                 return response_success(pacientes, "Estudiantes disponibles obtenidos")
@@ -531,7 +538,12 @@ class SesionPedagogicaService:
             from src.api.Components.PersonalComponent import PersonalComponent
             
             # Obtener personal del área pedagógica
-            pedagogos = PersonalComponent.get_personal_by_area_disponible('pedagogico')
+            pedagogos_result = PersonalComponent.get_personal_by_area('pedagogico')
+            
+            if pedagogos_result['success']:
+                pedagogos = pedagogos_result['data']
+            else:
+                pedagogos = []
 
             if pedagogos:
                 return response_success(pedagogos, "Pedagogos disponibles obtenidos")
