@@ -467,21 +467,86 @@ def register_routes(app):
         """Descargar un documento específico de un paciente"""
         from src.api.Service.PacienteService import PacienteService
         from flask import send_file
+        from src.utils.general.logs import HandleLogs
         
         result = PacienteService.download_documento(paciente_id, documento_id)
         
         if result['success']:
             try:
-                return send_file(
-                    result['data']['ruta_archivo'],
-                    as_attachment=True,
-                    download_name=result['data']['nombre_original'],
-                    mimetype=result['data']['tipo_mime']
-                )
+                import os
+                
+                file_path = result['data']['ruta_archivo']
+                file_name = result['data']['nombre_original']
+                mime_type = result['data']['tipo_mime']
+                
+                # Check if file exists
+                if not os.path.exists(file_path):
+                    HandleLogs.write_error(f"download_documento_paciente - File not found: {file_path}")
+                    return response_error("Archivo no encontrado en el sistema", 404)
+                
+                # Clean and prepare filename
+                import urllib.parse
+                import re
+                
+                # Limpiar nombre de archivo de caracteres problemáticos
+                # Reemplazar caracteres acentuados comunes
+                replacements = {
+                    'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+                    'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+                    'ñ': 'n', 'Ñ': 'N', 'ü': 'u', 'Ü': 'U'
+                }
+                
+                clean_filename = file_name
+                for original, replacement in replacements.items():
+                    clean_filename = clean_filename.replace(original, replacement)
+                
+                # Remover caracteres especiales problemáticos y espacios múltiples
+                clean_filename = re.sub(r'[^\w\s\-\.\(\)]', '', clean_filename)
+                clean_filename = re.sub(r'\s+', '_', clean_filename.strip())
+                
+                # Asegurar que tenga extensión .pdf
+                if not clean_filename.lower().endswith('.pdf'):
+                    clean_filename += '.pdf'
+                
+                # Log para debugging
+                HandleLogs.write_log(f"download_documento_paciente - Original filename: {file_name}")
+                HandleLogs.write_log(f"download_documento_paciente - Clean filename: {clean_filename}")
+                
+                # Try different Flask send_file approaches for compatibility
+                try:
+                    # Flask 2.x+ approach
+                    response = send_file(
+                        file_path,
+                        as_attachment=True,
+                        download_name=clean_filename,
+                        mimetype=mime_type
+                    )
+                except TypeError:
+                    # Flask 1.x approach
+                    response = send_file(
+                        file_path,
+                        as_attachment=True,
+                        attachment_filename=clean_filename,
+                        mimetype=mime_type
+                    )
+                
+                # Asegurar que el Content-Disposition header esté correctamente formateado
+                response.headers['Content-Disposition'] = f'attachment; filename="{clean_filename}"'
+                
+                return response
+                        
             except Exception as e:
+                HandleLogs.write_error(f"download_documento_paciente - Error: {str(e)}")
+                import traceback
+                HandleLogs.write_error(f"download_documento_paciente - Traceback: {traceback.format_exc()}")
                 return response_error(f"Error enviando archivo: {str(e)}", 500)
         else:
-            return result
+            HandleLogs.write_error(f"download_documento_paciente - Service error: {result.get('message', 'Unknown error')}")
+            error_message = result.get('message', 'Error descargando documento')
+            if 'no encontrado' in error_message.lower():
+                return response_error(error_message, 404)
+            else:
+                return response_error(error_message, 400)
 
     @app.route('/api/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['PUT'])
     @token_required
@@ -496,6 +561,11 @@ def register_routes(app):
         try:
             data = request.get_json()
             current_user_id = getattr(request, 'current_user', {}).get('id')
+            
+            # Ensure usuario_modificacion is included for the update
+            if 'usuario_modificacion' not in data and current_user_id:
+                data['usuario_modificacion'] = current_user_id
+            
             prepared_data = DataUtils.prepare_update_data(data, current_user_id)
             
             result = DocumentoPacienteComponent.update_documento(documento_id, paciente_id, prepared_data)

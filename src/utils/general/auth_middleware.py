@@ -24,25 +24,118 @@ def token_required(f):
             except IndexError:
                 return response_error("Formato de token invalido. Use: Bearer <token>", 401)
 
-            # Verificar token
-            token_result = SecurityUtils.verify_token(token)
+            # Verificar token con manejo robusto de errores
+            token_result = None
+            user_id = None
+            
+            try:
+                token_result = SecurityUtils.verify_token(token)
+                
+                if not token_result:
+                    return response_error("Token verification failed", 401)
+                
+                # Manejar caso donde token_result es una tupla
+                if isinstance(token_result, tuple):
+                    HandleLogs.write_error(f"auth_middleware - token_result is tuple: {token_result}")
+                    return response_error("Token format error", 401)
+                
+                if not isinstance(token_result, dict):
+                    HandleLogs.write_error(f"auth_middleware - token_result not dict: {type(token_result)}")
+                    return response_error("Invalid token response format", 401)
+                    
+                if not token_result.get('success'):
+                    return response_error(token_result.get('message', 'Token inválido'), 401)
+                
+                token_data = token_result.get('data')
+                if not token_data:
+                    return response_error("No token data", 401)
+                    
+                # Manejar caso donde token_data es una tupla
+                if isinstance(token_data, tuple):
+                    HandleLogs.write_error(f"auth_middleware - token_data is tuple: {token_data}")
+                    return response_error("Token data format error", 401)
+                
+                if not isinstance(token_data, dict):
+                    HandleLogs.write_error(f"auth_middleware - token_data not dict: {type(token_data)}")
+                    return response_error("Invalid token data format", 401)
+                    
+                user_id = token_data.get('user_id')
+                if not user_id:
+                    return response_error("ID de usuario no encontrado en token", 401)
+                    
+            except Exception as token_err:
+                HandleLogs.write_error(f"auth_middleware.token_required - Token verification error: {str(token_err)}")
+                # También registrar el stack trace para debugging
+                import traceback
+                HandleLogs.write_error(f"auth_middleware.token_required - Token verification traceback: {traceback.format_exc()}")
+                return response_error("Error verificando token", 401)
+            
+            # Verificar que el usuario sigue activo con manejo robusto de errores
+            try:
+                user_result = LoginComponent.get_user_by_id(user_id)
+                
+                if not user_result:
+                    return response_error("User verification failed", 401)
+                
+                # Manejar caso donde user_result es una tupla
+                if isinstance(user_result, tuple):
+                    HandleLogs.write_error(f"auth_middleware - user_result is tuple: {user_result}")
+                    return response_error("User result format error", 401)
+                
+                if not isinstance(user_result, dict):
+                    HandleLogs.write_error(f"auth_middleware - user_result not dict: {type(user_result)}")
+                    return response_error("Invalid user response format", 401)
+                    
+                if not user_result.get('success') or not user_result.get('data'):
+                    return response_error("Usuario no encontrado o inactivo", 401)
 
-            if not token_result['success']:
-                return response_error(token_result['message'], 401)
-
-            # Verificar que el usuario sigue activo
-            user_result = LoginComponent.get_user_by_id(token_result['data']['user_id'])
-
-            if not user_result['success'] or not user_result['data']:
-                return response_error("Usuario no encontrado o inactivo", 401)
+                # Obtener datos del usuario - manejar todos los casos posibles
+                user_data = user_result['data']
+                user_info = None
+                
+                if isinstance(user_data, dict) and user_data:
+                    # Caso normal: dict con datos
+                    user_info = user_data
+                elif isinstance(user_data, list) and len(user_data) > 0:
+                    # Caso lista con elementos
+                    if isinstance(user_data[0], dict):
+                        user_info = user_data[0]
+                    else:
+                        HandleLogs.write_error(f"auth_middleware - user_data[0] not dict: {type(user_data[0])}")
+                        return response_error("Invalid user data item format", 401)
+                elif isinstance(user_data, tuple) and len(user_data) > 0:
+                    # Caso tupla (psycopg2 raw result) - convertir a dict
+                    HandleLogs.write_error(f"auth_middleware - user_data is tuple: {user_data}")
+                    return response_error("User data is in tuple format - database error", 500)
+                else:
+                    HandleLogs.write_error(f"auth_middleware - unexpected user_data format: {type(user_data)}")
+                    return response_error("Unexpected user data format", 401)
+                
+                if not user_info or not isinstance(user_info, dict):
+                    HandleLogs.write_error(f"auth_middleware - final user_info invalid: {type(user_info)}")
+                    return response_error("Final user data validation failed", 401)
+                    
+                # Verificar que todos los campos requeridos estén presentes
+                required_fields = ['id', 'usuario', 'rol', 'rol_id', 'nombre_completo']
+                for field in required_fields:
+                    if field not in user_info:
+                        HandleLogs.write_error(f"auth_middleware - missing field: {field}")
+                        return response_error(f"Campo de usuario faltante: {field}", 401)
+                
+            except Exception as user_err:
+                HandleLogs.write_error(f"auth_middleware.token_required - User verification error: {str(user_err)}")
+                # También registrar el stack trace para debugging
+                import traceback
+                HandleLogs.write_error(f"auth_middleware.token_required - User verification traceback: {traceback.format_exc()}")
+                return response_error("Error verificando usuario", 401)
 
             # Agregar información del usuario al request
             request.current_user = {
-                'id': user_result['data']['id'],
-                'usuario': user_result['data']['usuario'],
-                'rol': user_result['data']['rol'],
-                'rol_id': user_result['data']['rol_id'],
-                'nombre_completo': user_result['data']['nombre_completo']
+                'id': user_info['id'],
+                'usuario': user_info['usuario'],
+                'rol': user_info['rol'],
+                'rol_id': user_info['rol_id'],
+                'nombre_completo': user_info['nombre_completo']
             }
 
             return f(*args, **kwargs)

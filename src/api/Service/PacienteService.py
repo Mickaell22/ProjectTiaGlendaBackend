@@ -3,7 +3,7 @@ import uuid
 from flask import request
 from werkzeug.utils import secure_filename
 from src.utils.general.logs import HandleLogs
-from src.utils.general.response import response_success, response_error, response_inserted
+from src.utils.general.response import response_success, response_error, response_inserted, internal_response
 from src.utils.general.validators import Validators
 from src.utils.general.data_utils import DataUtils
 from src.api.Components.PacienteComponent import PacienteComponent
@@ -347,16 +347,16 @@ class PacienteService:
             HandleLogs.write_log(f"PacienteService.download_documento - Paciente: {paciente_id}, Documento: {documento_id}")
 
             if not paciente_id or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+                return internal_response(False, None, "ID de paciente inválido")
             
             if not documento_id or documento_id <= 0:
-                return response_error("ID de documento inválido", 400)
+                return internal_response(False, None, "ID de documento inválido")
 
             # Obtener información del documento
             result = DocumentoPacienteComponent.get_documento_by_id(documento_id, paciente_id)
 
             if not result['success'] or not result['data']:
-                return response_error("Documento no encontrado", 404)
+                return internal_response(False, None, "Documento no encontrado")
 
             documento = result['data']
             ruta_archivo = documento['ruta_archivo']
@@ -364,10 +364,10 @@ class PacienteService:
             # Verificar que el archivo existe
             if not os.path.exists(ruta_archivo):
                 HandleLogs.write_error(f"PacienteService.download_documento - Archivo no encontrado: {ruta_archivo}")
-                return response_error("Archivo no encontrado en el sistema", 404)
+                return internal_response(False, None, "Archivo no encontrado en el sistema")
 
             # Retornar información para descarga
-            return response_success({
+            return internal_response(True, {
                 'ruta_archivo': ruta_archivo,
                 'nombre_original': documento['nombre_original'],
                 'tipo_mime': documento['tipo_mime']
@@ -375,7 +375,7 @@ class PacienteService:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.download_documento - Error: {str(e)}")
-            return response_error(f"Error interno: {str(e)}", 500)
+            return internal_response(False, None, f"Error interno: {str(e)}")
 
     @staticmethod
     def delete_documento(paciente_id, documento_id):

@@ -1,0 +1,31 @@
+2025-08-03 11:45:34 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 11:46:00 - ERROR - ExecuteNonQuery - Error: 'usuario_modificacion'
+2025-08-03 11:47:29 - ERROR - ExecuteNonQuery - Error: 'usuario_modificacion'
+2025-08-03 11:47:41 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 11:55:00 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 11:55:51 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 11:56:32 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 11:57:29 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 11:57:53 - ERROR - PacienteService.download_documento - Error: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+2025-08-03 11:59:12 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 12:00:10 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 12:00:42 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 12:02:13 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 12:03:31 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 12:03:59 - ERROR - auth_middleware.token_required - Error: tuple indices must be integers or slices, not str
+2025-08-03 12:03:59 - ERROR - auth_middleware.token_required - Full traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 141, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 474, in download_documento_paciente
+    if result['success']:
+       ~~~~~~^^^^^^^^^^^
+TypeError: tuple indices must be integers or slices, not str
+
+2025-08-03 12:03:59 - ERROR - auth_middleware.token_required - TUPLE ERROR DETECTED
+2025-08-03 12:03:59 - ERROR - auth_middleware.token_required - token_result: {'success': True, 'data': {'user_id': 1, 'username': 'admin', 'rol': 'Administrador', 'exp': 1754327037, 'iat': 1754240637}, 'message': 'Token valido'}
+2025-08-03 12:03:59 - ERROR - auth_middleware.token_required - user_id: 1
