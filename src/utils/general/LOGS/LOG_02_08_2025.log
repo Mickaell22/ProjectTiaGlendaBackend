@@ -85,3 +85,615 @@
 2025-08-02 21:15:50 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
 2025-08-02 21:15:50 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
 2025-08-02 21:29:52 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-02 21:31:09 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:31:09 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:31:10 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:31:10 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:31:12 - INFO - Acceso a ruta de prueba
+2025-08-02 21:31:13 - INFO - Acceso a ruta de prueba
+2025-08-02 21:31:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:13 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:31:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:13 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:31:13 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:31:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:14 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:14 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:31:14 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:31:14 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:31:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:21 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:31:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:21 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:31:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:22 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:31:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:23 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:31:25 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:31:25 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:31:26 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:31:26 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:31:27 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:27 - INFO - PersonaService.get_personas - Iniciando
+2025-08-02 21:31:27 - INFO - PersonaComponent.get_all_personas - 26 personas encontradas
+2025-08-02 21:31:27 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-08-02 21:31:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:28 - INFO - PersonaService.get_personas - Iniciando
+2025-08-02 21:31:28 - INFO - PersonaComponent.get_all_personas - 26 personas encontradas
+2025-08-02 21:31:28 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-08-02 21:31:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:29 - INFO - PersonalService.get_personal - Iniciando
+2025-08-02 21:31:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:29 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-08-02 21:31:29 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:29 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-08-02 21:31:29 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 18 personas disponibles
+2025-08-02 21:31:29 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:31:29 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-08-02 21:31:29 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-08-02 21:31:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:30 - INFO - PersonaService.get_personas_disponibles - Iniciando
+2025-08-02 21:31:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:30 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-08-02 21:31:30 - INFO - PersonaComponent.get_personas_disponibles_para_usuario - 18 personas disponibles
+2025-08-02 21:31:30 - INFO - PersonaService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:31:30 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-08-02 21:31:30 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-08-02 21:31:30 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados con especialidades
+2025-08-02 21:31:30 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-08-02 21:31:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:30 - INFO - PersonalService.get_personal - Iniciando
+2025-08-02 21:31:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:31 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-08-02 21:31:31 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-08-02 21:31:31 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-08-02 21:31:31 - INFO - PersonalComponent.get_all_personal - 6 miembros del personal encontrados con especialidades
+2025-08-02 21:31:31 - INFO - PersonalService.get_personal - Personal obtenido exitosamente
+2025-08-02 21:31:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:31 - INFO - EspecialidadService.get_especialidades - Iniciando
+2025-08-02 21:31:31 - INFO - EspecialidadComponent.get_all_especialidades - 55 especialidades encontradas
+2025-08-02 21:31:31 - INFO - EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente
+2025-08-02 21:31:32 - INFO - Acceso a ruta de prueba
+2025-08-02 21:31:32 - INFO - Acceso a ruta de prueba
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:31:33 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:31:33 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:31:33 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:31:34 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:31:34 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:32:15 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:32:24 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:32:24 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:32:25 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:32:25 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:33:21 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:33:21 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: glenda.rodriguez
+2025-08-02 21:33:21 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 2
+2025-08-02 21:33:21 - INFO - LoginService.login - Autenticacion exitosa: glenda.rodriguez
+2025-08-02 21:33:23 - INFO - Acceso a ruta de prueba
+2025-08-02 21:33:24 - INFO - Acceso a ruta de prueba
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:33:24 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:33:24 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:24 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:33:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:33:25 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:33:25 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:35:57 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:35:58 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:35:58 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:35:58 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:36:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:36:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:36:05 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:36:05 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:36:05 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:36:05 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:36:07 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:08 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:37:08 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:37:09 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:37:09 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:37:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:11 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:37:13 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:13 - INFO - PersonaService.get_personas - Iniciando
+2025-08-02 21:37:13 - INFO - PersonaComponent.get_all_personas - 26 personas encontradas
+2025-08-02 21:37:13 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-08-02 21:37:15 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:41 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-02 21:37:49 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:37:50 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:37:50 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:37:50 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:37:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:52 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:37:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:55 - INFO - PersonaService.get_personas - Iniciando
+2025-08-02 21:37:55 - INFO - PersonaComponent.get_all_personas - 26 personas encontradas
+2025-08-02 21:37:55 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-08-02 21:37:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:37:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:37:57 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:37:57 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:37:57 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:37:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:37:58 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:37:58 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:37:58 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:38:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:00 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:00 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:38:00 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:38:00 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:38:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:01 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:01 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:38:01 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:38:01 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:38:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:45 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:38:45 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:45 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:38:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:46 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:38:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:46 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:38:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:46 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:38:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:46 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:38:46 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:38:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:47 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:38:47 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:38:47 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:38:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:38:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:03 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:39:03 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:39:04 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:39:04 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:39:06 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:06 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:39:08 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:08 - INFO - PersonaService.get_personas - Iniciando
+2025-08-02 21:39:08 - INFO - PersonaComponent.get_all_personas - 26 personas encontradas
+2025-08-02 21:39:08 - INFO - PersonaService.get_personas - Personas obtenidas exitosamente
+2025-08-02 21:39:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:10 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:39:11 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:39:11 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:39:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:20 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:39:20 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:20 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:39:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:21 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:39:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:21 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:39:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:21 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:39:21 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:39:21 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:39:21 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:39:21 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:39:21 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:21 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:39:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:22 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:39:22 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:39:22 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:39:22 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:39:22 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:39:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:22 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:39:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:22 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:39:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:22 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:39:22 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:39:22 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:39:22 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:39:22 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:39:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:22 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:39:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:39:22 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:39:22 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:39:22 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:39:22 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:39:22 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:39:29 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:39:29 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:39:30 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:39:30 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:39:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:32 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:39:32 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:39:32 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:39:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:34 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:39:34 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:39:34 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:39:37 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:37 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:39:37 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:39:37 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:39:39 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:39:39 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:39:39 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:39:39 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:40:00 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-02 21:40:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:02 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:40:03 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:40:03 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:40:03 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:40:03 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:40:03 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:40:03 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:40:03 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:40:03 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:40:03 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:40:03 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:40:03 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:40:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:40:03 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:40:03 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:40:03 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:40:03 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:40:03 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:40:04 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:40:04 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:03 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:03 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:03 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:03 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:03 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:41:03 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:03 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:41:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:03 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:41:03 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:41:03 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:41:03 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:41:03 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:41:04 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:41:04 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:41:04 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:41:04 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:41:04 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:41:04 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:41:04 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:41:04 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:41:04 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:41:04 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:41:04 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:41:04 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:41:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:32 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:41:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:32 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:41:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:32 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:41:32 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:32 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:41:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:33 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:41:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:33 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:41:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:41:33 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:41:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:33 - INFO - Información solicitada para usuario: glenda.rodriguez
+2025-08-02 21:41:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:54 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:41:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:54 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:41:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:54 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:54 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:41:54 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:41:54 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:41:54 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:41:55 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:41:55 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:41:55 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:41:55 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:41:55 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:41:55 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:41:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:55 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:41:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:55 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:41:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:55 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:41:55 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:41:55 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:41:55 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:41:55 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:41:55 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 2
+2025-08-02 21:41:55 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:41:55 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:41:55 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:41:56 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:41:56 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:42:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:10 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:42:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:10 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:42:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:10 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:42:10 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:10 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:42:10 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:42:10 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:42:10 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:42:10 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:42:10 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:42:10 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:42:10 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:42:10 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:42:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:11 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:42:11 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:42:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:11 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:42:11 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:42:11 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:42:11 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:42:11 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:42:11 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:42:11 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:42:11 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:42:11 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:42:11 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:42:11 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:43:25 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:43:25 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:43:26 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:43:26 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:43:28 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:43:28 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:43:28 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:43:28 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:43:31 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:43:31 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:43:31 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:49:11 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-02 21:49:19 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:49:19 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:49:20 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:49:20 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:49:22 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:22 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:49:22 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:49:22 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:49:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:24 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:49:24 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:49:24 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 0 documentos encontrados
+2025-08-02 21:49:24 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:49:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:46 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:49:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:46 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:49:46 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:46 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:49:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:47 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:49:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:51 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:49:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:51 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:49:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:51 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:51 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:49:51 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:49:51 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:49:51 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:49:51 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:49:51 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:49:51 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:49:51 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:49:52 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:49:52 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:49:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:52 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:49:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:52 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:49:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:52 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:49:52 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:49:52 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:49:52 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:49:52 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:49:52 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:49:52 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:49:52 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:52 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:49:52 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:49:52 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:49:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:56 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:49:56 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:49:56 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 0 documentos encontrados
+2025-08-02 21:49:56 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:49:56 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:49:56 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:49:56 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:49:56 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 0 documentos encontrados
+2025-08-02 21:49:56 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:50:17 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:17 - INFO - PacienteService.upload_documento - Paciente ID: 9
+2025-08-02 21:50:18 - INFO - PacienteComponent.get_paciente_by_id - Paciente 9 encontrado
+2025-08-02 21:50:18 - INFO - DocumentoPacienteComponent.create_documento - Iniciando
+2025-08-02 21:50:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:34 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:50:34 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:34 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:50:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:35 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:50:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:35 - INFO - Información solicitada para usuario: admin
+2025-08-02 21:50:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:35 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:50:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:35 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:50:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:35 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:50:35 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:35 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:50:36 - INFO - PacienteComponent.get_personas_disponibles_para_paciente - 17 personas disponibles
+2025-08-02 21:50:36 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:50:36 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+2025-08-02 21:50:36 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:50:36 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:50:36 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:50:36 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:50:36 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:50:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:36 - INFO - TutorService.get_tutores - Iniciando
+2025-08-02 21:50:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:36 - INFO - PacienteService.get_personas_disponibles - Iniciando
+2025-08-02 21:50:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:36 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:50:36 - INFO - TutorComponent.get_all_tutores - 9 tutores encontrados
+ - 17 personas disponibles
+2025-08-02 21:50:36 - INFO - PacienteService.get_personas_disponibles - Personas disponibles obtenidas
+2025-08-02 21:50:36 - INFO - TutorService.get_tutores - Tutores obtenidos exitosamente
+2025-08-02 21:50:36 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:50:36 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:50:36 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:36 - INFO - PacienteService.get_estadisticas - Iniciando
+2025-08-02 21:50:36 - INFO - PacienteComponent.get_estadisticas_pacientes - Estadísticas obtenidas
+2025-08-02 21:50:36 - INFO - PacienteService.get_estadisticas - Estadísticas obtenidas
+2025-08-02 21:50:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:43 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:50:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:50:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 0 documentos encontrados
+2025-08-02 21:50:43 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:50:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:50:43 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:50:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:50:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 0 documentos encontrados
+2025-08-02 21:50:43 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:51:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:51:04 - INFO - PacienteService.upload_documento - Paciente ID: 9
+2025-08-02 21:51:04 - INFO - PacienteComponent.get_paciente_by_id - Paciente 9 encontrado
+2025-08-02 21:51:04 - INFO - DocumentoPacienteComponent.create_documento - Iniciando
+2025-08-02 21:52:03 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-02 21:52:27 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:52:27 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:52:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:52:28 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:52:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:52:30 - INFO - PacienteService.get_pacientes - Iniciando
+2025-08-02 21:52:30 - INFO - PacienteComponent.get_all_pacientes - 9 pacientes encontrados
+2025-08-02 21:52:30 - INFO - PacienteService.get_pacientes - Pacientes obtenidos exitosamente
+2025-08-02 21:52:33 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:52:33 - INFO - PacienteService.upload_documento - Paciente ID: 9
+2025-08-02 21:52:33 - INFO - PacienteComponent.get_paciente_by_id - Paciente 9 encontrado
+2025-08-02 21:52:33 - INFO - DocumentoPacienteComponent.create_documento - Iniciando
+2025-08-02 21:52:33 - INFO - DocumentoPacienteComponent.create_documento - Documento creado exitosamente
+2025-08-02 21:52:33 - INFO - PacienteService.upload_documento - Documento subido exitosamente para paciente 9
+2025-08-02 21:53:06 - INFO - LoginService.login - Intento de autenticacion
+2025-08-02 21:53:06 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-02 21:53:07 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-02 21:53:07 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-02 21:53:09 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:53:09 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:53:09 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:53:09 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 1 documentos encontrados
+2025-08-02 21:53:09 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:53:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:53:43 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:53:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:53:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 1 documentos encontrados
+2025-08-02 21:53:43 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:53:43 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:53:43 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:53:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:53:43 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 1 documentos encontrados
+2025-08-02 21:53:43 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:53:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:53:47 - INFO - PacienteService.delete_documento - Paciente: 9, Documento: 1
+2025-08-02 21:53:47 - INFO - DocumentoPacienteComponent.get_documento_by_id - ID: 1
+2025-08-02 21:53:47 - INFO - DocumentoPacienteComponent.delete_documento - ID: 1
+2025-08-02 21:53:47 - INFO - DocumentoPacienteComponent.delete_documento - Documento eliminado
+2025-08-02 21:53:47 - INFO - PacienteService.delete_documento - Documento 1 eliminado exitosamente
+2025-08-02 21:53:47 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:53:47 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:53:47 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:53:47 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 0 documentos encontrados
+2025-08-02 21:53:47 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:54:02 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:54:02 - INFO - PacienteService.upload_documento - Paciente ID: 9
+2025-08-02 21:54:02 - INFO - PacienteComponent.get_paciente_by_id - Paciente 9 encontrado
+2025-08-02 21:54:02 - INFO - DocumentoPacienteComponent.create_documento - Iniciando
+2025-08-02 21:54:02 - INFO - DocumentoPacienteComponent.create_documento - Documento creado exitosamente
+2025-08-02 21:54:02 - INFO - PacienteService.upload_documento - Documento subido exitosamente para paciente 9
+2025-08-02 21:54:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:54:03 - INFO - PacienteService.get_documentos - Paciente ID: 9
+2025-08-02 21:54:03 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
+2025-08-02 21:54:03 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 1 documentos encontrados
+2025-08-02 21:54:03 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-02 21:56:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:56:03 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:56:03 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:56:03 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-02 21:56:04 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-02 21:56:04 - INFO - Información solicitada para usuario: admin

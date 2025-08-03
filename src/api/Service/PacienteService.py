@@ -284,6 +284,7 @@ class PacienteService:
             archivo.save(ruta_archivo)
 
             # Preparar datos para la base de datos
+            current_user_id = getattr(request, 'current_user', {}).get('id')
             documento_data = {
                 'paciente_id': paciente_id,
                 'nombre_archivo': nombre_unico,
@@ -294,10 +295,10 @@ class PacienteService:
                 'tipo_mime': 'application/pdf',
                 'descripcion': descripcion if descripcion else None,
                 'es_confidencial': es_confidencial,
-                'fecha_vencimiento': fecha_vencimiento if fecha_vencimiento else None
+                'fecha_vencimiento': fecha_vencimiento if fecha_vencimiento else None,
+                'usuario_creacion': current_user_id
             }
 
-            current_user_id = getattr(request, 'current_user', {}).get('id')
             documento_data = DataUtils.prepare_create_data(documento_data, current_user_id)
 
             # Guardar en base de datos

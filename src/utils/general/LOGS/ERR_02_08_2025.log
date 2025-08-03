@@ -10,3 +10,198 @@
 2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
 2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
 2025-08-02 21:15:50 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:13 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:13 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:31:13 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:31:14 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:14 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:14 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:31:33 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:33 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:33 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:31:33 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:33 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:31:33 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:33:24 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:33:24 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:33:24 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:33:24 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:33:24 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:33:24 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:36:00 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:36:03 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:36:07 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:37:15 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:37:57 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:37:57 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 402, in get_pacientes
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:00 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:00 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 444, in get_personas_disponibles_paciente
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:00 - ERROR - auth_middleware.token_required - Error: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+2025-08-02 21:38:00 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:00 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 402, in get_pacientes
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:00 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 438, in get_pacientes_estadisticas
+    from src.api.Service.PacienteService import PacienteService
+ImportError: cannot import name 'PacienteService' from 'src.api.Service.PacienteService' (C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py)
+
+2025-08-02 21:38:01 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:01 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 444, in get_personas_disponibles_paciente
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:01 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:01 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 402, in get_pacientes
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:01 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:01 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 438, in get_pacientes_estadisticas
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:46 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:46 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 402, in get_pacientes
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:46 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:46 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 444, in get_personas_disponibles_paciente
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:46 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:46 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 438, in get_pacientes_estadisticas
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:47 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:47 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 402, in get_pacientes
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:47 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:47 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 444, in get_personas_disponibles_paciente
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:38:47 - ERROR - auth_middleware.token_required - Error: No module named 'src.utils.database.database'
+2025-08-02 21:38:47 - ERROR - auth_middleware.token_required - Traceback: Traceback (most recent call last):
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\utils\general\auth_middleware.py", line 48, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\routes\api_routes.py", line 438, in get_pacientes_estadisticas
+    from src.api.Service.PacienteService import PacienteService
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Service\PacienteService.py", line 10, in <module>
+    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
+  File "C:\Users\ASUS\Desktop\Proyecto\Project B\src\api\Components\DocumentoPacienteComponent.py", line 2, in <module>
+    from src.utils.database.database import DataBaseHandle
+ModuleNotFoundError: No module named 'src.utils.database.database'
+
+2025-08-02 21:43:31 - ERROR - DocumentoPacienteComponent.get_documentos_by_paciente - Error: 'DataBaseHandle' object has no attribute 'close'
+2025-08-02 21:43:31 - ERROR - PacienteService.get_documentos - Error: Error interno: 'DataBaseHandle' object has no attribute 'close'
+2025-08-02 21:50:18 - ERROR - ExecuteNonQuery - Error: 'usuario_creacion'
+2025-08-02 21:50:18 - ERROR - DocumentoPacienteComponent.create_documento - Error en inserción
+2025-08-02 21:50:18 - ERROR - PacienteService.upload_documento - Error BD: Error creando documento
+2025-08-02 21:51:04 - ERROR - ExecuteNonQuery - Error: 'usuario_creacion'
+2025-08-02 21:51:04 - ERROR - DocumentoPacienteComponent.create_documento - Error en inserción
+2025-08-02 21:51:04 - ERROR - PacienteService.upload_documento - Error BD: Error creando documento
