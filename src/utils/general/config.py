@@ -35,6 +35,20 @@ def get_config():
             if config.has_option(ambiente, key):
                 default_config[key] = config.get(ambiente, key)
 
+    # Railway provee DATABASE_URL, parsearlo si existe
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        try:
+            import urllib.parse as urlparse
+            parsed = urlparse.urlparse(database_url)
+            default_config['db_host'] = parsed.hostname
+            default_config['db_port'] = str(parsed.port) if parsed.port else '5432'
+            default_config['db_name'] = parsed.path[1:]  # Remover el '/' inicial
+            default_config['db_user'] = parsed.username
+            default_config['db_pass'] = parsed.password
+        except Exception as e:
+            print(f"Error parsing DATABASE_URL: {e}")
+
     # Las variables de entorno tienen prioridad
     env_mapping = {
         'db_host': 'DB_HOST',

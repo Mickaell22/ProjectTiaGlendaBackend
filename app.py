@@ -8,8 +8,15 @@ import os
 
 app = Flask(__name__)
 
-# Configurar CORS
-CORS(app, origins=['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'])
+# Configurar CORS para desarrollo y producción
+cors_origins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175']
+
+# Agregar orígenes de producción desde variables de entorno
+cors_env = os.getenv('CORS_ORIGINS', '')
+if cors_env:
+    cors_origins.extend([origin.strip() for origin in cors_env.split(',') if origin.strip()])
+
+CORS(app, origins=cors_origins)
 
 # Configurar Swagger UI
 SWAGGER_URL = '/docs'  # URL para la documentación Swagger UI

@@ -447,3 +447,5 @@
 2025-08-04 20:06:14 - INFO - PacienteService.get_paciente_especialidades - Paciente ID: 9
 2025-08-04 20:06:15 - INFO - PacienteComponent.get_paciente_especialidades - 3 especialidades encontradas para paciente 9
 2025-08-04 20:06:15 - INFO - PacienteService.get_paciente_especialidades - Especialidades obtenidas para paciente 9
+2025-08-04 20:26:26 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-04 20:26:48 - INFO - app - Iniciando Sistema Tía Glenda Backend
