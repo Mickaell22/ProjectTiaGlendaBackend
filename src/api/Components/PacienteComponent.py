@@ -474,3 +474,361 @@ class PacienteComponent:
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.get_personas_disponibles_para_paciente - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
+
+    # =============================================
+    # MÉTODOS PARA GESTIÓN DE ESPECIALIDADES DE PACIENTES
+    # =============================================
+
+    @staticmethod
+    def get_paciente_especialidades(paciente_id):
+        """Obtener todas las especialidades asignadas a un paciente"""
+        try:
+            query = """
+            SELECT 
+                pe.id,
+                pe.paciente_id,
+                pe.especialidad_id,
+                pe.fecha_inicio,
+                pe.fecha_fin,
+                pe.estado,
+                pe.observaciones_tratamiento,
+                pe.fecha_creacion,
+                pe.fecha_modificacion,
+                -- Información de la especialidad
+                e.nombre as especialidad_nombre,
+                e.area
+            FROM paciente_especialidad pe
+            INNER JOIN especialidad e ON pe.especialidad_id = e.id
+            WHERE pe.paciente_id = %s
+            ORDER BY pe.fecha_inicio DESC, pe.fecha_creacion DESC
+            """
+
+            especialidades = DataBaseHandle.getRecords(query, (paciente_id,))
+
+            if especialidades is not None:
+                HandleLogs.write_log(f"PacienteComponent.get_paciente_especialidades - {len(especialidades)} especialidades encontradas para paciente {paciente_id}")
+                return internal_response(True, especialidades, "Especialidades del paciente obtenidas correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.get_paciente_especialidades - Error en consulta para paciente {paciente_id}")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_paciente_especialidades - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def create_paciente_especialidad(paciente_id, data):
+        """Asignar una especialidad a un paciente"""
+        try:
+            # Verificar que el paciente existe
+            paciente_check = DataBaseHandle.getRecords(
+                "SELECT id, estado FROM paciente WHERE id = %s",
+                (paciente_id,), size=1
+            )
+
+            if not paciente_check:
+                return internal_response(False, None, "Paciente no encontrado")
+
+            # Verificar que la especialidad existe y está activa
+            especialidad_check = DataBaseHandle.getRecords(
+                "SELECT id, estado FROM especialidad WHERE id = %s",
+                (data['especialidad_id'],), size=1
+            )
+
+            if not especialidad_check:
+                return internal_response(False, None, "Especialidad no encontrada")
+
+            if especialidad_check['estado'] != 'activo':
+                return internal_response(False, None, "La especialidad debe estar activa")
+
+            # Verificar que el paciente no tenga ya esta especialidad activa
+            existing_check = DataBaseHandle.getRecords(
+                "SELECT id FROM paciente_especialidad WHERE paciente_id = %s AND especialidad_id = %s AND estado != 'completado'",
+                (paciente_id, data['especialidad_id']), size=1
+            )
+
+            if existing_check:
+                return internal_response(False, None, "El paciente ya tiene esta especialidad asignada (activa o suspendida)")
+
+            # Insertar nueva asignación
+            insert_query = """
+                INSERT INTO paciente_especialidad (
+                    paciente_id, especialidad_id, fecha_inicio, fecha_fin,
+                    estado, observaciones_tratamiento, usuario_creacion
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """
+
+            params = (
+                paciente_id,
+                data['especialidad_id'],
+                data['fecha_inicio'],
+                data.get('fecha_fin'),
+                data.get('estado', 'activo'),
+                data.get('observaciones_tratamiento'),
+                data.get('usuario_creacion')
+            )
+
+            new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
+
+            if new_id:
+                # Obtener el registro creado con información completa
+                new_especialidad = PacienteComponent.get_paciente_especialidad_by_id(new_id)
+                HandleLogs.write_log(f"PacienteComponent.create_paciente_especialidad - Especialidad asignada con ID: {new_id}")
+                return internal_response(True, new_especialidad['data'], "Especialidad asignada exitosamente")
+            else:
+                HandleLogs.write_error("PacienteComponent.create_paciente_especialidad - Error insertando asignación")
+                return internal_response(False, None, "Error asignando especialidad")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.create_paciente_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_paciente_especialidad_by_id(tratamiento_id):
+        """Obtener una asignación específica de especialidad por ID"""
+        try:
+            query = """
+            SELECT 
+                pe.id,
+                pe.paciente_id,
+                pe.especialidad_id,
+                pe.fecha_inicio,
+                pe.fecha_fin,
+                pe.estado,
+                pe.observaciones_tratamiento,
+                pe.fecha_creacion,
+                pe.fecha_modificacion,
+                -- Información de la especialidad
+                e.nombre as especialidad_nombre,
+                e.area,
+                -- Información del paciente
+                CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre
+            FROM paciente_especialidad pe
+            INNER JOIN especialidad e ON pe.especialidad_id = e.id
+            INNER JOIN paciente pac ON pe.paciente_id = pac.id
+            INNER JOIN persona p ON pac.persona_id = p.id
+            WHERE pe.id = %s
+            """
+
+            especialidad = DataBaseHandle.getRecords(query, (tratamiento_id,), size=1)
+
+            if especialidad:
+                HandleLogs.write_log(f"PacienteComponent.get_paciente_especialidad_by_id - Tratamiento {tratamiento_id} encontrado")
+                return internal_response(True, especialidad, "Tratamiento encontrado")
+            else:
+                HandleLogs.write_log(f"PacienteComponent.get_paciente_especialidad_by_id - Tratamiento {tratamiento_id} no encontrado")
+                return internal_response(True, None, "Tratamiento no encontrado")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_paciente_especialidad_by_id - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def update_paciente_especialidad(tratamiento_id, data):
+        """Actualizar una asignación de especialidad"""
+        try:
+            # Verificar que la asignación existe
+            check_query = "SELECT id, paciente_id, especialidad_id FROM paciente_especialidad WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (tratamiento_id,), size=1)
+
+            if not existing:
+                return internal_response(False, None, "Tratamiento no encontrado")
+
+            # Construir query de actualización dinámicamente
+            update_fields = []
+            params = []
+
+            allowed_fields = ['fecha_inicio', 'fecha_fin', 'estado', 'observaciones_tratamiento', 'usuario_modificacion']
+
+            for field in allowed_fields:
+                if field in data and data[field] is not None:
+                    update_fields.append(f"{field} = %s")
+                    params.append(data[field])
+
+            if not update_fields:
+                return internal_response(False, None, "No hay campos para actualizar")
+
+            # Agregar fecha de modificación
+            update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+
+            # Agregar ID del tratamiento al final
+            params.append(tratamiento_id)
+
+            update_query = f"""
+                UPDATE paciente_especialidad 
+                SET {', '.join(update_fields)}
+                WHERE id = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, params)
+
+            if success:
+                # Obtener datos actualizados
+                updated_especialidad = PacienteComponent.get_paciente_especialidad_by_id(tratamiento_id)
+                HandleLogs.write_log(f"PacienteComponent.update_paciente_especialidad - Tratamiento {tratamiento_id} actualizado")
+                return internal_response(True, updated_especialidad['data'], "Tratamiento actualizado exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.update_paciente_especialidad - Error actualizando tratamiento {tratamiento_id}")
+                return internal_response(False, None, "Error actualizando tratamiento")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.update_paciente_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def delete_paciente_especialidad(tratamiento_id):
+        """Eliminar una asignación de especialidad"""
+        try:
+            # Verificar que la asignación existe
+            check_query = "SELECT id, paciente_id, especialidad_id FROM paciente_especialidad WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (tratamiento_id,), size=1)
+
+            if not existing:
+                return internal_response(False, None, "Tratamiento no encontrado")
+
+            # Eliminar la asignación
+            delete_query = "DELETE FROM paciente_especialidad WHERE id = %s"
+            success = DataBaseHandle.ExecuteNonQuery(delete_query, (tratamiento_id,))
+
+            if success:
+                HandleLogs.write_log(f"PacienteComponent.delete_paciente_especialidad - Tratamiento {tratamiento_id} eliminado")
+                return internal_response(True, {"id": tratamiento_id}, "Tratamiento eliminado exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.delete_paciente_especialidad - Error eliminando tratamiento {tratamiento_id}")
+                return internal_response(False, None, "Error eliminando tratamiento")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.delete_paciente_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_pacientes_by_especialidad(especialidad_id):
+        """Obtener pacientes que tienen una especialidad específica"""
+        try:
+            query = """
+            SELECT 
+                pac.id as paciente_id,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.cedula,
+                pac.estado as estado_paciente,
+                pe.id as tratamiento_id,
+                pe.fecha_inicio,
+                pe.fecha_fin,
+                pe.estado as estado_tratamiento,
+                pe.observaciones_tratamiento
+            FROM paciente_especialidad pe
+            INNER JOIN paciente pac ON pe.paciente_id = pac.id
+            INNER JOIN persona p ON pac.persona_id = p.id
+            WHERE pe.especialidad_id = %s
+            ORDER BY pe.fecha_inicio DESC
+            """
+
+            pacientes = DataBaseHandle.getRecords(query, (especialidad_id,))
+
+            if pacientes is not None:
+                HandleLogs.write_log(f"PacienteComponent.get_pacientes_by_especialidad - {len(pacientes)} pacientes encontrados para especialidad {especialidad_id}")
+                return internal_response(True, pacientes, "Pacientes con la especialidad obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.get_pacientes_by_especialidad - Error en consulta para especialidad {especialidad_id}")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_pacientes_by_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_estadisticas_paciente_especialidades():
+        """Obtener estadísticas de especialidades de pacientes"""
+        try:
+            query = """
+            SELECT 
+                COUNT(*) as total_asignaciones,
+                COUNT(CASE WHEN pe.estado = 'activo' THEN 1 END) as tratamientos_activos,
+                COUNT(CASE WHEN pe.estado = 'completado' THEN 1 END) as tratamientos_completados,
+                COUNT(CASE WHEN pe.estado = 'suspendido' THEN 1 END) as tratamientos_suspendidos,
+                COUNT(DISTINCT pe.paciente_id) as pacientes_con_especialidades,
+                COUNT(DISTINCT pe.especialidad_id) as especialidades_asignadas
+            FROM paciente_especialidad pe
+            """
+
+            estadisticas_generales = DataBaseHandle.getRecords(query, size=1)
+
+            # Estadísticas por especialidad
+            query_especialidades = """
+            SELECT 
+                e.nombre as especialidad,
+                e.area,
+                COUNT(*) as total_asignaciones,
+                COUNT(CASE WHEN pe.estado = 'activo' THEN 1 END) as activos,
+                COUNT(CASE WHEN pe.estado = 'completado' THEN 1 END) as completados
+            FROM paciente_especialidad pe
+            INNER JOIN especialidad e ON pe.especialidad_id = e.id
+            GROUP BY e.id, e.nombre, e.area
+            ORDER BY total_asignaciones DESC
+            """
+
+            estadisticas_especialidades = DataBaseHandle.getRecords(query_especialidades)
+
+            # Estadísticas por estado
+            query_estados = """
+            SELECT 
+                estado,
+                COUNT(*) as total
+            FROM paciente_especialidad
+            GROUP BY estado
+            ORDER BY total DESC
+            """
+
+            estadisticas_estados = DataBaseHandle.getRecords(query_estados)
+
+            resultado = {
+                "general": estadisticas_generales,
+                "por_especialidad": estadisticas_especialidades if estadisticas_especialidades else [],
+                "por_estado": estadisticas_estados if estadisticas_estados else []
+            }
+
+            if estadisticas_generales is not None:
+                HandleLogs.write_log("PacienteComponent.get_estadisticas_paciente_especialidades - Estadísticas obtenidas")
+                return internal_response(True, resultado, "Estadísticas de especialidades obtenidas")
+            else:
+                HandleLogs.write_error("PacienteComponent.get_estadisticas_paciente_especialidades - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_estadisticas_paciente_especialidades - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_tratamientos_by_estado(paciente_id, estado):
+        """Obtener tratamientos de un paciente por estado específico"""
+        try:
+            query = """
+            SELECT 
+                pe.id,
+                pe.fecha_inicio,
+                pe.fecha_fin,
+                pe.estado,
+                pe.observaciones_tratamiento,
+                pe.fecha_creacion,
+                e.nombre as especialidad_nombre,
+                e.area
+            FROM paciente_especialidad pe
+            INNER JOIN especialidad e ON pe.especialidad_id = e.id
+            WHERE pe.paciente_id = %s AND pe.estado = %s
+            ORDER BY pe.fecha_inicio DESC
+            """
+
+            tratamientos = DataBaseHandle.getRecords(query, (paciente_id, estado))
+
+            if tratamientos is not None:
+                HandleLogs.write_log(f"PacienteComponent.get_tratamientos_by_estado - {len(tratamientos)} tratamientos {estado} encontrados para paciente {paciente_id}")
+                return internal_response(True, tratamientos, f"Tratamientos {estado} obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.get_tratamientos_by_estado - Error en consulta para paciente {paciente_id}")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_tratamientos_by_estado - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")

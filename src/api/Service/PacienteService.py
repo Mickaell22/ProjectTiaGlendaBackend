@@ -419,3 +419,248 @@ class PacienteService:
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.delete_documento - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
+
+    # =============================================
+    # MÉTODOS PARA GESTIÓN DE ESPECIALIDADES DE PACIENTES
+    # =============================================
+
+    @staticmethod
+    def get_paciente_especialidades(paciente_id):
+        """Obtener especialidades asignadas a un paciente"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_paciente_especialidades - Paciente ID: {paciente_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.get_paciente_especialidades(paciente_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_paciente_especialidades - Especialidades obtenidas para paciente {paciente_id}")
+                return response_success(result['data'], "Especialidades del paciente obtenidas correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_paciente_especialidades - Error: {result['message']}")
+                return response_error("Error obteniendo especialidades", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_paciente_especialidades - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def create_paciente_especialidad(paciente_id):
+        """Asignar una especialidad a un paciente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log(f"PacienteService.create_paciente_especialidad - Paciente ID: {paciente_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            # Validar campos requeridos
+            required_validation = Validators.validate_required_fields(data, ['especialidad_id', 'fecha_inicio'])
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            # Validar que especialidad_id sea numérico
+            try:
+                data['especialidad_id'] = int(data['especialidad_id'])
+            except (ValueError, TypeError):
+                return response_error("ID de especialidad debe ser numérico", 400)
+
+            # Validar fecha de inicio
+            if not Validators.validate_date(data['fecha_inicio']):
+                return response_error("Fecha de inicio inválida", 400)
+
+            # Validar fecha de fin si se proporciona
+            if data.get('fecha_fin') and not Validators.validate_date(data['fecha_fin']):
+                return response_error("Fecha de fin inválida", 400)
+
+            # Validar estado si se proporciona
+            valid_states = ['activo', 'completado', 'suspendido']
+            if data.get('estado') and data['estado'] not in valid_states:
+                return response_error(f"Estado inválido. Debe ser uno de: {', '.join(valid_states)}", 400)
+
+            # Preparar datos para inserción
+            current_user_id = getattr(request, 'current_user', {}).get('id')
+            especialidad_data = DataUtils.prepare_create_data(data, current_user_id)
+
+            result = PacienteComponent.create_paciente_especialidad(paciente_id, especialidad_data)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.create_paciente_especialidad - Especialidad asignada a paciente {paciente_id}")
+                return response_inserted(result['data'], "Especialidad asignada exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.create_paciente_especialidad - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.create_paciente_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def update_paciente_especialidad(tratamiento_id):
+        """Actualizar una asignación de especialidad"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log(f"PacienteService.update_paciente_especialidad - Tratamiento ID: {tratamiento_id}")
+
+            if not tratamiento_id or tratamiento_id <= 0:
+                return response_error("ID de tratamiento inválido", 400)
+
+            # Validar fechas si se proporcionan
+            if data.get('fecha_inicio') and not Validators.validate_date(data['fecha_inicio']):
+                return response_error("Fecha de inicio inválida", 400)
+
+            if data.get('fecha_fin') and not Validators.validate_date(data['fecha_fin']):
+                return response_error("Fecha de fin inválida", 400)
+
+            # Validar estado si se proporciona
+            valid_states = ['activo', 'completado', 'suspendido']
+            if data.get('estado') and data['estado'] not in valid_states:
+                return response_error(f"Estado inválido. Debe ser uno de: {', '.join(valid_states)}", 400)
+
+            # Preparar datos para actualización
+            current_user_id = getattr(request, 'current_user', {}).get('id')
+            prepared_data = DataUtils.prepare_update_data(data, current_user_id)
+
+            result = PacienteComponent.update_paciente_especialidad(tratamiento_id, prepared_data)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.update_paciente_especialidad - Tratamiento {tratamiento_id} actualizado")
+                return response_success(result['data'], "Tratamiento actualizado exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.update_paciente_especialidad - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.update_paciente_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def delete_paciente_especialidad(tratamiento_id):
+        """Eliminar una asignación de especialidad"""
+        try:
+            HandleLogs.write_log(f"PacienteService.delete_paciente_especialidad - Tratamiento ID: {tratamiento_id}")
+
+            if not tratamiento_id or tratamiento_id <= 0:
+                return response_error("ID de tratamiento inválido", 400)
+
+            result = PacienteComponent.delete_paciente_especialidad(tratamiento_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.delete_paciente_especialidad - Tratamiento {tratamiento_id} eliminado")
+                return response_success(result['data'], "Tratamiento eliminado exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.delete_paciente_especialidad - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.delete_paciente_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_pacientes_by_especialidad(especialidad_id):
+        """Obtener pacientes que tienen una especialidad específica"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_pacientes_by_especialidad - Especialidad ID: {especialidad_id}")
+
+            if not especialidad_id or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PacienteComponent.get_pacientes_by_especialidad(especialidad_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_pacientes_by_especialidad - Pacientes obtenidos para especialidad {especialidad_id}")
+                return response_success(result['data'], "Pacientes con la especialidad obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_pacientes_by_especialidad - Error: {result['message']}")
+                return response_error("Error obteniendo pacientes", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_pacientes_by_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_estadisticas_especialidades():
+        """Obtener estadísticas de especialidades de pacientes"""
+        try:
+            HandleLogs.write_log("PacienteService.get_estadisticas_especialidades - Iniciando")
+
+            result = PacienteComponent.get_estadisticas_paciente_especialidades()
+
+            if result['success']:
+                HandleLogs.write_log("PacienteService.get_estadisticas_especialidades - Estadísticas obtenidas")
+                return response_success(result['data'], "Estadísticas de especialidades obtenidas")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_estadisticas_especialidades - Error: {result['message']}")
+                return response_error("Error obteniendo estadísticas", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_estadisticas_especialidades - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_tratamientos_activos(paciente_id):
+        """Obtener tratamientos activos de un paciente"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_tratamientos_activos - Paciente ID: {paciente_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.get_tratamientos_by_estado(paciente_id, 'activo')
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_tratamientos_activos - Tratamientos activos obtenidos para paciente {paciente_id}")
+                return response_success(result['data'], "Tratamientos activos obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_tratamientos_activos - Error: {result['message']}")
+                return response_error("Error obteniendo tratamientos activos", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_tratamientos_activos - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_tratamientos_completados(paciente_id):
+        """Obtener tratamientos completados de un paciente"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_tratamientos_completados - Paciente ID: {paciente_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.get_tratamientos_by_estado(paciente_id, 'completado')
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_tratamientos_completados - Tratamientos completados obtenidos para paciente {paciente_id}")
+                return response_success(result['data'], "Tratamientos completados obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_tratamientos_completados - Error: {result['message']}")
+                return response_error("Error obteniendo tratamientos completados", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_tratamientos_completados - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_tratamientos_suspendidos(paciente_id):
+        """Obtener tratamientos suspendidos de un paciente"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_tratamientos_suspendidos - Paciente ID: {paciente_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.get_tratamientos_by_estado(paciente_id, 'suspendido')
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_tratamientos_suspendidos - Tratamientos suspendidos obtenidos para paciente {paciente_id}")
+                return response_success(result['data'], "Tratamientos suspendidos obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_tratamientos_suspendidos - Error: {result['message']}")
+                return response_error("Error obteniendo tratamientos suspendidos", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_tratamientos_suspendidos - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)

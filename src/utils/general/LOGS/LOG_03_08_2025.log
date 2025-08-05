@@ -937,3 +937,9 @@
 2025-08-03 14:47:33 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - Paciente ID: 9
 2025-08-03 14:47:33 - INFO - DocumentoPacienteComponent.get_documentos_by_paciente - 1 documentos encontrados
 2025-08-03 14:47:33 - INFO - PacienteService.get_documentos - Documentos obtenidos para paciente 9
+2025-08-03 15:03:16 - INFO - LoginService.login - Intento de autenticacion
+2025-08-03 15:03:16 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-03 15:03:16 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-03 15:03:16 - INFO - LoginService.login - Autenticacion exitosa: admin
+2025-08-03 15:03:30 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-03 15:03:30 - INFO - DocumentoPacienteComponent.get_estadisticas_documentos - Iniciando
