@@ -1051,6 +1051,52 @@ def register_routes(app):
             except Exception as e:
                 return response_error(f"Error al reprogramar clase: {str(e)}", 500)
 
+        @app.route('/api/cronograma-clases/<int:cronograma_id>', methods=['PUT'])
+        @token_required
+        def update_clase_cronograma(cronograma_id):
+            """Actualizar información de una clase del cronograma"""
+            try:
+                from flask import request
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                
+                data = request.get_json()
+                if not data:
+                    return response_error("No se proporcionaron datos para actualizar", 400)
+                
+                # Construir query dinámicamente basado en los campos proporcionados
+                allowed_fields = ['tema_clase', 'objetivos_clase', 'material_requerido', 'tareas_asignadas', 'evaluacion_programada', 'tipo_evaluacion']
+                update_fields = []
+                params = []
+                
+                for field in allowed_fields:
+                    if field in data:
+                        update_fields.append(f"{field} = %s")
+                        params.append(data[field])
+                
+                if not update_fields:
+                    return response_error("No se proporcionaron campos válidos para actualizar", 400)
+                
+                # Agregar usuario_modificacion y fecha_modificacion
+                update_fields.append("usuario_modificacion = %s")
+                update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+                params.append(request.current_user['id'])
+                
+                # Agregar ID al final
+                params.append(cronograma_id)
+                
+                query = f"""
+                    UPDATE cronograma_clases 
+                    SET {', '.join(update_fields)}
+                    WHERE id = %s
+                """
+                
+                DataBaseHandle.ExecuteNonQuery(query, params)
+                
+                return response_success({'cronograma_id': cronograma_id}, "Clase actualizada exitosamente")
+            except Exception as e:
+                return response_error(f"Error al actualizar clase: {str(e)}", 500)
+
         # ============================================
         # RUTAS DE ASISTENCIA DE CLASES
         # ============================================

@@ -845,7 +845,7 @@ class SesionTerapiaComponent:
                     a.proximos_objetivos,
                     a.fecha_creacion as fecha_registro,
                     cs.fecha_programada,
-                    cs.hora_programada,
+                    CAST(cs.hora_programada AS TEXT) as hora_programada,
                     cs.numero_sesion,
                     cs.estado as estado_sesion
                 FROM asistencia_sesiones a

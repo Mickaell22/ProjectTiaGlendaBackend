@@ -174,6 +174,51 @@ When working with database responses, always convert PostgreSQL-specific types t
 - `date` objects: Use `date_obj.isoformat()`
 - `datetime` objects: Use `datetime_obj.isoformat()`
 
+### Frontend-Backend Date Format Compatibility Issues
+**CRITICAL**: The backend returns dates in different formats depending on the endpoint, which can cause timezone conversion issues in the frontend:
+
+#### Date Formats Returned by Backend:
+1. **Cronograma endpoints** (`/api/sesiones-terapia/{id}/cronograma`):
+   - Format: `"2025-08-06"` (YYYY-MM-DD string)
+   - Source: PostgreSQL DATE fields converted with `isoformat()`
+
+2. **Asistencias endpoints** (`/api/sesiones-terapia/{id}/asistencias`):
+   - Format: `"Wed, 06 Aug 2025 00:00:00 GMT"` (Full GMT datetime string)
+   - Source: PostgreSQL TIMESTAMP fields converted by Flask's JSON serializer
+
+#### The Timezone Problem:
+When JavaScript in the frontend processes these different formats:
+```javascript
+// Cronograma date (safe):
+new Date("2025-08-06") // → Wed Aug 06 2025 (correct)
+
+// Asistencia date (problematic):
+new Date("Wed, 06 Aug 2025 00:00:00 GMT") 
+// → Tue Aug 05 2025 19:00:00 GMT-0500 (Ecuador timezone)
+//   ^ WRONG DAY due to timezone conversion!
+```
+
+#### Backend Considerations:
+- **For consistency**: Consider standardizing all date outputs to ISO format (`YYYY-MM-DD`)
+- **Current workaround**: Frontend handles timezone conversion using helper functions
+- **Database queries**: Always use UTC/local date extraction to avoid timezone shifts
+- **JSON serialization**: Be aware that Flask automatically converts datetime objects to GMT strings
+
+#### Example of Problematic vs Safe Backend Code:
+```python
+# PROBLEMATIC - Returns GMT string that causes frontend timezone issues:
+query = "SELECT fecha_programada FROM cronograma_sesiones"
+result = cursor.fetchall()  # fecha_programada as datetime
+return jsonify(result)  # Flask converts to "Wed, 06 Aug 2025 00:00:00 GMT"
+
+# SAFE - Returns consistent YYYY-MM-DD format:
+query = "SELECT fecha_programada::DATE as fecha_programada FROM cronograma_sesiones"
+result = cursor.fetchall()  # fecha_programada as date
+return jsonify(result)  # Returns "2025-08-06"
+```
+
+**Impact**: This affects attendance display, calendar views, and any frontend date comparisons between cronograma and asistencias data.
+
 ### Test Runner Compatibility
 The advanced test runner (`tests/utils/advanced_test_runner.py`) is Windows-compatible with ASCII-only characters in progress bars. Unicode characters have been replaced with ASCII equivalents to prevent encoding errors.
 

@@ -39,9 +39,9 @@ class SesionPedagogicaComponent:
                     sp.observaciones,
                     sp.fecha_creacion,
                     sp.fecha_modificacion,
-                    COUNT(se.paciente_id) as total_estudiantes,
-                    COUNT(cc.id) as clases_programadas,
-                    COUNT(CASE WHEN cc.estado = 'realizada' THEN 1 END) as clases_realizadas,
+                    COUNT(DISTINCT se.paciente_id) as total_estudiantes,
+                    COUNT(DISTINCT cc.id) as clases_programadas,
+                    COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END) as clases_realizadas,
                     ROUND(AVG(se.nota_final), 2) as promedio_notas,
                     ROUND(AVG(se.asistencia_porcentaje), 2) as promedio_asistencia
                 FROM sesion_pedagogica sp
@@ -360,11 +360,11 @@ class SesionPedagogicaComponent:
                     CONCAT(p_tutor.nombre, ' ', p_tutor.apellido) as tutor_nombre,
                     p_tutor.telefono as tutor_telefono
                 FROM sesion_estudiante se
-                JOIN paciente pac ON se.paciente_id = pac.id
-                JOIN persona p ON pac.persona_id = p.id
-                JOIN tutor t ON pac.tutor_id = t.id
-                JOIN persona p_tutor ON t.persona_id = p_tutor.id
-                WHERE se.sesion_pedagogica_id = %s
+                LEFT JOIN paciente pac ON se.paciente_id = pac.id
+                LEFT JOIN persona p ON pac.persona_id = p.id
+                LEFT JOIN tutor t ON pac.tutor_id = t.id
+                LEFT JOIN persona p_tutor ON t.persona_id = p_tutor.id
+                WHERE se.sesion_pedagogica_id = %s AND se.estado != 'retirado'
                 ORDER BY se.fecha_incorporacion
             """
 
@@ -382,12 +382,12 @@ class SesionPedagogicaComponent:
     def add_estudiante_to_sesion(sesion_id, estudiante_data):
         """Agregar un estudiante a una sesión pedagógica"""
         try:
+            # Usar ExecuteNonQuery para INSERT (según buenas prácticas de CLAUDE.md)
             query = """
                 INSERT INTO sesion_estudiante (
                     sesion_pedagogica_id, paciente_id, fecha_incorporacion,
                     costo_estudiante, observaciones_estudiante, estado, usuario_creacion
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING id
             """
 
             params = (
@@ -400,13 +400,24 @@ class SesionPedagogicaComponent:
                 estudiante_data['usuario_creacion']
             )
 
-            result = DataBaseHandle.getRecords(query, params, size=1)
-
-            if result:
+            # Ejecutar el INSERT
+            DataBaseHandle.ExecuteNonQuery(query, params)
+            
+            # Obtener el ID insertado con una consulta separada
+            id_query = """
+                SELECT id FROM sesion_estudiante 
+                WHERE sesion_pedagogica_id = %s AND paciente_id = %s
+                ORDER BY fecha_creacion DESC LIMIT 1
+            """
+            id_params = (sesion_id, estudiante_data['paciente_id'])
+            id_result = DataBaseHandle.getRecords(id_query, id_params)
+            
+            if id_result and len(id_result) > 0:
+                estudiante_id = id_result[0]['id']
                 HandleLogs.write_log(f"SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión {sesion_id}")
-                return result['id']
+                return estudiante_id
             else:
-                raise Exception("No se pudo agregar el estudiante a la sesión")
+                raise Exception("No se pudo obtener el ID del estudiante agregado")
 
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.add_estudiante_to_sesion - Error: {str(e)}")

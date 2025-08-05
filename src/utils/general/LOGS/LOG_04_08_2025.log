@@ -449,3 +449,15 @@
 2025-08-04 20:06:15 - INFO - PacienteService.get_paciente_especialidades - Especialidades obtenidas para paciente 9
 2025-08-04 20:26:26 - INFO - app - Iniciando Sistema Tía Glenda Backend
 2025-08-04 20:26:48 - INFO - app - Iniciando Sistema Tía Glenda Backend
+2025-08-04 20:32:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-04 20:32:23 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-04 20:32:23 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-04 20:32:23 - INFO - LoginService.verify_token - Token verificado correctamente
+2025-08-04 20:32:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-04 20:32:24 - INFO - Información solicitada para usuario: admin
+2025-08-04 20:32:24 - INFO - LoginComponent.get_user_by_id - Consulta para usuario ID: 1
+2025-08-04 20:32:24 - INFO - Información solicitada para usuario: admin
+2025-08-04 20:32:27 - INFO - LoginService.login - Intento de autenticacion
+2025-08-04 20:32:27 - INFO - LoginComponent.get_user_for_login - Busqueda para usuario: admin
+2025-08-04 20:32:28 - INFO - LoginComponent.update_last_access - Actualizado para usuario ID: 1
+2025-08-04 20:32:28 - INFO - LoginService.login - Autenticacion exitosa: admin
