@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "API Centro Tía Glenda",
-    "version": "1.3.0",
-    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación con JWT\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de tutores y relaciones familiares\n- Gestión de pacientes y seguimiento terapéutico\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro y especialidades\n- **Sesiones de Terapia con Cronograma Automático** 🔥\n  - Creación automática de cronogramas basados en días de la semana\n  - Gestión de asistencias y seguimiento de progreso\n  - Estados: programada, realizada, cancelada, reprogramada\n  - Control de pacientes por sesión y estadísticas detalladas\n- **Sesiones Pedagógicas con Clases Programadas** 📚\n  - Sistema de clases grupales y seguimiento académico\n  - Control de asistencia y evaluaciones académicas\n  - Gestión de estudiantes y cronogramas de clases\n  - Registro de participación, tareas y calificaciones\n- Control de roles y permisos (admin/usuario)\n- Estadísticas avanzadas y reportes\n- Logs detallados y debugging\n- Comparación de métodos de base de datos\n\n## Novedades v1.3.0\n- ✅ Documentación completa de sesiones pedagógicas\n- ✅ Endpoints de asistencia y gestión de estudiantes\n- ✅ Control avanzado de cronogramas de clases\n- ✅ Registro de evaluaciones y seguimiento académico\n- ✅ Endpoints de reprogramación y estadísticas\n- ✅ Métodos auxiliares para datos disponibles\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`\n3. Usuarios: admin/admin123 (desarrollo)",
+    "version": "1.4.0",
+    "description": "Sistema de Gestión para Centro Terapéutico y Pedagógico\n\n## Funcionalidades\n- Gestión de usuarios y autenticación con JWT\n- Gestión de personas (personal, pacientes, alumnos)\n- Gestión de tutores y relaciones familiares\n- Gestión de pacientes y seguimiento terapéutico\n- Gestión de especialidades terapéuticas y pedagógicas\n- Gestión del personal del centro y especialidades\n- **Sesiones de Terapia con Cronograma Automático** 🔥\n  - Creación automática de cronogramas basados en días de la semana\n  - Gestión de asistencias y seguimiento de progreso\n  - Estados: programada, realizada, cancelada, reprogramada\n  - Control de pacientes por sesión y estadísticas detalladas\n- **Sesiones Pedagógicas con Clases Programadas** 📚\n  - Sistema de clases grupales y seguimiento académico\n  - Control de asistencia y evaluaciones académicas\n  - Gestión de estudiantes y cronogramas de clases\n  - Registro de participación, tareas y calificaciones\n- Control de roles y permisos (admin/usuario)\n- Estadísticas avanzadas y reportes\n- Logs detallados y debugging\n- Comparación de métodos de base de datos\n\n## Novedades v1.4.0\n- ✅ Endpoints completos de especialidades de pacientes\n- ✅ Gestión de tratamientos y asignaciones especializadas\n- ✅ Esquemas de asistencia para terapia y pedagogía\n- ✅ Endpoints de reprogramación con validaciones\n- ✅ Control de cronograma de clases con evaluaciones\n- ✅ Documentación Swagger completamente actualizada\n\n## Autenticación\nPara usar endpoints protegidos:\n1. Hacer login en `/api/login`\n2. Usar el token en Authorization: `Bearer <token>`\n3. Usuarios: admin/admin123 (desarrollo)",
     "contact": {
       "name": "Sistema Tía Glenda",
       "email": "admin@centro-tia-glenda.com"
@@ -198,6 +198,67 @@
           "status": {"type": "string", "example": "error"},
           "message": {"type": "string", "example": "Error en la operacion"},
           "code": {"type": "integer", "example": 400}
+        }
+      },
+      "PacienteEspecialidadRequest": {
+        "type": "object",
+        "required": ["especialidad_id", "personal_id"],
+        "properties": {
+          "especialidad_id": {
+            "type": "integer",
+            "example": 1,
+            "description": "ID de la especialidad"
+          },
+          "personal_id": {
+            "type": "integer",
+            "example": 2,
+            "description": "ID del personal asignado"
+          },
+          "fecha_inicio": {
+            "type": "string",
+            "format": "date",
+            "example": "2025-01-15",
+            "description": "Fecha de inicio del tratamiento"
+          },
+          "observaciones": {
+            "type": "string",
+            "example": "Requiere terapia física intensiva",
+            "description": "Observaciones del tratamiento"
+          }
+        }
+      },
+      "PacienteEspecialidadUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "personal_id": {
+            "type": "integer",
+            "example": 2,
+            "description": "ID del personal asignado"
+          },
+          "fecha_inicio": {
+            "type": "string",
+            "format": "date",
+            "example": "2025-01-15",
+            "description": "Fecha de inicio del tratamiento"
+          },
+          "fecha_fin": {
+            "type": "string",
+            "format": "date",
+            "example": "2025-06-15",
+            "description": "Fecha de fin del tratamiento",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "enum": ["activo", "completado", "suspendido", "cancelado"],
+            "example": "activo",
+            "description": "Estado del tratamiento"
+          },
+          "observaciones": {
+            "type": "string",
+            "example": "Progreso satisfactorio, continuar con terapia",
+            "description": "Observaciones actualizadas del tratamiento"
+          }
         }
       },
       "SesionTerapiaRequest": {
@@ -1274,6 +1335,317 @@
         "responses": {
           "200": {
             "description": "Estadísticas de documentos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/{id}/especialidades": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Especialidades del paciente",
+        "description": "Obtener especialidades asignadas a un paciente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Especialidades del paciente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Asignar especialidad",
+        "description": "Asignar especialidad a un paciente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/PacienteEspecialidadRequest"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Especialidad asignada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/especialidades/{tratamiento_id}": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Detalle de tratamiento",
+        "description": "Obtener detalles de una asignación específica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "tratamiento_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del tratamiento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del tratamiento",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Tratamiento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Actualizar tratamiento",
+        "description": "Actualizar una asignación de especialidad",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "tratamiento_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del tratamiento"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/PacienteEspecialidadUpdateRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tratamiento actualizado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Tratamiento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Eliminar tratamiento",
+        "description": "Eliminar una asignación de especialidad",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "tratamiento_id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del tratamiento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamiento eliminado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          },
+          "404": {
+            "description": "Tratamiento no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ErrorResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/especialidades/{id}/pacientes": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Pacientes de especialidad",
+        "description": "Obtener pacientes que tienen una especialidad específica",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID de la especialidad"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pacientes de la especialidad",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/especialidades/estadisticas": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Estadísticas de especialidades",
+        "description": "Obtener estadísticas de especialidades de pacientes",
+        "security": [{"Bearer": []}],
+        "responses": {
+          "200": {
+            "description": "Estadísticas de especialidades",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/{id}/especialidades/activos": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Tratamientos activos",
+        "description": "Obtener tratamientos activos de un paciente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamientos activos",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/{id}/especialidades/completados": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Tratamientos completados",
+        "description": "Obtener tratamientos completados de un paciente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamientos completados",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SuccessResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pacientes/{id}/especialidades/suspendidos": {
+      "get": {
+        "tags": ["Especialidades de Pacientes"],
+        "summary": "Tratamientos suspendidos",
+        "description": "Obtener tratamientos suspendidos de un paciente",
+        "security": [{"Bearer": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "ID del paciente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamientos suspendidos",
             "content": {
               "application/json": {
                 "schema": {"$ref": "#/components/schemas/SuccessResponse"}
@@ -3358,6 +3730,136 @@
             }
           }
         }
+      },
+      "AsistenciaTerapiaRequest": {
+        "type": "object",
+        "properties": {
+          "asistio": {
+            "type": "boolean",
+            "example": true,
+            "description": "Si el paciente asistió a la sesión"
+          },
+          "llegada_tardanza_minutos": {
+            "type": "integer",
+            "example": 0,
+            "minimum": 0,
+            "description": "Minutos de tardanza en llegar"
+          },
+          "observaciones": {
+            "type": "string",
+            "example": "Paciente muy colaborativo",
+            "description": "Observaciones generales de la sesión"
+          },
+          "estado_animo": {
+            "type": "string",
+            "example": "alegre",
+            "description": "Estado de ánimo del paciente"
+          },
+          "progreso_observado": {
+            "type": "string",
+            "example": "Mejora notable en movilidad",
+            "description": "Progreso observado durante la sesión"
+          }
+        }
+      },
+      "AsistenciaPedagogicaRequest": {
+        "type": "object",
+        "properties": {
+          "asistio": {
+            "type": "boolean",
+            "example": true,
+            "description": "Si el estudiante asistió a la clase"
+          },
+          "llegada_tardanza_minutos": {
+            "type": "integer",
+            "example": 5,
+            "minimum": 0,
+            "description": "Minutos de tardanza en llegar"
+          },
+          "observaciones_asistencia": {
+            "type": "string",
+            "example": "Llegó tarde por transporte",
+            "description": "Observaciones sobre la asistencia"
+          },
+          "participacion_clase": {
+            "type": "string",
+            "enum": ["alta", "media", "baja", "no_participo"],
+            "example": "alta",
+            "description": "Nivel de participación en clase"
+          },
+          "tareas_entregadas": {
+            "type": "boolean",
+            "example": true,
+            "description": "Si entregó las tareas asignadas"
+          },
+          "notas_comportamiento": {
+            "type": "string",
+            "example": "Muy participativo y colaborativo",
+            "description": "Observaciones del comportamiento"
+          },
+          "calificacion_evaluacion": {
+            "type": "integer",
+            "example": 85,
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true,
+            "description": "Calificación si hubo evaluación"
+          },
+          "observaciones_evaluacion": {
+            "type": "string",
+            "example": "Buen dominio del tema, necesita reforzar cálculos",
+            "nullable": true,
+            "description": "Observaciones sobre la evaluación"
+          }
+        }
+      },
+      "ReprogramarRequest": {
+        "type": "object",
+        "required": ["nueva_fecha"],
+        "properties": {
+          "nueva_fecha": {
+            "type": "string",
+            "format": "date",
+            "example": "2025-08-10",
+            "description": "Nueva fecha para reprogramar (YYYY-MM-DD)"
+          }
+        }
+      },
+      "CronogramaClaseUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "tema_clase": {
+            "type": "string",
+            "example": "Operaciones básicas con fracciones",
+            "description": "Tema de la clase"
+          },
+          "objetivos_clase": {
+            "type": "string",
+            "example": "Sumar y restar fracciones con denominadores diferentes",
+            "description": "Objetivos de aprendizaje"
+          },
+          "material_requerido": {
+            "type": "string",
+            "example": "Calculadora, papel, ejercicios impresos",
+            "description": "Material necesario para la clase"
+          },
+          "tareas_asignadas": {
+            "type": "string",
+            "example": "Ejercicios página 45-47",
+            "description": "Tareas asignadas para casa"
+          },
+          "evaluacion_programada": {
+            "type": "boolean",
+            "example": true,
+            "description": "Si hay evaluación programada"
+          },
+          "tipo_evaluacion": {
+            "type": "string",
+            "enum": ["quiz", "examen", "proyecto", "presentacion", "tarea"],
+            "example": "quiz",
+            "description": "Tipo de evaluación"
+          }
+        }
       }
     }
   },
@@ -3385,6 +3887,14 @@
     {
       "name": "Pacientes",
       "description": "Gestión de pacientes y seguimiento terapéutico"
+    },
+    {
+      "name": "Especialidades de Pacientes",
+      "description": "Gestión de especialidades asignadas a pacientes (tratamientos)"
+    },
+    {
+      "name": "Documentos de Pacientes",
+      "description": "Gestión de documentos PDF de pacientes"
     },
     {
       "name": "Especialidades",

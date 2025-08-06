@@ -12,7 +12,8 @@
       "Bash(find:*)",
       "Bash(mv:*)",
       "Bash(pip freeze)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

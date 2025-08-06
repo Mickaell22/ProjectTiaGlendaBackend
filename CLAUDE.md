@@ -141,18 +141,23 @@ The project uses a sophisticated testing framework (`tests/utils/advanced_test_r
 ## Dependencies
 
 Main dependencies include:
-- Flask: Web framework
-- flask-swagger-ui: Swagger UI integration
-- psycopg2: PostgreSQL driver
-- PyJWT: JWT token handling
-- bcrypt: Password hashing
-- flask-cors: CORS support
-- configparser: Configuration management
-- validators: Input validation
-- python-dotenv: Environment variable loading
-- gunicorn: Production WSGI server
-- openpyxl, pillow, reportlab: Document/report generation
-- requests: HTTP client for testing
+- **Flask 2.3.3**: Web framework with modern features
+- **flask-swagger-ui 5.21.0**: Swagger UI integration for API documentation
+- **psycopg2 2.9.10**: PostgreSQL driver for database connectivity
+- **PyJWT 2.8.0**: JWT token handling for authentication
+- **bcrypt 4.0.1**: Secure password hashing
+- **flask-cors 4.0.0**: CORS support for frontend integration
+- **configparser 6.0.0**: Configuration file management
+- **validators 0.22.0**: Input validation utilities
+- **python-dotenv 1.0.0**: Environment variable loading
+- **gunicorn 21.2.0**: Production WSGI server
+- **openpyxl 3.1.2, pillow 11.3.0, reportlab 4.0.4**: Document/report generation
+- **requests 2.32.4**: HTTP client for testing
+
+### Development Dependencies
+- **flask-restx**: REST API documentation and validation
+- **jsonschema**: JSON schema validation
+- **aniso8601, python-dateutil, pytz**: Date/time handling utilities
 
 ## API Documentation
 
@@ -223,11 +228,11 @@ return jsonify(result)  # Returns "2025-08-06"
 The advanced test runner (`tests/utils/advanced_test_runner.py`) is Windows-compatible with ASCII-only characters in progress bars. Unicode characters have been replaced with ASCII equivalents to prevent encoding errors.
 
 ### Debug Utilities
-The project includes specialized debugging tools for development:
-- `debug_cronograma.py`: Debug therapy session scheduling/cronograma generation
-- `debug_endpoint.py`: Direct endpoint testing with authentication
-- `debug_test_flow.py`: Test workflow debugging
-These can be run directly with `python <script_name>.py` for targeted debugging.
+The project previously included specialized debugging tools for development (not currently present in the codebase):
+- Debug scripts for therapy session scheduling/cronograma generation
+- Direct endpoint testing with authentication
+- Test workflow debugging
+If needed, these can be recreated in the root directory and run with `python <script_name>.py`.
 
 ### Therapy Sessions Module
 The therapy sessions (`/api/sesiones-terapia`) module includes:
@@ -253,3 +258,26 @@ The pedagogical sessions (`/api/sesiones-pedagogicas`) module includes:
 - Database initialization scripts are located in `src/utils/database/`:
   - `01_estructura_tablas.sql`: Complete database schema
   - `02_datos_iniciales.sql`: Initial/seed data
+
+## Project File Organization
+
+### Core Application Files
+- `app.py`: Flask application entry point with CORS configuration and Swagger UI setup
+- `requirements.txt`: Python dependencies with exact versions
+- `railway.json`: Railway deployment configuration
+
+### Configuration Management
+Configuration follows a priority hierarchy:
+1. **Environment variables** (highest priority): `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `AMBIENTE`
+2. **Config file**: `src/utils/general/config.cfg` 
+3. **Default values**: Defined in `src/utils/general/config.py`
+
+### Document Storage
+- `documentos_pacientes/`: Physical file storage for patient documents
+- Document uploads are organized by patient ID in subdirectories
+- Files maintain original names but are stored with UUID-based names for security
+
+### Logging System
+- Location: `src/utils/general/LOGS/`
+- Daily rotation: `LOG_DD_MM_YYYY.log` and `ERR_DD_MM_YYYY.log`
+- Automatic cleanup and archival by date
