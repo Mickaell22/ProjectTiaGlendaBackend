@@ -9,14 +9,37 @@ import os
 app = Flask(__name__)
 
 # Configurar CORS para desarrollo y producción
-cors_origins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175']
+cors_origins = [
+    'http://localhost:3000', 
+    'http://localhost:5173', 
+    'http://localhost:5174', 
+    'http://localhost:5175'
+]
 
 # Agregar orígenes de producción desde variables de entorno
 cors_env = os.getenv('CORS_ORIGINS', '')
 if cors_env:
     cors_origins.extend([origin.strip() for origin in cors_env.split(',') if origin.strip()])
 
-CORS(app, origins=cors_origins)
+# Auto-detectar dominio Railway si existe
+railway_domain = os.getenv('RAILWAY_STATIC_URL')
+if railway_domain:
+    cors_origins.append(f"https://{railway_domain}")
+
+# Si estamos en Railway, permitir cualquier subdominio de railway.app
+if os.getenv('RAILWAY_ENVIRONMENT'):
+    cors_origins.extend([
+        'https://*.railway.app',
+        'https://*.up.railway.app'
+    ])
+
+print(f"CORS configurado para orígenes: {cors_origins}")
+
+CORS(app, 
+     origins=cors_origins,
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+     supports_credentials=True)
 
 # Configurar Swagger UI
 SWAGGER_URL = '/docs'  # URL para la documentación Swagger UI
