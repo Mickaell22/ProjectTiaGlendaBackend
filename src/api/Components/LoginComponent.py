@@ -13,8 +13,8 @@ class LoginComponent:
             query = """
             SELECT 
                 u.id,
-                u.usuario,
-                u.contrasenia,
+                u.username as usuario,
+                u.password_hash as contrasenia,
                 u.estado,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.correo,
@@ -23,7 +23,7 @@ class LoginComponent:
             FROM usuario u
             INNER JOIN persona p ON u.persona_id = p.id
             INNER JOIN rol r ON u.rol_id = r.id
-            WHERE u.usuario = %s
+            WHERE u.username = %s
             """
 
             user = DataBaseHandle.getRecords(query, (username,), size=1)

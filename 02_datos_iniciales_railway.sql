@@ -72,7 +72,7 @@ INSERT INTO persona (
 -- =============================================
 -- 2.2 USUARIO ADMINISTRADOR PRINCIPAL
 -- =============================================
--- Password: Admin123! (hasheado)
+-- Password: Admin123! (hasheado con bcrypt)
 INSERT INTO usuario (
     persona_id, 
     rol_id, 
@@ -82,7 +82,7 @@ INSERT INTO usuario (
     1,
     (SELECT id FROM rol WHERE nombre = 'Administrador'),
     'admin',
-    '$2b$12$LQv3c1yqBWVHxkd0LQ4lqO.aDwQiOZ9QPQO3QVz3qgzqD4z5rQZwW'
+    '$2b$12$kqYKl1iynQ0Vw0M3bv3.pO4pEA5rZ8WQLrKT3eZkc5OkXFh8bZLVS'
 );
 
 -- =============================================
