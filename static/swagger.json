@@ -11,6 +11,10 @@
   },
   "servers": [
     {
+      "url": "https://projecttiaglendabackend-k.up.railway.app",
+      "description": "Servidor de Railway (Producción)"
+    },
+    {
       "url": "http://localhost:5000",
       "description": "Servidor de desarrollo"
     }
