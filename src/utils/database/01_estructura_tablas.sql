@@ -145,37 +145,22 @@ CREATE TABLE paciente (
     id SERIAL PRIMARY KEY,
     persona_id INTEGER NOT NULL,
     tutor_id INTEGER NOT NULL,
+    especialidad_id INTEGER, -- Nueva columna para especialidad asignada
     fecha_ingreso DATE NOT NULL,
-    observaciones TEXT,
-    estado VARCHAR(15) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo', 'alta', 'derivado')),
+    fecha_inicio_tratamiento DATE, -- Fecha de inicio del tratamiento
+    fecha_fin_tratamiento DATE, -- Fecha de fin del tratamiento (opcional)
+    estado_tratamiento VARCHAR(15) DEFAULT 'activo' CHECK (estado_tratamiento IN ('activo', 'completado', 'suspendido')),
+    observaciones_tratamiento TEXT, -- Observaciones específicas del tratamiento
+    observaciones TEXT, -- Observaciones generales del paciente
+    estado VARCHAR(15) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo', 'alta', 'derivado', 'eliminado')),
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usuario_creacion INTEGER,
     usuario_modificacion INTEGER,
     
     FOREIGN KEY (persona_id) REFERENCES persona(id) ON DELETE RESTRICT,
-    FOREIGN KEY (tutor_id) REFERENCES tutor(id) ON DELETE RESTRICT
-);
-
--- =============================================
--- 2.9 TABLA: PACIENTE_ESPECIALIDAD (Tratamientos)
--- =============================================
-CREATE TABLE paciente_especialidad (
-    id SERIAL PRIMARY KEY,
-    paciente_id INTEGER NOT NULL,
-    especialidad_id INTEGER NOT NULL,
-    fecha_inicio DATE NOT NULL,
-    fecha_fin DATE,
-    estado VARCHAR(15) DEFAULT 'activo' CHECK (estado IN ('activo', 'completado', 'suspendido')),
-    observaciones_tratamiento TEXT,
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    usuario_creacion INTEGER,
-    usuario_modificacion INTEGER,
-    
-    FOREIGN KEY (paciente_id) REFERENCES paciente(id) ON DELETE CASCADE,
-    FOREIGN KEY (especialidad_id) REFERENCES especialidad(id) ON DELETE RESTRICT,
-    UNIQUE(paciente_id, especialidad_id)
+    FOREIGN KEY (tutor_id) REFERENCES tutor(id) ON DELETE RESTRICT,
+    FOREIGN KEY (especialidad_id) REFERENCES especialidad(id) ON DELETE SET NULL
 );
 
 -- =============================================
@@ -228,9 +213,6 @@ CREATE TRIGGER trigger_paciente_fecha_modificacion
     BEFORE UPDATE ON paciente FOR EACH ROW
     EXECUTE FUNCTION actualizar_fecha_modificacion();
 
-CREATE TRIGGER trigger_paciente_especialidad_fecha_modificacion
-    BEFORE UPDATE ON paciente_especialidad FOR EACH ROW
-    EXECUTE FUNCTION actualizar_fecha_modificacion();
 
 -- =============================================
 -- 5. ÍNDICES PARA OPTIMIZACIÓN
@@ -276,11 +258,8 @@ CREATE INDEX idx_paciente_tutor ON paciente(tutor_id);
 CREATE INDEX idx_paciente_fecha_ingreso ON paciente(fecha_ingreso);
 CREATE INDEX idx_paciente_estado ON paciente(estado);
 
--- Índices para PACIENTE_ESPECIALIDAD
-CREATE INDEX idx_paciente_especialidad_paciente ON paciente_especialidad(paciente_id);
-CREATE INDEX idx_paciente_especialidad_especialidad ON paciente_especialidad(especialidad_id);
-CREATE INDEX idx_paciente_especialidad_fecha_inicio ON paciente_especialidad(fecha_inicio);
-CREATE INDEX idx_paciente_especialidad_estado ON paciente_especialidad(estado);
+-- Índice para la nueva columna especialidad_id en PACIENTE
+CREATE INDEX idx_paciente_especialidad ON paciente(especialidad_id);
 
 -- =============================================
 -- 6. CONSTRAINTS DE AUDITORÍA
@@ -342,12 +321,6 @@ FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL,
 ADD CONSTRAINT fk_paciente_usuario_modificacion 
 FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
 
--- Constraints para PACIENTE_ESPECIALIDAD
-ALTER TABLE paciente_especialidad 
-ADD CONSTRAINT fk_paciente_especialidad_usuario_creacion 
-FOREIGN KEY (usuario_creacion) REFERENCES usuario(id) ON DELETE SET NULL,
-ADD CONSTRAINT fk_paciente_especialidad_usuario_modificacion 
-FOREIGN KEY (usuario_modificacion) REFERENCES usuario(id) ON DELETE SET NULL;
 
 -- =============================================
 -- 7. DOCUMENTACIÓN DE TABLAS
@@ -360,7 +333,11 @@ COMMENT ON TABLE personal IS 'Personal del centro vinculado a personas con títu
 COMMENT ON TABLE personal_especialidad IS 'Relación muchos a muchos entre personal y especialidades';
 COMMENT ON TABLE tutor IS 'Tutores/representantes de pacientes vinculados a personas';
 COMMENT ON TABLE paciente IS 'Pacientes del centro vinculados a personas y tutores';
-COMMENT ON TABLE paciente_especialidad IS 'Tratamientos/especialidades asignadas a pacientes con fechas y seguimiento';
+COMMENT ON COLUMN paciente.especialidad_id IS 'Especialidad asignada al paciente para tratamiento';
+COMMENT ON COLUMN paciente.fecha_inicio_tratamiento IS 'Fecha de inicio del tratamiento con la especialidad asignada';
+COMMENT ON COLUMN paciente.fecha_fin_tratamiento IS 'Fecha de finalización del tratamiento (opcional)';
+COMMENT ON COLUMN paciente.estado_tratamiento IS 'Estado del tratamiento: activo, completado, suspendido';
+COMMENT ON COLUMN paciente.observaciones_tratamiento IS 'Observaciones específicas del tratamiento y progreso';
 
 -- =============================================
 -- 8. MENSAJE DE FINALIZACIÓN

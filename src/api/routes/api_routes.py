@@ -444,6 +444,13 @@ def register_routes(app):
         from src.api.Service.PacienteService import PacienteService
         return PacienteService.get_personas_disponibles()
 
+    @app.route('/api/pacientes/<int:paciente_id>', methods=['DELETE'])
+    @token_required
+    @admin_required
+    def delete_paciente(paciente_id):
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.delete_paciente(paciente_id)
+
     # ============================================
     # RUTAS DE DOCUMENTOS DE PACIENTES (Protegidas)
     # ============================================
@@ -599,87 +606,6 @@ def register_routes(app):
         else:
             return response_error(result['message'], 500)
 
-    # ============================================
-    # RUTAS DE ESPECIALIDADES DE PACIENTES (Protegidas)
-    # ============================================
-
-    @app.route('/api/pacientes/<int:paciente_id>/especialidades', methods=['GET'])
-    @token_required
-    def get_paciente_especialidades(paciente_id):
-        """Obtener especialidades asignadas a un paciente"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.get_paciente_especialidades(paciente_id)
-
-    @app.route('/api/pacientes/<int:paciente_id>/especialidades', methods=['POST'])
-    @token_required
-    def create_paciente_especialidad(paciente_id):
-        """Asignar una especialidad a un paciente"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.create_paciente_especialidad(paciente_id)
-
-    @app.route('/api/pacientes/especialidades/<int:tratamiento_id>', methods=['PUT'])
-    @token_required
-    def update_paciente_especialidad(tratamiento_id):
-        """Actualizar una asignación de especialidad"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.update_paciente_especialidad(tratamiento_id)
-
-    @app.route('/api/pacientes/especialidades/<int:tratamiento_id>', methods=['DELETE'])
-    @token_required
-    def delete_paciente_especialidad(tratamiento_id):
-        """Eliminar una asignación de especialidad"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.delete_paciente_especialidad(tratamiento_id)
-
-    @app.route('/api/pacientes/especialidades/<int:tratamiento_id>', methods=['GET'])
-    @token_required
-    def get_paciente_especialidad_detalle(tratamiento_id):
-        """Obtener detalles de una asignación específica"""
-        from src.api.Components.PacienteComponent import PacienteComponent
-        result = PacienteComponent.get_paciente_especialidad_by_id(tratamiento_id)
-        
-        if result['success']:
-            if result['data']:
-                return response_success(result['data'], "Tratamiento encontrado")
-            else:
-                return response_error("Tratamiento no encontrado", 404)
-        else:
-            return response_error(result['message'], 500)
-
-    @app.route('/api/especialidades/<int:especialidad_id>/pacientes', methods=['GET'])
-    @token_required
-    def get_pacientes_by_especialidad(especialidad_id):
-        """Obtener pacientes que tienen una especialidad específica"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.get_pacientes_by_especialidad(especialidad_id)
-
-    @app.route('/api/pacientes/especialidades/estadisticas', methods=['GET'])
-    @token_required
-    def get_estadisticas_paciente_especialidades():
-        """Obtener estadísticas de especialidades de pacientes"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.get_estadisticas_especialidades()
-
-    @app.route('/api/pacientes/<int:paciente_id>/especialidades/activos', methods=['GET'])
-    @token_required
-    def get_tratamientos_activos(paciente_id):
-        """Obtener tratamientos activos de un paciente"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.get_tratamientos_activos(paciente_id)
-
-    @app.route('/api/pacientes/<int:paciente_id>/especialidades/completados', methods=['GET'])
-    @token_required
-    def get_tratamientos_completados(paciente_id):
-        """Obtener tratamientos completados de un paciente"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.get_tratamientos_completados(paciente_id)
-
-    @app.route('/api/pacientes/<int:paciente_id>/especialidades/suspendidos', methods=['GET'])
-    @token_required
-    def get_tratamientos_suspendidos(paciente_id):
-        """Obtener tratamientos suspendidos de un paciente"""
-        from src.api.Service.PacienteService import PacienteService
-        return PacienteService.get_tratamientos_suspendidos(paciente_id)
 
     # Agregar estas rutas al archivo src/api/routes/api_routes.py
 

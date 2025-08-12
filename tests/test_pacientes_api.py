@@ -210,7 +210,11 @@ def test_pacientes_crud():
     new_paciente_data = {
         "persona_id": created_persona_id,
         "tutor_id": created_tutor_id,
+        "especialidad_id": 1,  # Terapia Ocupacional Pediátrica (primera especialidad en datos iniciales)
         "fecha_ingreso": fecha_ingreso,
+        "fecha_inicio_tratamiento": fecha_ingreso,
+        "estado_tratamiento": "activo",
+        "observaciones_tratamiento": "Inicio con terapia ocupacional pediátrica. Objetivos: mejorar coordinación motora fina.",
         "observaciones": "Paciente con necesidades de terapia ocupacional. Muy colaborativo y con gran potencial de mejora.",
         "estado": "activo"
     }
@@ -424,18 +428,28 @@ def test_pacientes_validations():
             "expected_status": 400
         },
         {
+            "name": "especialidad faltante",
+            "data": {"persona_id": 1, "tutor_id": 1, "fecha_ingreso": "2024-01-15"},  # especialidad_id faltante
+            "expected_status": 400
+        },
+        {
+            "name": "fecha_inicio_tratamiento faltante",
+            "data": {"persona_id": 1, "tutor_id": 1, "especialidad_id": 1, "fecha_ingreso": "2024-01-15"},  # fecha_inicio_tratamiento faltante
+            "expected_status": 400
+        },
+        {
             "name": "IDs invalidos",
-            "data": {"persona_id": "no_es_numero", "tutor_id": "tampoco_es_numero", "fecha_ingreso": "2024-01-15"},
+            "data": {"persona_id": "no_es_numero", "tutor_id": "tampoco_es_numero", "especialidad_id": "no_numero", "fecha_ingreso": "2024-01-15"},
             "expected_status": 400
         },
         {
             "name": "fecha futura",
-            "data": {"persona_id": 1, "tutor_id": 1, "fecha_ingreso": (date.today() + timedelta(days=30)).isoformat()},
+            "data": {"persona_id": 1, "tutor_id": 1, "especialidad_id": 1, "fecha_ingreso": (date.today() + timedelta(days=30)).isoformat(), "fecha_inicio_tratamiento": "2024-01-15"},
             "expected_status": 400
         },
         {
             "name": "observaciones muy largas",
-            "data": {"persona_id": 1, "tutor_id": 1, "fecha_ingreso": "2024-01-15", "observaciones": "A" * 1001},
+            "data": {"persona_id": 1, "tutor_id": 1, "especialidad_id": 1, "fecha_ingreso": "2024-01-15", "fecha_inicio_tratamiento": "2024-01-15", "observaciones": "A" * 1001},
             "expected_status": 400
         }
     ]
