@@ -192,6 +192,19 @@ class PacienteComponent:
             if tutor_exists['estado'] != 'activo':
                 return internal_response(False, None, "El tutor debe estar activo para asignar pacientes")
 
+            # Verificar que la especialidad existe y está activa (si se proporciona)
+            if data.get('especialidad_id'):
+                especialidad_exists = DataBaseHandle.getRecords(
+                    "SELECT id, estado FROM especialidad WHERE id = %s",
+                    (data['especialidad_id'],), size=1
+                )
+
+                if not especialidad_exists:
+                    return internal_response(False, None, "La especialidad especificada no existe")
+
+                if especialidad_exists['estado'] != 'activo':
+                    return internal_response(False, None, "La especialidad debe estar activa")
+
             # Insertar nuevo paciente
             insert_query = """
                 INSERT INTO paciente (
@@ -255,6 +268,19 @@ class PacienteComponent:
 
                 if tutor_exists['estado'] != 'activo':
                     return internal_response(False, None, "El tutor debe estar activo")
+
+            # Si se cambia la especialidad, verificar que esté activa
+            if 'especialidad_id' in data and data['especialidad_id']:
+                especialidad_exists = DataBaseHandle.getRecords(
+                    "SELECT id, estado FROM especialidad WHERE id = %s",
+                    (data['especialidad_id'],), size=1
+                )
+
+                if not especialidad_exists:
+                    return internal_response(False, None, "La especialidad especificada no existe")
+
+                if especialidad_exists['estado'] != 'activo':
+                    return internal_response(False, None, "La especialidad debe estar activa")
 
             # Construir query de actualización dinámicamente
             update_fields = []

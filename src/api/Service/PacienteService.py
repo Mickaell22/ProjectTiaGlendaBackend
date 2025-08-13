@@ -72,6 +72,7 @@ class PacienteService:
             base_data = {
                 'persona_id': int(data['persona_id']),
                 'tutor_id': int(data['tutor_id']),
+                'especialidad_id': data.get('especialidad_id'),
                 'fecha_ingreso': data['fecha_ingreso'],
                 'observaciones': data.get('observaciones'),
                 'estado': data.get('estado'),

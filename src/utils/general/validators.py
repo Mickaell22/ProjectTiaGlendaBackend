@@ -513,6 +513,15 @@ class Validators:
             except (ValueError, TypeError):
                 errors.append("ID de tutor debe ser un numero entero")
 
+        # Validar especialidad_id si está presente
+        if 'especialidad_id' in data and data['especialidad_id']:
+            try:
+                especialidad_id = int(data['especialidad_id'])
+                if especialidad_id <= 0:
+                    errors.append("ID de especialidad debe ser un numero positivo")
+            except (ValueError, TypeError):
+                errors.append("ID de especialidad debe ser un numero entero")
+
         # Validar fecha_ingreso si está presente
         if 'fecha_ingreso' in data and data['fecha_ingreso']:
             date_validation = Validators.validate_date(data['fecha_ingreso'], 'fecha_ingreso')
