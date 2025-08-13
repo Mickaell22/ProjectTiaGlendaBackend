@@ -74,6 +74,10 @@ class PacienteService:
                 'tutor_id': int(data['tutor_id']),
                 'especialidad_id': data.get('especialidad_id'),
                 'fecha_ingreso': data['fecha_ingreso'],
+                'fecha_inicio_tratamiento': data.get('fecha_inicio_tratamiento'),  # AGREGAR
+                'fecha_fin_tratamiento': data.get('fecha_fin_tratamiento'),  # AGREGAR
+                'estado_tratamiento': data.get('estado_tratamiento'),  # AGREGAR
+                'observaciones_tratamiento': data.get('observaciones_tratamiento'),  # AGREGAR
                 'observaciones': data.get('observaciones'),
                 'estado': data.get('estado'),
                 'usuario_creacion': data.get('usuario_creacion')
