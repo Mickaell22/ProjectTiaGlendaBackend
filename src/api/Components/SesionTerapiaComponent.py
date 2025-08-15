@@ -443,7 +443,7 @@ class SesionTerapiaComponent:
 
     @staticmethod
     def get_cronograma_sesion(sesion_id):
-        """Obtener el cronograma completo de una sesión"""
+        """Obtener el cronograma completo de una sesión con información de asistencias"""
         try:
             query = """
                 SELECT 
@@ -452,9 +452,15 @@ class SesionTerapiaComponent:
                         WHEN cs.fecha_programada < CURRENT_DATE THEN 'vencida'
                         WHEN cs.fecha_programada = CURRENT_DATE THEN 'hoy'
                         ELSE cs.estado
-                    END as estado_actual
+                    END as estado_actual,
+                    COUNT(DISTINCT a.id) as total_asistencias,
+                    COUNT(DISTINCT CASE WHEN a.asistio = true THEN a.id END) as asistencias_confirmadas,
+                    STRING_AGG(DISTINCT a.observaciones_asistencia, ' | ') as observaciones_asistencias,
+                    STRING_AGG(DISTINCT a.notas_progreso, ' | ') as notas_progreso_sesion
                 FROM cronograma_sesiones cs
+                LEFT JOIN asistencia_sesiones a ON cs.id = a.cronograma_sesion_id
                 WHERE cs.sesion_terapia_id = %s
+                GROUP BY cs.id
                 ORDER BY cs.numero_sesion
             """
 
@@ -491,61 +497,215 @@ class SesionTerapiaComponent:
             raise Exception(f"Error al marcar sesión como realizada: {str(e)}")
 
     @staticmethod
-    def reprogramar_sesion(cronograma_id, nueva_fecha, nueva_hora, motivo):
-        """Reprogramar una sesión específica"""
+    def reprogramar_sesion(cronograma_id, nueva_fecha, nueva_hora, motivo_reprogramacion, usuario_modificacion):
+        """Reprogramar una sesión del cronograma creando una nueva sesión en la nueva fecha"""
         try:
-            # Primero obtener los datos de la sesión original
-            query_original = "SELECT * FROM cronograma_sesiones WHERE id = %s"
-            sesion_original = DataBaseHandle.getRecords(query_original, (cronograma_id,), size=1)
-
-            if not sesion_original:
-                raise Exception("Sesión original no encontrada")
-
-            # Marcar la sesión original como reprogramada
-            query_update = """
-                UPDATE cronograma_sesiones 
-                SET estado = 'reprogramada' 
+            HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Iniciando reprogramación: cronograma_id={cronograma_id}, nueva_fecha={nueva_fecha}, nueva_hora={nueva_hora}, motivo={motivo_reprogramacion}, usuario={usuario_modificacion}")
+            
+            # Paso 1: Obtener información de la sesión original
+            query_original = """
+                SELECT sesion_terapia_id, numero_sesion, fecha_programada, hora_programada, observaciones_cronograma
+                FROM cronograma_sesiones 
                 WHERE id = %s
             """
-            DataBaseHandle.ExecuteNonQuery(query_update, (cronograma_id,))
-
-            # Crear nueva sesión programada usando ExecuteNonQuery
-            insert_query_nueva = """
+            sesion_original = DataBaseHandle.getRecords(query_original, (cronograma_id,))
+            
+            if not sesion_original:
+                raise Exception(f"No se encontró la sesión con ID {cronograma_id}")
+            
+            sesion_data = sesion_original[0]
+            sesion_terapia_id = sesion_data['sesion_terapia_id']
+            numero_sesion_original = sesion_data['numero_sesion']
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Sesión original encontrada: {sesion_data}")
+            
+            # Paso 2: Marcar la sesión original como reprogramada (mantener fecha original)
+            query_marcar_reprogramada = """
+                UPDATE cronograma_sesiones 
+                SET estado = 'reprogramada',
+                    motivo_reprogramacion = %s,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """
+            params_marcar = (motivo_reprogramacion, usuario_modificacion, cronograma_id)
+            
+            result_marcar = DataBaseHandle.ExecuteNonQuery(query_marcar_reprogramada, params_marcar)
+            if not result_marcar:
+                raise Exception("Error al marcar la sesión original como reprogramada")
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Sesión {cronograma_id} marcada como reprogramada")
+            
+            # Paso 3: Obtener el siguiente número de sesión disponible
+            query_max_numero = """
+                SELECT COALESCE(MAX(numero_sesion), 0) + 1 as siguiente_numero
+                FROM cronograma_sesiones 
+                WHERE sesion_terapia_id = %s
+            """
+            max_result = DataBaseHandle.getRecords(query_max_numero, (sesion_terapia_id,))
+            siguiente_numero = max_result[0]['siguiente_numero'] if max_result else numero_sesion_original + 1
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Siguiente número de sesión: {siguiente_numero}")
+            
+            # Paso 4: Crear nueva sesión en la nueva fecha con nuevo número
+            query_nueva_sesion = """
                 INSERT INTO cronograma_sesiones (
-                    sesion_terapia_id, numero_sesion, fecha_programada, hora_programada,
-                    estado, sesion_original_id, motivo_reprogramacion, usuario_creacion
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    sesion_terapia_id, 
+                    numero_sesion, 
+                    fecha_programada, 
+                    hora_programada, 
+                    estado, 
+                    observaciones_cronograma,
+                    usuario_creacion, 
+                    fecha_creacion
+                ) VALUES (%s, %s, %s, %s, 'programada', %s, %s, CURRENT_TIMESTAMP)
+                RETURNING id
             """
-
+            
+            observaciones_nueva = f"Reprogramada desde #{numero_sesion_original}"
             params_nueva = (
-                sesion_original['sesion_terapia_id'],
-                sesion_original['numero_sesion'],
-                nueva_fecha,
-                nueva_hora,
-                'programada',
-                cronograma_id,
-                motivo,
-                sesion_original['usuario_creacion']
+                sesion_terapia_id, 
+                siguiente_numero, 
+                nueva_fecha, 
+                nueva_hora, 
+                observaciones_nueva,
+                usuario_modificacion
             )
-
-            # Ejecutar el INSERT
-            insert_result = DataBaseHandle.ExecuteNonQuery(insert_query_nueva, params_nueva)
-            if not insert_result:
-                raise Exception("Error al crear nueva sesión reprogramada")
+            
+            # Usar getRecords para obtener el ID de la nueva sesión
+            nueva_sesion_result = DataBaseHandle.getRecords(query_nueva_sesion, params_nueva)
+            if not nueva_sesion_result:
+                raise Exception("Error al crear la nueva sesión reprogramada")
+            
+            nueva_cronograma_id = nueva_sesion_result[0]['id']
+            HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Nueva sesión creada con ID: {nueva_cronograma_id}")
+            
+            # Paso 5: Verificar si la sesión original tenía pacientes asignados y copiarlos a la nueva
+            try:
+                query_pacientes = """
+                    SELECT DISTINCT sp.paciente_id, sp.fecha_incorporacion, sp.costo_paciente, sp.observaciones_paciente
+                    FROM sesion_paciente sp
+                    WHERE sp.sesion_terapia_id = %s
+                """
+                pacientes_sesion = DataBaseHandle.getRecords(query_pacientes, (sesion_terapia_id,))
                 
-            # Obtener el registro insertado
-            select_query = """
-                SELECT id FROM cronograma_sesiones 
-                WHERE sesion_original_id = %s AND estado = 'programada'
-                ORDER BY fecha_creacion DESC LIMIT 1
-            """
-            result = DataBaseHandle.getRecords(select_query, (cronograma_id,), size=1)
-            HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Sesión {cronograma_id} reprogramada")
-            return result
+                if pacientes_sesion and len(pacientes_sesion) > 0:
+                    HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Copiando {len(pacientes_sesion)} pacientes a la nueva sesión")
+                    # Los pacientes ya están asignados a la sesión de terapia completa, no necesitamos copiarlos
+                else:
+                    HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - No hay pacientes específicos para copiar")
+                    
+            except Exception as copy_error:
+                HandleLogs.write_error(f"SesionTerapiaComponent.reprogramar_sesion - Error verificando pacientes: {str(copy_error)}")
+                # No es crítico, la sesión ya se creó exitosamente
+            
+            HandleLogs.write_log(
+                f"SesionTerapiaComponent.reprogramar_sesion - Nueva sesión #{siguiente_numero} creada exitosamente para {nueva_fecha} {nueva_hora}")
+            
+            return True
 
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.reprogramar_sesion - Error: {str(e)}")
             raise Exception(f"Error al reprogramar sesión: {str(e)}")
+
+    @staticmethod
+    def cancelar_sesion(cronograma_id, motivo_cancelacion, usuario_modificacion):
+        """Cancelar una sesión del cronograma"""
+        try:
+            query = """
+                UPDATE cronograma_sesiones 
+                SET estado = 'cancelada',
+                    motivo_reprogramacion = %s,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """
+            params = (motivo_cancelacion, usuario_modificacion, cronograma_id)
+
+            result = DataBaseHandle.ExecuteNonQuery(query, params)
+            if not result:
+                raise Exception("Error al ejecutar la cancelación")
+
+            HandleLogs.write_log(
+                f"SesionTerapiaComponent.cancelar_sesion - Sesión {cronograma_id} cancelada")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.cancelar_sesion - Error: {str(e)}")
+            raise Exception(f"Error al cancelar sesión: {str(e)}")
+
+    @staticmethod
+    def get_asistencias_por_cronograma(cronograma_id):
+        """Obtener todas las asistencias de una sesión específica del cronograma"""
+        try:
+            query = """
+                SELECT 
+                    a.id,
+                    a.cronograma_sesion_id,
+                    a.paciente_id,
+                    CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                    p.cedula as paciente_cedula,
+                    a.asistio,
+                    a.llegada_tardanza_minutos,
+                    a.observaciones_asistencia,
+                    a.notas_progreso,
+                    a.tareas_asignadas,
+                    a.proximos_objetivos,
+                    a.fecha_creacion as fecha_registro
+                FROM asistencia_sesiones a
+                JOIN paciente pac ON a.paciente_id = pac.id
+                JOIN persona p ON pac.persona_id = p.id
+                WHERE a.cronograma_sesion_id = %s
+                ORDER BY p.nombre, p.apellido
+            """
+            
+            result = DataBaseHandle.getRecords(query, (cronograma_id,))
+            HandleLogs.write_log(f"SesionTerapiaComponent.get_asistencias_por_cronograma - {len(result) if result else 0} asistencias encontradas")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_asistencias_por_cronograma - Error: {str(e)}")
+            raise Exception(f"Error al obtener asistencias: {str(e)}")
+
+    @staticmethod
+    def actualizar_asistencia(cronograma_id, paciente_id, data, usuario_modificacion):
+        """Actualizar asistencia existente de un paciente"""
+        try:
+            query = """
+                UPDATE asistencia_sesiones 
+                SET asistio = %s,
+                    llegada_tardanza_minutos = %s,
+                    observaciones_asistencia = %s,
+                    notas_progreso = %s,
+                    tareas_asignadas = %s,
+                    proximos_objetivos = %s,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE cronograma_sesion_id = %s AND paciente_id = %s
+            """
+            
+            params = (
+                data.get('asistio', False),
+                data.get('llegada_tardanza_minutos', 0),
+                data.get('observaciones_asistencia', ''),
+                data.get('notas_progreso', ''),
+                data.get('tareas_asignadas', ''),
+                data.get('proximos_objetivos', ''),
+                usuario_modificacion,
+                cronograma_id,
+                paciente_id
+            )
+            
+            result = DataBaseHandle.ExecuteNonQuery(query, params)
+            if not result:
+                raise Exception("Error al actualizar la asistencia")
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.actualizar_asistencia - Asistencia actualizada para paciente {paciente_id}")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.actualizar_asistencia - Error: {str(e)}")
+            raise Exception(f"Error al actualizar asistencia: {str(e)}")
 
     # ============================================
     # MÉTODOS PARA ASISTENCIA_SESIONES
@@ -589,6 +749,13 @@ class SesionTerapiaComponent:
             upsert_result = DataBaseHandle.ExecuteNonQuery(upsert_query, params)
             if not upsert_result:
                 raise Exception("Error al registrar asistencia")
+            
+            # Actualizar estado del cronograma si el paciente asistió
+            if asistencia_data.get('asistio', False):
+                # Marcar sesión como realizada si al menos un paciente asistió
+                observaciones_cronograma = asistencia_data.get('observaciones_asistencia') or asistencia_data.get('notas_progreso')
+                SesionTerapiaComponent.marcar_sesion_realizada(cronograma_id, observaciones_cronograma)
+                HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - Cronograma {cronograma_id} marcado como realizada")
                 
             # Obtener el registro actualizado/insertado
             select_query = """
@@ -844,7 +1011,7 @@ class SesionTerapiaComponent:
                     a.tareas_asignadas,
                     a.proximos_objetivos,
                     a.fecha_creacion as fecha_registro,
-                    cs.fecha_programada,
+                    cs.fecha_programada::DATE as fecha_programada,
                     CAST(cs.hora_programada AS TEXT) as hora_programada,
                     cs.numero_sesion,
                     cs.estado as estado_sesion

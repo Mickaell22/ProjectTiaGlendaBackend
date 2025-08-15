@@ -1,6 +1,6 @@
 # src/api/Service/SesionTerapiaService.py
 
-from flask import request, jsonify
+from flask import request, jsonify, g
 from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
 from src.utils.general.response import response_success, response_error
 from src.utils.general.logs import HandleLogs
@@ -938,6 +938,20 @@ class SesionTerapiaService:
             if not isinstance(paciente_id, int) or paciente_id <= 0:
                 return response_error("ID de paciente debe ser un número positivo", 400)
 
+            # Validar que el paciente exista en la base de datos
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                paciente_check = DataBaseHandle.getRecords("SELECT id FROM paciente WHERE id = %s", (paciente_id,))
+                if not paciente_check:
+                    error_msg = f"PACIENTE NO EXISTE: ID {paciente_id} no se encuentra en la tabla paciente. Pacientes válidos: 1-9"
+                    HandleLogs.write_error(f"SesionTerapiaService.registrar_asistencia - {error_msg}")
+                    return response_error(error_msg, 400)
+                
+                HandleLogs.write_log(f"SesionTerapiaService.registrar_asistencia - Paciente {paciente_id} verificado exitosamente")
+            except Exception as check_error:
+                HandleLogs.write_error(f"SesionTerapiaService.registrar_asistencia - Error verificando paciente: {str(check_error)}")
+                return response_error(f"Error verificando paciente: {str(check_error)}", 500)
+
             # Preparar datos de asistencia
             asistencia_data = {
                 'asistio': data.get('asistio', False),
@@ -1030,3 +1044,130 @@ class SesionTerapiaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.get_estadisticas_asistencia - Error: {str(e)}")
             return response_error(f"Error al obtener estadísticas de asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def get_asistencia_cronograma(cronograma_id):
+        """Obtener asistencia de todos los pacientes para una sesión específica del cronograma"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_asistencia_cronograma - Cronograma ID: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            # Obtener asistencias
+            asistencias = SesionTerapiaComponent.get_asistencias_por_cronograma(cronograma_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.get_asistencia_cronograma - {len(asistencias) if asistencias else 0} asistencias encontradas")
+            return response_success(asistencias or [], "Asistencias obtenidas exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_asistencia_cronograma - Error: {str(e)}")
+            return response_error(f"Error al obtener asistencias: {str(e)}", 500)
+
+    @staticmethod
+    def actualizar_asistencia(cronograma_id, paciente_id):
+        """Actualizar asistencia existente de un paciente"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.actualizar_asistencia - Cronograma ID: {cronograma_id}, Paciente ID: {paciente_id}")
+
+            # Validar IDs
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+            
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente debe ser un número positivo", 400)
+
+            # Obtener datos del request
+            data = request.json
+            if not data:
+                return response_error("Datos de asistencia son requeridos", 400)
+
+            # Obtener el usuario del token JWT
+            current_user = g.get('usuario_info', {})
+            usuario_modificacion = current_user.get('id', 1)
+
+            # Actualizar asistencia
+            result = SesionTerapiaComponent.actualizar_asistencia(cronograma_id, paciente_id, data, usuario_modificacion)
+
+            HandleLogs.write_log(f"SesionTerapiaService.actualizar_asistencia - Asistencia actualizada exitosamente")
+            return response_success(result, "Asistencia actualizada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.actualizar_asistencia - Error: {str(e)}")
+            return response_error(f"Error al actualizar asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def reprogramar_sesion_cronograma(cronograma_id):
+        """Reprogramar una sesión específica del cronograma"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.reprogramar_sesion_cronograma - Cronograma ID: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            # Obtener datos del request
+            data = request.json
+            if not data:
+                return response_error("Datos de reprogramación son requeridos", 400)
+
+            nueva_fecha = data.get('nueva_fecha')
+            nueva_hora = data.get('nueva_hora')
+            motivo_reprogramacion = data.get('motivo_reprogramacion', '')
+            
+            if not nueva_fecha or not nueva_hora:
+                return response_error("Nueva fecha y hora son requeridas", 400)
+                
+            if not motivo_reprogramacion or not motivo_reprogramacion.strip():
+                return response_error("Campo 'motivo_reprogramacion' es requerido", 400)
+
+            # Obtener el usuario del token JWT
+            current_user = g.get('usuario_info', {})
+            usuario_modificacion = current_user.get('id', 1)  # Usar ID del usuario, fallback a 1 (admin)
+            
+            result = SesionTerapiaComponent.reprogramar_sesion(
+                cronograma_id, 
+                nueva_fecha, 
+                nueva_hora, 
+                motivo_reprogramacion, 
+                usuario_modificacion
+            )
+            
+            HandleLogs.write_log(f"SesionTerapiaService.reprogramar_sesion_cronograma - Sesión {cronograma_id} reprogramada exitosamente")
+            return response_success(result, f"Sesión {cronograma_id} reprogramada exitosamente")
+            
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.reprogramar_sesion_cronograma - Error: {str(e)}")
+            return response_error(f"Error al reprogramar sesión: {str(e)}", 500)
+
+    @staticmethod
+    def cancelar_sesion_cronograma(cronograma_id):
+        """Cancelar una sesión específica del cronograma"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.cancelar_sesion_cronograma - Cronograma ID: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            # Obtener datos del request
+            data = request.json or {}
+            motivo_cancelacion = data.get('motivo_cancelacion', 'Cancelada por el usuario')
+            
+            # Obtener el usuario del token JWT
+            current_user = g.get('usuario_info', {})
+            usuario_modificacion = current_user.get('id', 1)  # Usar ID del usuario, fallback a 1 (admin)
+            
+            result = SesionTerapiaComponent.cancelar_sesion(
+                cronograma_id, 
+                motivo_cancelacion, 
+                usuario_modificacion
+            )
+            
+            HandleLogs.write_log(f"SesionTerapiaService.cancelar_sesion_cronograma - Sesión {cronograma_id} cancelada exitosamente")
+            return response_success(result, f"Sesión {cronograma_id} cancelada exitosamente")
+            
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.cancelar_sesion_cronograma - Error: {str(e)}")
+            return response_error(f"Error al cancelar sesión: {str(e)}", 500)

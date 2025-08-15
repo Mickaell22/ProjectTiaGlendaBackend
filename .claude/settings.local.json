@@ -20,7 +20,8 @@
       "Bash(npm uninstall:*)",
       "Bash(npm install:*)",
       "Bash(del:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(dir /O:D)"
     ],
     "deny": []
   }
