@@ -4,7 +4,6 @@
 -- =============================================
 
 -- Conectar a la base de datos
-\c centro_tia_glenda;
 
 -- =============================================
 -- 1. CATÁLOGOS BÁSICOS INDEPENDIENTES

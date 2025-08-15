@@ -6,13 +6,7 @@
 -- =============================================
 -- 1. CONFIGURACIÓN DE BASE DE DATOS
 -- =============================================
-DROP DATABASE IF EXISTS centro_tia_glenda;
-CREATE DATABASE centro_tia_glenda 
-WITH ENCODING 'UTF8' 
-LC_COLLATE = 'C' 
-LC_CTYPE = 'C';
 
-\c centro_tia_glenda;
 
 -- =============================================
 -- 2. TABLAS PRINCIPALES DEL SISTEMA
