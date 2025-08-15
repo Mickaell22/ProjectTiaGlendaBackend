@@ -23,6 +23,7 @@
       "Bash(grep:*)",
       "Bash(dir /O:D)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

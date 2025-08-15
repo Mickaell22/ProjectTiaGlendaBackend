@@ -75,96 +75,14 @@ UPDATE usuario SET usuario_creacion = (SELECT id FROM usuario WHERE persona_id =
 -- 2.3 ESPECIALIDADES DEL CENTRO
 -- =============================================
 
--- ESPECIALIDADES TERAPÉUTICAS
+-- ESPECIALIDADES BÁSICAS DEL CENTRO
 INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
--- Terapia Ocupacional
-('Terapia Ocupacional Pediátrica', 'terapeutico', 1),
-('Neurorehabilitación', 'terapeutico', 1),
-('Integración Sensorial', 'terapeutico', 1),
-('Terapia Ocupacional en Salud Mental', 'terapeutico', 1),
-('Rehabilitación Cognitiva', 'terapeutico', 1),
-
--- Fisioterapia
-('Fisioterapia Pediátrica', 'terapeutico', 1),
-('Fisioterapia Neurológica', 'terapeutico', 1),
-('Fisioterapia Respiratoria', 'terapeutico', 1),
-('Fisioterapia Ortopédica', 'terapeutico', 1),
-
--- Fonoaudiología
-('Fonoaudiología Pediátrica', 'terapeutico', 1),
-('Terapia del Lenguaje', 'terapeutico', 1),
-('Trastornos de la Deglución', 'terapeutico', 1),
-('Audiología', 'terapeutico', 1),
-
--- Psicología
-('Psicología Clínica Infantil', 'terapeutico', 1),
-('Neuropsicología', 'terapeutico', 1),
-('Psicología del Desarrollo', 'terapeutico', 1),
-('Terapia Conductual', 'terapeutico', 1),
-
--- Terapias Especializadas
-('Terapia ABA (Análisis Conductual Aplicado)', 'terapeutico', 1),
-('Terapia con Animales', 'terapeutico', 1),
-('Musicoterapia', 'terapeutico', 1),
-('Arteterapia', 'terapeutico', 1);
-
--- ESPECIALIDADES PEDAGÓGICAS
-INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
--- Educación Especial
-('Educación Especial', 'pedagogico', 1),
-('Discapacidades Intelectuales', 'pedagogico', 1),
-('Trastornos del Espectro Autista', 'pedagogico', 1),
-('Síndrome de Down', 'pedagogico', 1),
-
--- Dificultades de Aprendizaje
-('Dislexia', 'pedagogico', 1),
-('Discalculia', 'pedagogico', 1),
-('TDAH (Trastorno por Déficit de Atención)', 'pedagogico', 1),
-('Dificultades de Lectoescritura', 'pedagogico', 1),
-
--- Desarrollo Temprano
-('Estimulación Temprana', 'pedagogico', 1),
-('Desarrollo Cognitivo', 'pedagogico', 1),
-('Desarrollo del Lenguaje', 'pedagogico', 1),
-('Desarrollo Psicomotor', 'pedagogico', 1),
-
--- Métodos Pedagógicos
-('Metodología Montessori', 'pedagogico', 1),
-('Metodología Waldorf', 'pedagogico', 1),
-('Aprendizaje Multisensorial', 'pedagogico', 1),
-('Tecnología Educativa Adaptada', 'pedagogico', 1),
-
--- Orientación y Apoyo
-('Psicopedagogía', 'pedagogico', 1),
-('Orientación Familiar', 'pedagogico', 1),
-('Transición a la Vida Adulta', 'pedagogico', 1),
-('Inclusión Educativa', 'pedagogico', 1);
-
--- =============================================
--- ESPECIALIDADES ACADÉMICAS ESPECÍFICAS
--- =============================================
-INSERT INTO especialidad (nombre, area, usuario_creacion) VALUES
--- Materias Básicas
-('Matemáticas Básicas', 'pedagogico', 1),
-('Lectoescritura', 'pedagogico', 1),
-('Ciencias Naturales', 'pedagogico', 1),
-('Estudios Sociales', 'pedagogico', 1),
-
--- Habilidades de Vida
-('Habilidades Sociales', 'pedagogico', 1),
-('Autonomía Personal', 'pedagogico', 1),
-('Habilidades Laborales', 'pedagogico', 1),
-('Educación Financiera', 'pedagogico', 1),
-
--- Artes y Expresión
-('Arte y Manualidades', 'pedagogico', 1),
-('Música y Ritmo', 'pedagogico', 1),
-('Educación Física Adaptada', 'pedagogico', 1),
-('Teatro y Expresión', 'pedagogico', 1),
-
--- Tecnología
-('Computación Básica', 'pedagogico', 1),
-('Herramientas Digitales', 'pedagogico', 1);
+('Pedagógica', 'pedagogico', 1),
+('Psicológica', 'terapeutico', 1),
+('De lenguaje', 'terapeutico', 1),
+('Física', 'terapeutico', 1),
+('Ocupacional', 'terapeutico', 1),
+('Nutrición', 'terapeutico', 1);
 
 -- =============================================
 -- 2.4 PERSONAL DEL CENTRO
@@ -216,45 +134,27 @@ INSERT INTO personal (persona_id, titulo_profesional, usuario_creacion) VALUES
 
 -- Ana Patricia González (Terapia Ocupacional)
 INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 1, id, 1 FROM especialidad WHERE nombre = 'Terapia Ocupacional Pediátrica';
-
-INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 1, id, 1 FROM especialidad WHERE nombre = 'Integración Sensorial';
+SELECT 1, id, 1 FROM especialidad WHERE nombre = 'Ocupacional';
 
 -- Carlos Manuel Jiménez (Fisioterapia)
 INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 2, id, 1 FROM especialidad WHERE nombre = 'Fisioterapia Pediátrica';
-
-INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 2, id, 1 FROM especialidad WHERE nombre = 'Fisioterapia Neurológica';
+SELECT 2, id, 1 FROM especialidad WHERE nombre = 'Física';
 
 -- Sofía Elena Morales (Fonoaudiología)
 INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 3, id, 1 FROM especialidad WHERE nombre = 'Fonoaudiología Pediátrica';
-
-INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 3, id, 1 FROM especialidad WHERE nombre = 'Terapia del Lenguaje';
+SELECT 3, id, 1 FROM especialidad WHERE nombre = 'De lenguaje';
 
 -- Roberto Luis Vargas (Educación Especial)
 INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 4, id, 1 FROM especialidad WHERE nombre = 'Educación Especial';
-
-INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 4, id, 1 FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista';
+SELECT 4, id, 1 FROM especialidad WHERE nombre = 'Pedagógica';
 
 -- Laura María Castillo (Psicopedagogía)
 INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 5, id, 1 FROM especialidad WHERE nombre = 'Psicopedagogía';
+SELECT 5, id, 1 FROM especialidad WHERE nombre = 'Psicológica';
 
+-- Diego Andrés Hernández (Nutrición)
 INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 5, id, 1 FROM especialidad WHERE nombre = 'Estimulación Temprana';
-
--- Diego Andrés Hernández (Dificultades de Aprendizaje)
-INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 6, id, 1 FROM especialidad WHERE nombre = 'Dislexia';
-
-INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion) 
-SELECT 6, id, 1 FROM especialidad WHERE nombre = 'TDAH (Trastorno por Déficit de Atención)';
+SELECT 6, id, 1 FROM especialidad WHERE nombre = 'Nutrición';
 
 -- =============================================
 -- 3. DATOS DE EJEMPLO - FAMILIAS Y PACIENTES
@@ -320,19 +220,19 @@ INSERT INTO tutor (persona_id, parentesco, es_contacto_emergencia, observaciones
 -- =============================================
 INSERT INTO paciente (persona_id, tutor_id, especialidad_id, fecha_ingreso, fecha_inicio_tratamiento, estado_tratamiento, observaciones_tratamiento, observaciones, usuario_creacion) VALUES
 -- Pacientes del área terapéutica (personas 18-26, tutores 1-9)
-(18, 1, 1, '2024-08-15', '2024-08-15', 'activo', 'Inicio con terapia ocupacional pediátrica. Objetivos: mejorar coordinación motora fina.', 'Paciente con necesidades de terapia ocupacional e integración sensorial. Excelente progreso inicial.', 1),  -- María José - Terapia Ocupacional Pediátrica
-(19, 2, 6, '2024-09-20', '2024-09-20', 'activo', 'Fisioterapia pediátrica para fortalecimiento muscular.', 'Requiere fisioterapia neurológica. Familia muy comprometida con el tratamiento.', 1),                       -- Pedro Antonio - Fisioterapia Pediátrica
-(20, 3, 10, '2024-10-10', '2024-10-10', 'activo', 'Fonoaudiología pediátrica para desarrollo del lenguaje.', 'Necesidades de fonoaudiología pediátrica. Responde muy bien a estímulos auditivos.', 1),                  -- Valentina - Fonoaudiología Pediátrica
+(18, 1, (SELECT id FROM especialidad WHERE nombre = 'Ocupacional'), '2024-08-15', '2024-08-15', 'activo', 'Inicio con terapia ocupacional. Objetivos: mejorar coordinación motora fina.', 'Paciente con necesidades de terapia ocupacional. Excelente progreso inicial.', 1),  -- María José - Ocupacional
+(19, 2, (SELECT id FROM especialidad WHERE nombre = 'Física'), '2024-09-20', '2024-09-20', 'activo', 'Fisioterapia para fortalecimiento muscular.', 'Requiere fisioterapia. Familia muy comprometida con el tratamiento.', 1),                       -- Pedro Antonio - Física
+(20, 3, (SELECT id FROM especialidad WHERE nombre = 'De lenguaje'), '2024-10-10', '2024-10-10', 'activo', 'Terapia del lenguaje para desarrollo comunicativo.', 'Necesidades de terapia del lenguaje. Responde muy bien a estímulos auditivos.', 1),                  -- Valentina - De lenguaje
 
 -- Alumnos del área pedagógica
-(21, 4, 14, '2024-08-25', '2024-08-25', 'activo', 'Educación especial adaptada a necesidades individuales.', 'Alumno con trastorno del espectro autista. Requiere metodología especializada y seguimiento constante.', 1), -- Santiago - Educación Especial
-(22, 5, 16, '2024-09-15', '2024-09-15', 'activo', 'Estimulación temprana para potenciar desarrollo cognitivo.', 'Alumna con dificultades de aprendizaje. Excelente motivación y apoyo familiar.', 1),                        -- Isabella - Estimulación Temprana
-(23, 6, 18, '2024-10-05', '2024-10-05', 'activo', 'Programa para TDAH con estrategias de concentración.', 'Estudiante con TDAH. Necesita estrategias de concentración y apoyo psicopedagógico.', 1),                   -- Sebastián - TDAH
+(21, 4, (SELECT id FROM especialidad WHERE nombre = 'Pedagógica'), '2024-08-25', '2024-08-25', 'activo', 'Educación especial adaptada a necesidades individuales.', 'Alumno con necesidades pedagógicas especiales. Requiere metodología especializada y seguimiento constante.', 1), -- Santiago - Pedagógica
+(22, 5, (SELECT id FROM especialidad WHERE nombre = 'Psicológica'), '2024-09-15', '2024-09-15', 'activo', 'Atención psicológica para potenciar desarrollo cognitivo.', 'Alumna con necesidades psicológicas. Excelente motivación y apoyo familiar.', 1),                        -- Isabella - Psicológica
+(23, 6, (SELECT id FROM especialidad WHERE nombre = 'Nutrición'), '2024-10-05', '2024-10-05', 'activo', 'Programa nutricional para mejorar hábitos alimentarios.', 'Estudiante con necesidades nutricionales. Necesita seguimiento en hábitos alimentarios.', 1),                   -- Sebastián - Nutrición
 
 -- Pacientes/alumnos adicionales
-(24, 7, 11, '2024-11-10', '2024-11-10', 'activo', 'Terapia del lenguaje para retraso en desarrollo comunicativo.', 'Niña con retraso en el desarrollo del lenguaje. Muy receptiva a la terapia.', 1),                           -- Sofía Gabriela - Terapia del Lenguaje
-(25, 8, 16, '2024-12-02', '2024-12-02', 'activo', 'Programa de estimulación temprana integral.', 'Niño con necesidades de estimulación temprana. Familia muy colaborativa.', 1),                             -- Mateo Alejandro - Estimulación Temprana
-(26, 9, 1, '2024-12-15', '2024-12-15', 'activo', 'Terapia ocupacional para desarrollo de habilidades básicas.', 'Niña con discapacidades múltiples. Requiere enfoque multidisciplinario.', 1);                              -- Camila Andrea - Terapia Ocupacional Pediátrica
+(24, 7, (SELECT id FROM especialidad WHERE nombre = 'De lenguaje'), '2024-11-10', '2024-11-10', 'activo', 'Terapia del lenguaje para retraso en desarrollo comunicativo.', 'Niña con retraso en el desarrollo del lenguaje. Muy receptiva a la terapia.', 1),                           -- Sofía Gabriela - De lenguaje
+(25, 8, (SELECT id FROM especialidad WHERE nombre = 'Pedagógica'), '2024-12-02', '2024-12-02', 'activo', 'Programa pedagógico integral.', 'Niño con necesidades pedagógicas. Familia muy colaborativa.', 1),                             -- Mateo Alejandro - Pedagógica
+(26, 9, (SELECT id FROM especialidad WHERE nombre = 'Ocupacional'), '2024-12-15', '2024-12-15', 'activo', 'Terapia ocupacional para desarrollo de habilidades básicas.', 'Niña con necesidades múltiples. Requiere enfoque multidisciplinario.', 1);                              -- Camila Andrea - Ocupacional
 
 -- =============================================
 -- 3.5 ESPECIALIDADES YA ASIGNADAS EN TABLA PACIENTE
@@ -356,9 +256,9 @@ INSERT INTO sesion_terapia (
     dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
     costo_total, meses_contrato, estado, observaciones, usuario_creacion
 ) VALUES (
-    'Terapia Ocupacional Grupo Infantil - Integración Sensorial',
+    'Terapia Ocupacional Grupo Infantil',
     (SELECT id FROM personal WHERE persona_id = 3), -- Ana Patricia González
-    (SELECT id FROM especialidad WHERE nombre = 'Integración Sensorial'),
+    (SELECT id FROM especialidad WHERE nombre = 'Ocupacional'),
     '2025-02-15', -- Fecha inicio
     '2025-05-15', -- Fecha fin (3 meses)
     'lunes,miercoles,viernes', -- Días de la semana
@@ -368,7 +268,7 @@ INSERT INTO sesion_terapia (
     432000.00, -- Costo total (36 sesiones x 12,000 colones)
     3, -- Meses de contrato
     'activo',
-    'Sesión grupal para desarrollo de integración sensorial en niños de 3-6 años. Máximo 4 pacientes por sesión.',
+    'Sesión grupal para desarrollo ocupacional en niños de 3-6 años. Máximo 4 pacientes por sesión.',
     1
 );
 
@@ -378,9 +278,9 @@ INSERT INTO sesion_terapia (
     dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
     costo_total, meses_contrato, estado, observaciones, usuario_creacion
 ) VALUES (
-    'Fisioterapia Neurológica Individual - Pedro Antonio',
+    'Fisioterapia Individual - Pedro Antonio',
     (SELECT id FROM personal WHERE persona_id = 4), -- Carlos Manuel Jiménez
-    (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia Neurológica'),
+    (SELECT id FROM especialidad WHERE nombre = 'Física'),
     '2025-03-01',
     '2025-06-01', -- 3 meses
     'martes,jueves',
@@ -402,7 +302,7 @@ INSERT INTO sesion_terapia (
 ) VALUES (
     'Terapia del Lenguaje - Grupo de Desarrollo Comunicativo',
     (SELECT id FROM personal WHERE persona_id = 5), -- Sofía Elena Morales
-    (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
+    (SELECT id FROM especialidad WHERE nombre = 'De lenguaje'),
     '2025-02-22',
     '2025-05-22',
     'lunes,miercoles',
@@ -416,37 +316,37 @@ INSERT INTO sesion_terapia (
     1
 );
 
--- Sesión 4: Educación Especial - TEA (Roberto Luis Vargas)
+-- Sesión 4: Atención Pedagógica (Roberto Luis Vargas)
 INSERT INTO sesion_terapia (
     titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
     dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
     costo_total, meses_contrato, estado, observaciones, usuario_creacion
 ) VALUES (
-    'Programa TEA - Trastornos del Espectro Autista',
+    'Programa Pedagógico Especializado',
     (SELECT id FROM personal WHERE persona_id = 6), -- Roberto Luis Vargas
-    (SELECT id FROM especialidad WHERE nombre = 'Trastornos del Espectro Autista'),
+    (SELECT id FROM especialidad WHERE nombre = 'Pedagógica'),
     '2025-02-05',
     '2025-08-05', -- 6 meses (programa más largo)
     'lunes,martes,miercoles,jueves,viernes',
     '08:00',
-    90, -- Sesiones más largas para TEA
+    90, -- Sesiones más largas
     120, -- 5 días x 4 semanas x 6 meses
     1440000.00, -- 120 sesiones x 12,000 colones
     6,
     'activo',
-    'Programa intensivo para Santiago Torres. Metodología ABA y estrategias de comunicación aumentativa.',
+    'Programa intensivo para Santiago Torres. Metodología pedagógica especializada.',
     1
 );
 
--- Sesión 5: Estimulación Temprana (Laura María Castillo)
+-- Sesión 5: Atención Psicológica (Laura María Castillo)
 INSERT INTO sesion_terapia (
     titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
     dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
     costo_total, meses_contrato, estado, observaciones, usuario_creacion
 ) VALUES (
-    'Estimulación Temprana - Desarrollo Integral 0-3 años',
+    'Atención Psicológica - Desarrollo Integral',
     (SELECT id FROM personal WHERE persona_id = 7), -- Laura María Castillo
-    (SELECT id FROM especialidad WHERE nombre = 'Estimulación Temprana'),
+    (SELECT id FROM especialidad WHERE nombre = 'Psicológica'),
     '2025-03-01',
     '2025-06-01',
     'martes,jueves',
@@ -456,7 +356,7 @@ INSERT INTO sesion_terapia (
     360000.00, -- 24 sesiones x 15,000 colones
     3,
     'activo',
-    'Programa de estimulación temprana para Mateo Alejandro. Incluye desarrollo cognitivo, motor y social.',
+    'Programa de atención psicológica para Isabella. Incluye desarrollo cognitivo y emocional.',
     1
 );
 
