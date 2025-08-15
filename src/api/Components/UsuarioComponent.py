@@ -19,10 +19,16 @@ class UsuarioComponent:
                 p.cedula,
                 p.telefono,
                 p.correo,
+                p.direccion,
+                p.fecha_nacimiento,
+                r.id as rol_id,
                 r.nombre as rol,
+                r.nombre as rol_nombre,
+                u.persona_id,
                 u.estado,
                 u.fecha_creacion,
-                u.fecha_modificacion
+                u.fecha_modificacion,
+                u.fecha_ultimo_acceso
             FROM usuario u
             INNER JOIN persona p ON u.persona_id = p.id
             INNER JOIN rol r ON u.rol_id = r.id
@@ -225,6 +231,47 @@ class UsuarioComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"UsuarioComponent.check_username_exists - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def change_password(usuario_id, nueva_contrasenia):
+        """Cambiar la contraseña de un usuario"""
+        try:
+            from src.utils.general.security import SecurityUtils
+            
+            # Verificar que el usuario existe y está activo
+            check_query = "SELECT id, estado FROM usuario WHERE id = %s"
+            existing_user = DataBaseHandle.getRecords(check_query, (usuario_id,), size=1)
+            
+            if not existing_user:
+                HandleLogs.write_error(f"UsuarioComponent.change_password - Usuario {usuario_id} no encontrado")
+                return internal_response(False, None, "Usuario no encontrado")
+            
+            if existing_user['estado'] != 'activo':
+                HandleLogs.write_error(f"UsuarioComponent.change_password - Usuario {usuario_id} no está activo")
+                return internal_response(False, None, "Usuario no está activo")
+            
+            # Hash de la nueva contraseña
+            hashed_password = SecurityUtils.hash_password(nueva_contrasenia)
+            
+            # Actualizar la contraseña
+            update_query = """
+                UPDATE usuario 
+                SET contrasenia = %s, fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+                """
+            
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (hashed_password, usuario_id))
+            
+            if success:
+                HandleLogs.write_log(f"UsuarioComponent.change_password - Contraseña actualizada para usuario {usuario_id}")
+                return internal_response(True, {"id": usuario_id}, "Contraseña actualizada exitosamente")
+            else:
+                HandleLogs.write_error(f"UsuarioComponent.change_password - Error actualizando contraseña para usuario {usuario_id}")
+                return internal_response(False, None, "Error actualizando contraseña")
+                
+        except Exception as e:
+            HandleLogs.write_error(f"UsuarioComponent.change_password - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
 

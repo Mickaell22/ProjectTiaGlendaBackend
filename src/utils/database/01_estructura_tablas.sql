@@ -63,6 +63,7 @@ CREATE TABLE usuario (
     rol_id INTEGER NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_ultimo_acceso TIMESTAMP,
     usuario_creacion INTEGER,
     usuario_modificacion INTEGER,
     

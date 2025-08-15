@@ -41,7 +41,7 @@ class LoginComponent:
         try:
             query = """
             UPDATE usuario 
-            SET fecha_modificacion = CURRENT_TIMESTAMP
+            SET fecha_ultimo_acceso = CURRENT_TIMESTAMP
             WHERE id = %s
             """
 

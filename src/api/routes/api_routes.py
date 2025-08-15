@@ -338,6 +338,17 @@ def register_routes(app):
         from src.api.Service.UsuarioService import UsuarioService
         return UsuarioService.delete_usuario(usuario_id)
 
+    @app.route('/api/usuarios/<int:usuario_id>/cambiar-contrasenia', methods=['PUT'])
+    @token_required
+    def change_user_password(usuario_id):
+        try:
+            from flask import request
+            from src.api.Service.UsuarioService import UsuarioService
+            return UsuarioService.change_password(usuario_id, request.json)
+        except Exception as e:
+            from src.utils.general.response import response_error
+            return response_error(f"Error en cambio de contraseña: {str(e)}", 500)
+
 
 
     # ============================================

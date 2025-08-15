@@ -15,7 +15,12 @@
       "Bash(move:*)",
       "Bash(node:*)",
       "Bash(git rm:*)",
-      "Bash(del PacienteEspecialidades.jsx)"
+      "Bash(del PacienteEspecialidades.jsx)",
+      "Bash(touch:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(del:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

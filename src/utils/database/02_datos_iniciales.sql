@@ -16,8 +16,7 @@
 INSERT INTO rol (nombre, descripcion) VALUES 
 ('Administrador', 'Acceso completo al sistema. Puede gestionar usuarios, configuraciones y generar todos los reportes'),
 ('Terapeuta', 'Personal del área terapéutica. Acceso a gestión de pacientes y tratamientos'),
-('Pedagógico', 'Personal del área pedagógica. Acceso a gestión de alumnos y seguimiento académico'),
-('Cliente', 'Cliente externo. Solo consulta de información pública e horarios disponibles');
+('Pedagógico', 'Personal del área pedagógica. Acceso a gestión de alumnos y seguimiento académico');
 
 -- =============================================
 -- 2.1 PERSONA ADMINISTRADOR PRINCIPAL

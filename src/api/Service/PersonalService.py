@@ -74,8 +74,21 @@ class PersonalService:
             result = PersonalComponent.create_personal(personal_data)
 
             if result['success']:
+                personal_id = result['data']['id']
+                
+                # Asignar especialidades si fueron proporcionadas
+                if 'especialidades' in data and data['especialidades']:
+                    usuario_creacion = getattr(request, 'current_user', {}).get('id', 1)
+                    for especialidad in data['especialidades']:
+                        if isinstance(especialidad, dict) and 'id' in especialidad:
+                            PersonalComponent.assign_especialidad(personal_id, especialidad['id'], usuario_creacion)
+                        elif isinstance(especialidad, int):
+                            PersonalComponent.assign_especialidad(personal_id, especialidad, usuario_creacion)
+                
+                # Obtener el personal creado con especialidades
+                updated_result = PersonalComponent.get_personal_by_id(personal_id)
                 HandleLogs.write_log("PersonalService.create_personal - Personal creado exitosamente")
-                return response_inserted(result['data'], "Personal creado exitosamente")
+                return response_inserted(updated_result['data'], "Personal creado exitosamente")
             else:
                 HandleLogs.write_error(f"PersonalService.create_personal - Error: {result['message']}")
                 return response_error(result['message'], 400)
@@ -105,8 +118,38 @@ class PersonalService:
             result = PersonalComponent.update_personal(personal_id, data)
 
             if result['success']:
+                # Actualizar especialidades si fueron proporcionadas
+                if 'especialidades' in data:
+                    # Obtener especialidades actuales
+                    current_personal = PersonalComponent.get_personal_by_id(personal_id)
+                    if current_personal['success']:
+                        current_especialidades = current_personal['data'].get('especialidades', [])
+                        current_esp_ids = [esp['id'] for esp in current_especialidades]
+                        
+                        # Nuevas especialidades del frontend
+                        new_especialidades = data['especialidades']
+                        new_esp_ids = []
+                        for esp in new_especialidades:
+                            if isinstance(esp, dict) and 'id' in esp:
+                                new_esp_ids.append(esp['id'])
+                            elif isinstance(esp, int):
+                                new_esp_ids.append(esp)
+                        
+                        # Remover especialidades que ya no estan
+                        for esp_id in current_esp_ids:
+                            if esp_id not in new_esp_ids:
+                                PersonalComponent.remove_especialidad(personal_id, esp_id)
+                        
+                        # Agregar nuevas especialidades
+                        usuario_creacion = getattr(request, 'current_user', {}).get('id', 1)
+                        for esp_id in new_esp_ids:
+                            if esp_id not in current_esp_ids:
+                                PersonalComponent.assign_especialidad(personal_id, esp_id, usuario_creacion)
+                
+                # Obtener datos actualizados con especialidades
+                updated_result = PersonalComponent.get_personal_by_id(personal_id)
                 HandleLogs.write_log(f"PersonalService.update_personal - Personal {personal_id} actualizado")
-                return response_success(result['data'], "Personal actualizado exitosamente")
+                return response_success(updated_result['data'], "Personal actualizado exitosamente")
             else:
                 HandleLogs.write_error(f"PersonalService.update_personal - Error: {result['message']}")
                 return response_error(result['message'], 400)
