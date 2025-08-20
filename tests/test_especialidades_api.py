@@ -31,7 +31,7 @@ def test_login():
     global token
 
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 

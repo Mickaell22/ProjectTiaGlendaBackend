@@ -78,15 +78,15 @@ class EspecialidadComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.area,
+                e.descripcion as area,
                 e.estado,
                 e.fecha_creacion,
                 e.fecha_modificacion,
                 COUNT(pe.id) as personal_asignado
             FROM especialidad e
-            LEFT JOIN personal_especialidad pe ON e.id = pe.especialidad_id
+            LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
             WHERE e.id = %s
-            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
+            GROUP BY e.id, e.nombre, e.descripcion, e.estado, e.fecha_creacion, e.fecha_modificacion
             """
 
             especialidad = DataBaseHandle.getRecords(query, (especialidad_id,), size=1)
@@ -113,7 +113,7 @@ class EspecialidadComponent:
 
             # Insertar nueva especialidad
             insert_query = """
-                INSERT INTO especialidad (nombre, area, estado, usuario_creacion)
+                INSERT INTO especialidad (nombre, descripcion, estado, usuario_creacion)
                 VALUES (%s, %s, %s, %s)
                 RETURNING id
                 """
@@ -164,15 +164,19 @@ class EspecialidadComponent:
             params = []
 
             allowed_fields = ['nombre', 'area', 'estado', 'usuario_modificacion']
+            # Mapear 'area' a 'descripcion' para la base de datos
+            field_mapping = {'area': 'descripcion'}
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
+                    # Usar el mapeo de campos para la base de datos
+                    db_field = field_mapping.get(field, field)
                     if field in ['nombre']:
                         if data[field].strip():
-                            update_fields.append(f"{field} = %s")
+                            update_fields.append(f"{db_field} = %s")
                             params.append(data[field].strip())
                     else:
-                        update_fields.append(f"{field} = %s")
+                        update_fields.append(f"{db_field} = %s")
                         params.append(data[field])
 
             if not update_fields:
@@ -222,8 +226,8 @@ class EspecialidadComponent:
             # Verificar si hay personal asignado a esta especialidad
             personal_check = """
                 SELECT COUNT(*) as total 
-                FROM personal_especialidad 
-                WHERE especialidad_id = %s
+                FROM personal_especialidades 
+                WHERE id_especialidad = %s
             """
             personal_count = DataBaseHandle.getRecords(personal_check, (especialidad_id,), size=1)
 
@@ -257,10 +261,10 @@ class EspecialidadComponent:
         """Verificar si un nombre de especialidad ya existe en la misma área"""
         try:
             if exclude_id:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id != %s"
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND descripcion = %s AND id != %s"
                 params = (nombre, area, exclude_id)
             else:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s"
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND descripcion = %s"
                 params = (nombre, area)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
@@ -276,13 +280,13 @@ class EspecialidadComponent:
         try:
             query = """
             SELECT 
-                area,
+                descripcion as area,
                 COUNT(*) as total_especialidades,
                 COUNT(CASE WHEN estado = 'activo' THEN 1 END) as activas,
                 COUNT(CASE WHEN estado = 'inactivo' THEN 1 END) as inactivas
             FROM especialidad
-            GROUP BY area
-            ORDER BY area
+            GROUP BY descripcion
+            ORDER BY descripcion
             """
 
             estadisticas = DataBaseHandle.getRecords(query)
