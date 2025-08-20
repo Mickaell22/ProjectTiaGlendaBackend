@@ -86,7 +86,7 @@ class UsuarioService:
                 return response_inserted(result['data'], "Usuario creado exitosamente")
             else:
                 HandleLogs.write_error(f"UsuarioService.create_usuario - Error: {result['message']}")
-                return response_error(result['message'], 400)
+                return response_error(f"Error creando usuario: {result['message']}", 400)
 
         except Exception as e:
             HandleLogs.write_error(f"UsuarioService.create_usuario - Error: {str(e)}")

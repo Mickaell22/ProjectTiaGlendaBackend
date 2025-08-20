@@ -13,15 +13,15 @@ class EspecialidadComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.area,
+                e.descripcion as area,
                 e.estado,
                 e.fecha_creacion,
                 e.fecha_modificacion,
                 COUNT(pe.id) as personal_asignado
             FROM especialidad e
-            LEFT JOIN personal_especialidad pe ON e.id = pe.especialidad_id
-            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
-            ORDER BY e.area, e.nombre
+            LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
+            GROUP BY e.id, e.nombre, e.descripcion, e.estado, e.fecha_creacion, e.fecha_modificacion
+            ORDER BY e.descripcion, e.nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query)
@@ -45,15 +45,15 @@ class EspecialidadComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.area,
+                e.descripcion as area,
                 e.estado,
                 e.fecha_creacion,
                 e.fecha_modificacion,
                 COUNT(pe.id) as personal_asignado
             FROM especialidad e
-            LEFT JOIN personal_especialidad pe ON e.id = pe.especialidad_id
-            WHERE e.area = %s AND e.estado = 'activo'
-            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
+            LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
+            WHERE e.descripcion = %s AND e.estado = 'activo'
+            GROUP BY e.id, e.nombre, e.descripcion, e.estado, e.fecha_creacion, e.fecha_modificacion
             ORDER BY e.nombre
             """
 
@@ -306,10 +306,10 @@ class EspecialidadComponent:
             SELECT 
                 id,
                 nombre,
-                area
+                descripcion as area
             FROM especialidad
             WHERE estado = 'activo'
-            ORDER BY area, nombre
+            ORDER BY descripcion, nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query)

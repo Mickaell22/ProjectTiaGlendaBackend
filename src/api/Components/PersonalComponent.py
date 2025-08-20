@@ -141,27 +141,45 @@ class PersonalComponent:
             if persona_check['success'] and persona_check['data']:
                 return internal_response(False, None, "Esta persona ya está registrada como personal")
 
-            # Insertar nuevo personal
+            # Insertar nuevo personal  
             insert_query = """
-                INSERT INTO personal (persona_id, titulo_profesional, estado, usuario_creacion)
-                VALUES (%s, %s, %s, %s)
-                RETURNING id
+                INSERT INTO personal (persona_id, id_especialidad, id_centro, fecha_ingreso, cargo, estado, usuario_creacion)
+                VALUES (%s, %s, %s, CURRENT_DATE, %s, %s, %s)
                 """
+
+            # Get default specialty ID if not provided
+            default_especialidad_id = data.get('id_especialidad')
+            if not default_especialidad_id:
+                # Try to get the first available specialty
+                especialidad_query = "SELECT id FROM especialidad WHERE estado = 'activo' ORDER BY id LIMIT 1"
+                especialidad_result = DataBaseHandle.getRecords(especialidad_query, size=1)
+                default_especialidad_id = especialidad_result['id'] if especialidad_result else 1
 
             params = (
                 data['persona_id'],
+                default_especialidad_id,
+                data.get('id_centro', 13),  # Default to Centro Norte (id=13)
                 data.get('titulo_profesional', '').strip() if data.get('titulo_profesional') else None,
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
             )
 
-            new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
+            success = DataBaseHandle.ExecuteNonQuery(insert_query, params)
 
-            if new_id:
-                # Obtener el personal creado con información completa
-                new_personal = PersonalComponent.get_personal_by_id(new_id)
-                HandleLogs.write_log(f"PersonalComponent.create_personal - Personal creado con ID: {new_id}")
-                return internal_response(True, new_personal['data'], "Personal creado exitosamente")
+            if success:
+                # Obtener el ID del personal recién creado
+                id_query = "SELECT id FROM personal WHERE persona_id = %s ORDER BY id DESC LIMIT 1"
+                new_personal_data = DataBaseHandle.getRecords(id_query, (data['persona_id'],), size=1)
+                
+                if new_personal_data and new_personal_data.get('id'):
+                    new_id = new_personal_data['id']
+                    # Obtener el personal creado con información completa
+                    new_personal = PersonalComponent.get_personal_by_id(new_id)
+                    HandleLogs.write_log(f"PersonalComponent.create_personal - Personal creado con ID: {new_id}")
+                    return internal_response(True, new_personal['data'], "Personal creado exitosamente")
+                else:
+                    HandleLogs.write_error("PersonalComponent.create_personal - Error obteniendo ID del personal creado")
+                    return internal_response(False, None, "Error obteniendo personal creado")
             else:
                 HandleLogs.write_error("PersonalComponent.create_personal - Error insertando personal")
                 return internal_response(False, None, "Error creando personal")
@@ -310,7 +328,7 @@ class PersonalComponent:
             # Verificar que no esté ya asignada
             assignment_check = """
                 SELECT id FROM personal_especialidades 
-                WHERE personal_id = %s AND especialidad_id = %s
+                WHERE id_personal = %s AND id_especialidad = %s
             """
             existing = DataBaseHandle.getRecords(assignment_check, (personal_id, especialidad_id), size=1)
 
@@ -319,14 +337,18 @@ class PersonalComponent:
 
             # Asignar especialidad
             insert_query = """
-                INSERT INTO personal_especialidades (personal_id, especialidad_id, usuario_creacion)
+                INSERT INTO personal_especialidades (id_personal, id_especialidad, usuario_creacion)
                 VALUES (%s, %s, %s)
-                RETURNING id
             """
 
-            assignment_id = DataBaseHandle.ExecuteInsert(insert_query, (personal_id, especialidad_id, usuario_creacion))
+            success = DataBaseHandle.ExecuteNonQuery(insert_query, (personal_id, especialidad_id, usuario_creacion))
 
-            if assignment_id:
+            if success:
+                # Get the assignment ID for confirmation
+                id_query = "SELECT id FROM personal_especialidades WHERE id_personal = %s AND id_especialidad = %s ORDER BY id DESC LIMIT 1"
+                assignment_data = DataBaseHandle.getRecords(id_query, (personal_id, especialidad_id), size=1)
+                assignment_id = assignment_data['id'] if assignment_data else personal_id
+                
                 HandleLogs.write_log(f"PersonalComponent.assign_especialidad - Especialidad {especialidad_id} asignada a personal {personal_id}")
                 return internal_response(True, {"assignment_id": assignment_id}, "Especialidad asignada exitosamente")
             else:
@@ -389,12 +411,19 @@ class PersonalComponent:
             INNER JOIN persona pe ON p.persona_id = pe.id
             INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
             INNER JOIN especialidad e ON ps.id_especialidad = e.id
-            WHERE e.descripcion as area = %s AND p.estado = 'activo' AND e.estado = 'activo'
-            GROUP BY p.id, p.titulo_profesional, p.estado, pe.id, pe.nombre, pe.apellido, pe.correo
+            WHERE e.descripcion LIKE %s AND p.estado = 'activo' AND e.estado = 'activo'
+            GROUP BY p.id, p.cargo, p.estado, pe.id, pe.nombre, pe.apellido, pe.correo
             ORDER BY pe.nombre, pe.apellido
             """
 
-            personal = DataBaseHandle.getRecords(query, (area,))
+            # Convert area parameter to search pattern
+            search_pattern = f"%{area}%"
+            if area == "terapeutico":
+                search_pattern = "%terapéutica%"
+            elif area == "pedagogico":
+                search_pattern = "%pedagógica%"
+                
+            personal = DataBaseHandle.getRecords(query, (search_pattern,))
 
             if personal is not None:
                 HandleLogs.write_log(f"PersonalComponent.get_personal_by_area - {len(personal)} personal de área {area} encontrado")

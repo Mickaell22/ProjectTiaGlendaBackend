@@ -98,9 +98,8 @@ class UsuarioComponent:
 
             # Insertar nuevo usuario
             insert_query = """
-                INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, estado, usuario_creacion)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING id
+                INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, id_centro, estado, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
 
             params = (
@@ -108,17 +107,27 @@ class UsuarioComponent:
                 data['contrasenia'],
                 data['persona_id'],
                 data['rol_id'],
+                data.get('id_centro', 13),  # Default to Centro Norte (id=13)
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
             )
 
-            new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
+            success = DataBaseHandle.ExecuteNonQuery(insert_query, params)
 
-            if new_id:
-                # Obtener el usuario creado con información completa
-                new_user = UsuarioComponent.get_usuario_by_id(new_id)
-                HandleLogs.write_log(f"UsuarioComponent.create_usuario - Usuario creado con ID: {new_id}")
-                return internal_response(True, new_user['data'], "Usuario creado exitosamente")
+            if success:
+                # Obtener el ID del usuario recién creado
+                id_query = "SELECT id FROM usuario WHERE usuario = %s ORDER BY id DESC LIMIT 1"
+                new_user_data = DataBaseHandle.getRecords(id_query, (data['usuario'],), size=1)
+                
+                if new_user_data and new_user_data.get('id'):
+                    new_id = new_user_data['id']
+                    # Obtener el usuario creado con información completa
+                    new_user = UsuarioComponent.get_usuario_by_id(new_id)
+                    HandleLogs.write_log(f"UsuarioComponent.create_usuario - Usuario creado con ID: {new_id}")
+                    return internal_response(True, new_user['data'], "Usuario creado exitosamente")
+                else:
+                    HandleLogs.write_error("UsuarioComponent.create_usuario - Error obteniendo ID del usuario creado")
+                    return internal_response(False, None, "Error obteniendo usuario creado")
             else:
                 HandleLogs.write_error("UsuarioComponent.create_usuario - Error insertando usuario")
                 return internal_response(False, None, "Error creando usuario")
