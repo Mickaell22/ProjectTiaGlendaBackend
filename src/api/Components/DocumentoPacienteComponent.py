@@ -232,10 +232,7 @@ class DocumentoPacienteComponent:
             HandleLogs.write_log(f"DocumentoPacienteComponent.delete_documento - ID: {documento_id}")
             
             query = """
-                UPDATE documentos_paciente 
-                SET 
-                    estado = 'eliminado',
-                    fecha_modificacion = CURRENT_TIMESTAMP
+                DELETE FROM documentos_paciente 
                 WHERE id = %(documento_id)s 
                   AND id_paciente = %(paciente_id)s
             """

@@ -144,6 +144,9 @@ def token_required(f):
 
         except Exception as e:
             HandleLogs.write_error(f"auth_middleware.token_required - Error: {str(e)}")
+            # Añadir traceback detallado para debugging
+            import traceback
+            HandleLogs.write_error(f"auth_middleware.token_required - Full traceback: {traceback.format_exc()}")
             return response_error("Error verificando autenticacion", 500)
 
     return decorated_function

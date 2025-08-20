@@ -381,7 +381,7 @@ def register_routes(app):
     def actualizar_documento_personal(documento_id):
         """Actualizar información de un documento del personal"""
         from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
-        return DocumentoPersonalService.actualizar_documento()
+        return DocumentoPersonalService.actualizar_documento_por_id(documento_id)
 
     @app.route('/api/documentos-personal/<int:documento_id>', methods=['DELETE'])
     @token_required
@@ -398,20 +398,27 @@ def register_routes(app):
         from flask import send_file
         from src.utils.general.logs import HandleLogs
         
+        HandleLogs.write_log(f"descargar_documento_personal - Iniciando descarga documento {documento_id}")
         result = DocumentoPersonalService.descargar_documento(documento_id)
         
+        HandleLogs.write_log(f"descargar_documento_personal - Service result: {result['success']}")
         if result['success']:
             try:
+                HandleLogs.write_log("descargar_documento_personal - Comenzando procesamiento de descarga")
                 import os
                 
                 file_path = result['data']['ruta_archivo']
-                file_name = result['data']['nombre_documento']
+                file_name = result['data']['nombre_archivo']
                 mime_type = result['data']['tipo_mime']
+                
+                HandleLogs.write_log(f"descargar_documento_personal - Datos extraídos: {file_path}, {file_name}, {mime_type}")
                 
                 # Verificar que el archivo existe
                 if not os.path.exists(file_path):
                     HandleLogs.write_error(f"descargar_documento_personal - Archivo no encontrado: {file_path}")
                     return response_error("Archivo no encontrado en el sistema", 404)
+                
+                HandleLogs.write_log(f"descargar_documento_personal - Archivo verificado exitosamente")
                 
                 # Limpiar nombre de archivo
                 import urllib.parse
@@ -435,6 +442,7 @@ def register_routes(app):
                 HandleLogs.write_log(f"descargar_documento_personal - Descargando: {clean_filename}")
                 
                 try:
+                    HandleLogs.write_log("descargar_documento_personal - Intentando send_file Flask 2.x+")
                     # Flask 2.x+
                     response = send_file(
                         file_path,
@@ -442,7 +450,9 @@ def register_routes(app):
                         download_name=clean_filename,
                         mimetype=mime_type
                     )
-                except TypeError:
+                    HandleLogs.write_log("descargar_documento_personal - send_file Flask 2.x+ exitoso")
+                except TypeError as te:
+                    HandleLogs.write_log(f"descargar_documento_personal - TypeError en Flask 2.x+, probando 1.x: {str(te)}")
                     # Flask 1.x
                     response = send_file(
                         file_path,
@@ -450,8 +460,11 @@ def register_routes(app):
                         attachment_filename=clean_filename,
                         mimetype=mime_type
                     )
+                    HandleLogs.write_log("descargar_documento_personal - send_file Flask 1.x exitoso")
                 
+                HandleLogs.write_log("descargar_documento_personal - Configurando headers")
                 response.headers['Content-Disposition'] = f'attachment; filename="{clean_filename}"'
+                HandleLogs.write_log("descargar_documento_personal - Retornando response")
                 return response
                         
             except Exception as e:
@@ -475,6 +488,51 @@ def register_routes(app):
                 return response_error("ID de centro inválido", 400)
         
         return DocumentoPersonalService.get_documentos_por_tipo(tipo_documento, centro_id)
+
+    @app.route('/api/documentos-personal/tipos', methods=['GET'])
+    @token_required
+    def get_tipos_documentos_personal():
+        """Obtener tipos de documentos soportados para personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.obtener_tipos_documentos()
+
+    @app.route('/api/documentos-personal/vencimientos', methods=['GET'])
+    @token_required
+    def get_documentos_vencimientos():
+        """Obtener documentos próximos a vencer"""
+        from flask import request
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        
+        dias_alerta = request.args.get('dias_alerta', 90, type=int)
+        return DocumentoPersonalService.obtener_documentos_vencimientos(dias_alerta)
+
+    @app.route('/api/documentos-personal/pendientes-validacion', methods=['GET'])
+    @token_required
+    def get_documentos_pendientes_validacion():
+        """Obtener documentos pendientes de validación"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.obtener_documentos_pendientes_validacion()
+
+    @app.route('/api/documentos-personal/estadisticas', methods=['GET'])
+    @token_required
+    def get_estadisticas_documentos_personal():
+        """Obtener estadísticas de documentos de personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.obtener_estadisticas_documentos()
+
+    @app.route('/api/documentos-personal/buscar', methods=['GET'])
+    @token_required
+    def buscar_documentos_personal():
+        """Buscar documentos con filtros avanzados"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.buscar_documentos()
+
+    @app.route('/api/documentos-personal/<int:documento_id>/validar', methods=['PUT'])
+    @token_required
+    def validar_documento_personal(documento_id):
+        """Validar documento de personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.validar_documento(documento_id)
 
     @app.route('/api/documentos-personal/por-vencer', methods=['GET'])
     @token_required

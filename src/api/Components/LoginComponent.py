@@ -87,10 +87,60 @@ class LoginComponent:
             WHERE u.id = %s AND u.estado = 'activo'
             """
 
-            user = DataBaseHandle.getRecords(query, (user_id,), size=1)
+            user_result = DataBaseHandle.getRecords(query, (user_id,), size=1)
+            
+            # Validar y formatear el resultado para asegurar formato consistente
+            if not user_result:
+                HandleLogs.write_log(f"LoginComponent.get_user_by_id - Usuario {user_id} no encontrado")
+                return internal_response(False, None, "Usuario no encontrado")
+            
+            # Asegurar que tenemos un formato de diccionario correcto
+            user_data = None
+            if isinstance(user_result, list) and len(user_result) > 0:
+                first_result = user_result[0]
+                if isinstance(first_result, dict):
+                    user_data = first_result
+                elif isinstance(first_result, tuple):
+                    # Convertir tupla a diccionario usando los nombres de las columnas
+                    user_data = {
+                        'id': first_result[0],
+                        'usuario': first_result[1], 
+                        'estado': first_result[2],
+                        'id_centro': first_result[3],
+                        'nombre_completo': first_result[4],
+                        'correo': first_result[5],
+                        'rol': first_result[6],
+                        'rol_id': first_result[7],
+                        'centro_nombre': first_result[8] if len(first_result) > 8 else None,
+                        'centro_codigo': first_result[9] if len(first_result) > 9 else None,
+                        'centro_turno': first_result[10] if len(first_result) > 10 else None
+                    }
+                    HandleLogs.write_log(f"LoginComponent.get_user_by_id - Converted tuple to dict for user {user_id}")
+            elif isinstance(user_result, dict):
+                user_data = user_result
+            elif isinstance(user_result, tuple):
+                # Caso de tupla directa
+                user_data = {
+                    'id': user_result[0],
+                    'usuario': user_result[1], 
+                    'estado': user_result[2],
+                    'id_centro': user_result[3],
+                    'nombre_completo': user_result[4],
+                    'correo': user_result[5],
+                    'rol': user_result[6],
+                    'rol_id': user_result[7],
+                    'centro_nombre': user_result[8] if len(user_result) > 8 else None,
+                    'centro_codigo': user_result[9] if len(user_result) > 9 else None,
+                    'centro_turno': user_result[10] if len(user_result) > 10 else None
+                }
+                HandleLogs.write_log(f"LoginComponent.get_user_by_id - Converted direct tuple to dict for user {user_id}")
+            
+            if not user_data:
+                HandleLogs.write_error(f"LoginComponent.get_user_by_id - Could not format user data for {user_id}: {type(user_result)}")
+                return internal_response(False, None, "Error formateando datos de usuario")
 
             HandleLogs.write_log(f"LoginComponent.get_user_by_id - Consulta para usuario ID: {user_id}")
-            return internal_response(True, user, "Usuario encontrado")
+            return internal_response(True, user_data, "Usuario encontrado")
 
         except Exception as e:
             HandleLogs.write_error(f"LoginComponent.get_user_by_id - Error: {str(e)}")

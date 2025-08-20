@@ -175,7 +175,7 @@ class DocumentosPersonalAPITest:
 
     def test_obtener_documentos_personal(self, personal_id):
         """Test: Obtener documentos de personal específico"""
-        print("\n📁 Testeando obtención de documentos de personal...")
+        print("\n[LIST] Testeando obtención de documentos de personal...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -198,7 +198,7 @@ class DocumentosPersonalAPITest:
 
     def test_obtener_documento_especifico(self, documento_id):
         """Test: Obtener documento específico"""
-        print("\n🔍 Testeando obtención de documento específico...")
+        print("\n[DETAIL] Testeando obtención de documento específico...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -248,7 +248,7 @@ class DocumentosPersonalAPITest:
 
     def test_actualizar_documento(self, documento_id):
         """Test: Actualizar información de documento"""
-        print("\n✏️ Testeando actualización de documento...")
+        print("\n[UPDATE] Testeando actualización de documento...")
         
         try:
             update_data = {
@@ -276,7 +276,7 @@ class DocumentosPersonalAPITest:
 
     def test_obtener_documentos_vencidos(self):
         """Test: Obtener documentos próximos a vencer"""
-        print("\n⚠️ Testeando obtención de documentos vencidos...")
+        print("\n[EXPIRY] Testeando obtención de documentos vencidos...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -300,7 +300,7 @@ class DocumentosPersonalAPITest:
 
     def test_obtener_documentos_pendientes_validacion(self):
         """Test: Obtener documentos pendientes de validación"""
-        print("\n⏳ Testeando documentos pendientes de validación...")
+        print("\n[PENDING] Testeando documentos pendientes de validación...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -323,7 +323,7 @@ class DocumentosPersonalAPITest:
 
     def test_obtener_estadisticas_documentos(self):
         """Test: Obtener estadísticas de documentos"""
-        print("\n📊 Testeando estadísticas de documentos...")
+        print("\n[STATS] Testeando estadísticas de documentos...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -345,7 +345,7 @@ class DocumentosPersonalAPITest:
 
     def test_buscar_documentos(self):
         """Test: Búsqueda avanzada de documentos"""
-        print("\n🔍 Testeando búsqueda de documentos...")
+        print("\n[SEARCH] Testeando búsqueda de documentos...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -372,7 +372,7 @@ class DocumentosPersonalAPITest:
 
     def test_descargar_documento(self, documento_id):
         """Test: Descargar archivo de documento"""
-        print("\n⬇️ Testeando descarga de documento...")
+        print("\n[DOWNLOAD] Testeando descarga de documento...")
         
         try:
             headers_with_token = {"Authorization": f"Bearer {self.admin_token}"}
@@ -398,7 +398,7 @@ class DocumentosPersonalAPITest:
 
     def test_eliminar_documento(self, documento_id):
         """Test: Eliminar documento"""
-        print("\n🗑️ Testeando eliminación de documento...")
+        print("\n[DELETE] Testeando eliminación de documento...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -557,7 +557,7 @@ class DocumentosPersonalAPITest:
         self.test_casos_error()
         
         # Cleanup: eliminar documentos de prueba
-        print("\n🧹 Limpiando documentos de prueba...")
+        print("\n[CLEANUP] Limpiando documentos de prueba...")
         for doc_id in self.test_documents:
             try:
                 headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -571,12 +571,12 @@ class DocumentosPersonalAPITest:
         duration = end_time - start_time
         
         print("\n" + "=" * 75)
-        print("📊 RESUMEN DE TESTS DE DOCUMENTOS DE PERSONAL")
+        print("[SUMMARY] RESUMEN DE TESTS DE DOCUMENTOS DE PERSONAL")
         print("=" * 75)
         print(f"Total de tests: {self.results['total_tests']}")
         print(f"[PASSED] Exitosos: {self.results['passed']}")
         print(f"[FAILED] Fallidos: {self.results['failed']}")
-        print(f"⏱️  Duración: {duration:.2f} segundos")
+        print(f"[TIME] Duración: {duration:.2f} segundos")
         
         if self.results['failed'] > 0:
             print("\n[ERRORS] ERRORES ENCONTRADOS:")
@@ -584,7 +584,7 @@ class DocumentosPersonalAPITest:
                 print(f"   • {error}")
         
         success_rate = (self.results['passed'] / self.results['total_tests']) * 100
-        print(f"\n🎯 Tasa de éxito: {success_rate:.1f}%")
+        print(f"\n[RATE] Tasa de éxito: {success_rate:.1f}%")
         
         return self.results['failed'] == 0
 

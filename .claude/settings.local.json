@@ -23,7 +23,9 @@
       "Bash(grep:*)",
       "Bash(dir /O:D)",
       "Bash(dir)",
-      "Bash(chcp:*)"
+      "Bash(chcp:*)",
+      "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\"\")",
+      "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

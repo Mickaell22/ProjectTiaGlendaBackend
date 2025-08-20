@@ -3,7 +3,7 @@ import uuid
 from flask import request
 from werkzeug.utils import secure_filename
 from src.utils.general.logs import HandleLogs
-from src.utils.general.response import response_success, response_error
+from src.utils.general.response import response_success, response_error, internal_response
 from src.utils.general.validators import Validators
 from src.api.Components.DocumentoPersonalComponent import DocumentoPersonalComponent
 
@@ -44,10 +44,10 @@ class DocumentoPersonalService:
             HandleLogs.write_log("DocumentoPersonalService.subir_documento - Iniciando")
             
             # Verificar que se recibió un archivo
-            if 'archivo' not in request.files:
+            if 'documento' not in request.files and 'archivo' not in request.files:
                 return response_error("No se encontró archivo en la solicitud", 400)
             
-            archivo = request.files['archivo']
+            archivo = request.files.get('documento') or request.files.get('archivo')
             if archivo.filename == '':
                 return response_error("No se seleccionó ningún archivo", 400)
             
@@ -73,8 +73,9 @@ class DocumentoPersonalService:
             if not tipo_documento or tipo_documento not in DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS:
                 return response_error(f"Tipo de documento inválido. Debe ser uno de: {', '.join(DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS)}", 400)
             
+            # Si no se proporciona nombre_documento, usar el nombre del archivo
             if not nombre_documento:
-                return response_error("Nombre del documento requerido", 400)
+                nombre_documento = archivo.filename
             
             # Validar archivo
             if not DocumentoPersonalService._allowed_file(archivo.filename):
@@ -223,6 +224,50 @@ class DocumentoPersonalService:
             HandleLogs.write_error(f"DocumentoPersonalService.actualizar_documento - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
+    @staticmethod  
+    def actualizar_documento_por_id(documento_id):
+        """Actualizar información de un documento específico por ID"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log(f"DocumentoPersonalService.actualizar_documento_por_id - Iniciando para documento {documento_id}")
+            
+            # Validar ID
+            if not isinstance(documento_id, int) or documento_id <= 0:
+                return response_error("ID de documento inválido", 400)
+            
+            descripcion = data.get('descripcion')
+            observaciones = data.get('observaciones')
+            fecha_documento = data.get('fecha_documento')
+            fecha_vencimiento = data.get('fecha_vencimiento')
+            tipo_documento = data.get('tipo_documento')
+            nombre_documento = data.get('nombre_documento')
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+            
+            # Validar tipo de documento si se proporciona
+            if tipo_documento and tipo_documento not in DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS:
+                return response_error(f"Tipo de documento inválido. Debe ser uno de: {', '.join(DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS)}", 400)
+            
+            result = DocumentoPersonalComponent.actualizar_documento_personal(
+                documento_id=documento_id,
+                tipo_documento=tipo_documento,
+                nombre_documento=nombre_documento,
+                descripcion=descripcion,
+                observaciones=observaciones,
+                fecha_documento=fecha_documento,
+                fecha_vencimiento=fecha_vencimiento,
+                usuario_id=usuario_id
+            )
+            
+            if result['success']:
+                HandleLogs.write_log(f"DocumentoPersonalService.actualizar_documento_por_id - Documento {documento_id} actualizado")
+                return response_success(result['data'], result['message'])
+            else:
+                return response_error(result['message'], 400)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.actualizar_documento_por_id - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
     @staticmethod
     def eliminar_documento(documento_id):
         """Eliminar un documento"""
@@ -297,29 +342,166 @@ class DocumentoPersonalService:
             HandleLogs.write_log(f"DocumentoPersonalService.descargar_documento - Documento ID: {documento_id}")
             
             if not documento_id or documento_id <= 0:
-                return response_error("ID de documento inválido", 400)
+                return internal_response(False, None, "ID de documento inválido")
             
             result = DocumentoPersonalComponent.get_documento_by_id(documento_id)
             
             if result['success'] and result['data']:
                 documento = result['data']
-                ruta_archivo = documento['ruta_archivo']
+                HandleLogs.write_log(f"DocumentoPersonalService.descargar_documento - Documento encontrado: {documento}")
+                
+                ruta_archivo = documento.get('ruta_archivo')
+                if not ruta_archivo:
+                    HandleLogs.write_error(f"DocumentoPersonalService.descargar_documento - No hay ruta_archivo en documento: {documento}")
+                    return internal_response(False, None, "Ruta de archivo no encontrada")
+                
+                HandleLogs.write_log(f"DocumentoPersonalService.descargar_documento - Verificando archivo: {ruta_archivo}")
                 
                 # Verificar que el archivo existe
                 if not os.path.exists(ruta_archivo):
                     HandleLogs.write_error(f"DocumentoPersonalService.descargar_documento - Archivo no encontrado: {ruta_archivo}")
-                    return response_error("Archivo no encontrado en el servidor", 404)
+                    return internal_response(False, None, "Archivo no encontrado en el servidor")
                 
-                return response_success({
+                return internal_response(True, {
                     'documento_id': documento_id,
                     'ruta_archivo': ruta_archivo,
                     'nombre_archivo': documento['nombre_archivo'],
-                    'nombre_documento': documento['nombre_documento'],
-                    'tipo_mime': documento['tipo_mime']
+                    'descripcion': documento.get('descripcion', 'Documento'),
+                    'tipo_mime': documento.get('tipo_mime', 'application/pdf')
                 }, "Información del archivo obtenida")
             else:
-                return response_error("Documento no encontrado", 404)
+                return internal_response(False, None, "Documento no encontrado")
                 
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalService.descargar_documento - Error: {str(e)}")
+            return internal_response(False, None, f"Error interno: {str(e)}")
+
+    @staticmethod
+    def obtener_tipos_documentos():
+        """Obtener tipos de documentos soportados"""
+        try:
+            HandleLogs.write_log("DocumentoPersonalService.obtener_tipos_documentos - Iniciando")
+            
+            tipos_data = {
+                'tipos_documento': DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS,
+                'extensiones_permitidas': list(DocumentoPersonalService.ALLOWED_EXTENSIONS),
+                'tamanio_maximo_mb': DocumentoPersonalService.MAX_FILE_SIZE / (1024*1024)
+            }
+            
+            return response_success(tipos_data, "Tipos de documentos obtenidos exitosamente")
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.obtener_tipos_documentos - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def obtener_documentos_vencimientos(dias_alerta=90):
+        """Obtener documentos próximos a vencer"""
+        try:
+            HandleLogs.write_log("DocumentoPersonalService.obtener_documentos_vencimientos - Iniciando")
+            
+            result = DocumentoPersonalComponent.obtener_documentos_vencimientos(dias_alerta)
+            
+            if result['success']:
+                return response_success(result['data'], f"Documentos próximos a vencer obtenidos ({dias_alerta} días)")
+            else:
+                return response_error(result['message'], 500)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.obtener_documentos_vencimientos - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def obtener_documentos_pendientes_validacion():
+        """Obtener documentos pendientes de validación"""
+        try:
+            HandleLogs.write_log("DocumentoPersonalService.obtener_documentos_pendientes_validacion - Iniciando")
+            
+            result = DocumentoPersonalComponent.obtener_documentos_pendientes_validacion()
+            
+            if result['success']:
+                return response_success(result['data'], "Documentos pendientes de validación obtenidos")
+            else:
+                return response_error(result['message'], 500)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.obtener_documentos_pendientes_validacion - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def obtener_estadisticas_documentos():
+        """Obtener estadísticas de documentos de personal"""
+        try:
+            HandleLogs.write_log("DocumentoPersonalService.obtener_estadisticas_documentos - Iniciando")
+            
+            result = DocumentoPersonalComponent.obtener_estadisticas_documentos()
+            
+            if result['success']:
+                return response_success(result['data'], "Estadísticas de documentos obtenidas")
+            else:
+                return response_error(result['message'], 500)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.obtener_estadisticas_documentos - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def buscar_documentos():
+        """Buscar documentos con filtros avanzados"""
+        try:
+            HandleLogs.write_log("DocumentoPersonalService.buscar_documentos - Iniciando")
+            
+            tipo_documento = request.args.get('tipo_documento')
+            estado_validacion = request.args.get('estado_validacion')
+            q = request.args.get('q')  # texto de búsqueda
+            
+            result = DocumentoPersonalComponent.buscar_documentos(
+                tipo_documento=tipo_documento,
+                estado_validacion=estado_validacion,
+                texto_busqueda=q
+            )
+            
+            if result['success']:
+                return response_success(result['data'], "Búsqueda de documentos completada")
+            else:
+                return response_error(result['message'], 500)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.buscar_documentos - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def validar_documento(documento_id):
+        """Validar documento de personal"""
+        try:
+            HandleLogs.write_log(f"DocumentoPersonalService.validar_documento - Iniciando para documento {documento_id}")
+            
+            data = request.get_json()
+            estado_validacion = data.get('estado_validacion')
+            observaciones_validacion = data.get('observaciones_validacion')
+            validado_por_raw = data.get('validado_por')
+            
+            # Convertir validado_por a entero o usar usuario por defecto
+            try:
+                validado_por = int(validado_por_raw) if validado_por_raw and validado_por_raw.isdigit() else 25
+            except (ValueError, AttributeError):
+                validado_por = 25  # Usuario admin existente por defecto
+            
+            if not estado_validacion or estado_validacion not in ['aprobado', 'rechazado', 'pendiente']:
+                return response_error("Estado de validación inválido", 400)
+            
+            result = DocumentoPersonalComponent.validar_documento(
+                documento_id=documento_id,
+                estado_validacion=estado_validacion,
+                observaciones_validacion=observaciones_validacion,
+                validado_por=validado_por
+            )
+            
+            if result['success']:
+                return response_success(result['data'], f"Documento {estado_validacion} exitosamente")
+            else:
+                return response_error(result['message'], 500)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"DocumentoPersonalService.validar_documento - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
