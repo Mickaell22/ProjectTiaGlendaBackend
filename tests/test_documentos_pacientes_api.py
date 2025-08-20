@@ -64,15 +64,15 @@ class TestDocumentosPacientesAPI:
             'details': details
         }
         self.test_results.append(result)
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = "[PASS]" if success else "[FAIL]"
         print(f"{status} {test_name}: {message}")
         if details and not success:
             print(f"    Detalles: {details}")
 
-    def authenticate(self, usuario="admin", password="admin123"):
+    def authenticate(self, usuario="admin.norte", password="admin123"):
         """Autenticarse y obtener token"""
         try:
-            print("🔐 Iniciando autenticación...")
+            print("[AUTH] Iniciando autenticación...")
             
             response = requests.post(f"{self.base_url}/api/login", json={
                 "usuario": usuario,
@@ -265,7 +265,7 @@ class TestDocumentosPacientesAPI:
             update_data = {
                 'descripcion': 'Historia clínica actualizada para testing',
                 'es_confidencial': False,
-                'tipo_documento': 'examenes_medicos'
+                'tipo_documento': 'informe_progreso'
             }
             
             response = requests.put(
@@ -372,7 +372,7 @@ class TestDocumentosPacientesAPI:
 
     def run_all_tests(self):
         """Ejecutar todas las pruebas"""
-        print("🚀 Iniciando pruebas de API de Documentos de Pacientes")
+        print(">> Iniciando pruebas de API de Documentos de Pacientes")
         print("=" * 60)
         
         # Limpiar resultados anteriores
@@ -380,12 +380,12 @@ class TestDocumentosPacientesAPI:
         
         # Autenticación
         if not self.authenticate():
-            print("❌ No se pudo autenticar. Abortando pruebas.")
+            print("[ERROR] No se pudo autenticar. Abortando pruebas.")
             return False
         
         # Preparar paciente de prueba
         if not self.preparar_paciente_prueba():
-            print("❌ No se pudo preparar paciente de prueba. Abortando pruebas.")
+            print("[ERROR] No se pudo preparar paciente de prueba. Abortando pruebas.")
             return False
         
         # Ejecutar pruebas en orden
@@ -414,7 +414,7 @@ class TestDocumentosPacientesAPI:
     def print_summary(self):
         """Imprimir resumen de resultados"""
         print("\n" + "=" * 60)
-        print("📊 RESUMEN DE PRUEBAS - DOCUMENTOS DE PACIENTES")
+        print("[SUMMARY] RESUMEN DE PRUEBAS - DOCUMENTOS DE PACIENTES")
         print("=" * 60)
         
         total_tests = len(self.test_results)
@@ -422,12 +422,12 @@ class TestDocumentosPacientesAPI:
         failed_tests = total_tests - passed_tests
         
         print(f"Total de pruebas: {total_tests}")
-        print(f"✅ Pasaron: {passed_tests}")
-        print(f"❌ Fallaron: {failed_tests}")
+        print(f"[PASSED] Pasaron: {passed_tests}")
+        print(f"[FAILED] Fallaron: {failed_tests}")
         print(f"Porcentaje de éxito: {(passed_tests/total_tests)*100:.1f}%")
         
         if failed_tests > 0:
-            print("\n❌ PRUEBAS FALLIDAS:")
+            print("\n[FAILED TESTS] PRUEBAS FALLIDAS:")
             for result in self.test_results:
                 if not result['success']:
                     print(f"  - {result['test']}: {result['message']}")
@@ -443,17 +443,17 @@ def main():
         success = tester.run_all_tests()
         
         if success:
-            print("🎉 ¡Todas las pruebas pasaron exitosamente!")
+            print("[SUCCESS] ¡Todas las pruebas pasaron exitosamente!")
             return 0
         else:
-            print("⚠️  Algunas pruebas fallaron. Revisar logs arriba.")
+            print("[WARNING] Algunas pruebas fallaron. Revisar logs arriba.")
             return 1
             
     except KeyboardInterrupt:
-        print("\n⚠️  Pruebas interrumpidas por el usuario")
+        print("\n[INTERRUPTED] Pruebas interrumpidas por el usuario")
         return 1
     except Exception as e:
-        print(f"\n❌ Error inesperado: {str(e)}")
+        print(f"\n[ERROR] Error inesperado: {str(e)}")
         return 1
 
 

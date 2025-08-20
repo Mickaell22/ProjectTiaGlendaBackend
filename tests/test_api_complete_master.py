@@ -28,7 +28,7 @@ def print_header():
     print("=" * 80)
     print(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Servidor: {BASE_URL}")
-    print(f"Modulos a probar: 8 modulos completos")
+    print(f"Modulos a probar: 17 modulos completos (8 base + 9 nuevos)")
     print("=" * 80)
 
 
@@ -66,7 +66,7 @@ def test_login_master():
     global token
 
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 
@@ -219,6 +219,12 @@ def test_integration_endpoints():
         ("GET", "/api/roles", "Listar roles"),
         ("GET", "/api/tutores", "Listar tutores"),
         ("GET", "/api/pacientes", "Listar pacientes"),
+        ("GET", "/api/sesiones-terapia", "Listar sesiones terapéuticas"),
+        ("GET", "/api/sesiones-pedagogicas", "Listar sesiones pedagógicas"),
+        ("GET", "/api/chat/usuarios-disponibles", "Usuarios disponibles chat"),
+        ("GET", "/api/fotos-perfil/formatos", "Formatos fotos perfil"),
+        ("GET", "/api/documentos-personal/tipos", "Tipos documentos personal"),
+        ("GET", "/api/control-pausas/estadisticas", "Estadísticas pausas"),
     ]
 
     integration_results = {}
@@ -379,6 +385,7 @@ def main():
 
     # Lista de módulos a ejecutar en orden
     modules_to_test = [
+        # Módulos base existentes
         ("AUTENTICACIÓN", "test_autenticacion_api.py"),
         ("ROLES", "test_roles_api.py"),
         ("PERSONAS", "test_personas_api.py"),
@@ -386,7 +393,18 @@ def main():
         ("PERSONAL", "test_personal_api.py"),
         ("TUTORES", "test_tutores_api.py"),
         ("PACIENTES", "test_pacientes_api.py"),
-        ("USUARIOS", "test_usuarios_api.py")
+        ("USUARIOS", "test_usuarios_api.py"),
+        ("SESIONES TERAPIA", "test_sesiones_terapia_api.py"),
+        ("SESIONES PEDAGÓGICAS", "test_sesiones_pedagogicas_api.py"),
+        ("DOCUMENTOS PACIENTES", "test_documentos_pacientes_api.py"),
+        
+        # Nuevos módulos (Fases 2-3)
+        ("CHAT INTERNO", "test_chat_api.py"),
+        ("FOTOS DE PERFIL", "test_fotos_perfil_api.py"),
+        ("OBSERVACIONES", "test_observaciones_api.py"),
+        ("ESPECIALIDADES MÚLTIPLES", "test_especialidades_multiples_api.py"),
+        ("DOCUMENTOS PERSONAL", "test_documentos_personal_api.py"),
+        ("CONTROL DE PAUSAS", "test_control_pausas_api.py")
     ]
 
     # Ejecutar cada módulo

@@ -31,7 +31,7 @@ def test_login_exitoso():
     global valid_token, user_info
 
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 
@@ -78,7 +78,7 @@ def test_login_credenciales_invalidas():
         },
         {
             "name": "contraseña incorrecta",
-            "data": {"usuario": "admin", "contrasenia": "contraseña_incorrecta"},
+            "data": {"usuario": "admin.norte", "contrasenia": "contraseña_incorrecta"},
             "expected_status": 401
         },
         {
@@ -88,7 +88,7 @@ def test_login_credenciales_invalidas():
         },
         {
             "name": "contraseña vacía",
-            "data": {"usuario": "admin", "contrasenia": ""},
+            "data": {"usuario": "admin.norte", "contrasenia": ""},
             "expected_status": 400
         },
         {
@@ -98,7 +98,7 @@ def test_login_credenciales_invalidas():
         },
         {
             "name": "sin contraseña",
-            "data": {"usuario": "admin"},
+            "data": {"usuario": "admin.norte"},
             "expected_status": 400
         },
         {
@@ -108,7 +108,7 @@ def test_login_credenciales_invalidas():
         },
         {
             "name": "SQL injection intento",
-            "data": {"usuario": "admin'; DROP TABLE usuarios; --", "contrasenia": "admin123"},
+            "data": {"usuario": "admin.norte'; DROP TABLE usuarios; --", "contrasenia": "admin123"},
             "expected_status": 400  # Sistema detecta como datos inválidos, no credenciales incorrectas
         }
     ]
@@ -334,7 +334,7 @@ def test_flujo_completo_autenticacion():
 
     # 1. Login
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 
@@ -474,7 +474,7 @@ def test_seguridad_avanzada():
             response = requests.post(
                 f"{BASE_URL}/api/login",
                 headers=HEADERS,
-                json={"usuario": "admin", "contrasenia": "admin123"},
+                json={"usuario": "admin.norte", "contrasenia": "admin123"},
                 timeout=10
             )
             results.append(response.status_code == 200)
