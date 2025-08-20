@@ -1,0 +1,13 @@
+# CONFIGURACIÓN DE BASE DE DATOS
+# Centro Tía Glenda
+# 
+# INSTRUCCIONES:
+# 1. Cambiar los valores según tu configuración de PostgreSQL
+# 2. Guardar el archivo
+# 3. Ejecutar EJECUTAR.bat
+
+HOST=localhost
+PORT=5432
+DATABASE=centro_tia_glenda
+USER=postgres
+PASSWORD=1234
