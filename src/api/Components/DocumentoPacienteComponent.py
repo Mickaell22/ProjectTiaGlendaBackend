@@ -12,13 +12,13 @@ class DocumentoPacienteComponent:
             
             query = """
                 INSERT INTO documentos_paciente (
-                    paciente_id, nombre_archivo, nombre_original, ruta_archivo,
-                    tipo_documento, tamaño_archivo, tipo_mime, descripcion,
-                    es_confidencial, fecha_vencimiento, usuario_creacion
+                    id_paciente, nombre_archivo, ruta_archivo,
+                    tipo_documento, tamaño_archivo, tipo_mime, descripcion, 
+                    usuario_creacion
                 ) VALUES (
-                    %(paciente_id)s, %(nombre_archivo)s, %(nombre_original)s, %(ruta_archivo)s,
+                    %(id_paciente)s, %(nombre_archivo)s, %(ruta_archivo)s,
                     %(tipo_documento)s, %(tamaño_archivo)s, %(tipo_mime)s, %(descripcion)s,
-                    %(es_confidencial)s, %(fecha_vencimiento)s, %(usuario_creacion)s
+                    %(usuario_creacion)s
                 )
             """
 
@@ -27,8 +27,8 @@ class DocumentoPacienteComponent:
             if result:
                 HandleLogs.write_log("DocumentoPacienteComponent.create_documento - Documento creado exitosamente")
                 # Obtener el ID del documento insertado
-                query_id = "SELECT id FROM documentos_paciente WHERE paciente_id = %(paciente_id)s AND nombre_archivo = %(nombre_archivo)s ORDER BY fecha_creacion DESC LIMIT 1"
-                id_result = DataBaseHandle.getRecords(query_id, {'paciente_id': documento_data['paciente_id'], 'nombre_archivo': documento_data['nombre_archivo']})
+                query_id = "SELECT id FROM documentos_paciente WHERE id_paciente = %(id_paciente)s AND nombre_archivo = %(nombre_archivo)s ORDER BY fecha_creacion DESC LIMIT 1"
+                id_result = DataBaseHandle.getRecords(query_id, {'id_paciente': documento_data['id_paciente'], 'nombre_archivo': documento_data['nombre_archivo']})
                 
                 documento_id = id_result[0]['id'] if id_result else None
                 return {
@@ -61,17 +61,14 @@ class DocumentoPacienteComponent:
             query = """
                 SELECT 
                     dp.id,
-                    dp.paciente_id,
+                    dp.id_paciente,
                     dp.nombre_archivo,
-                    dp.nombre_original,
+                    dp.nombre_archivo as nombre_original,
                     dp.ruta_archivo,
                     dp.tipo_documento,
                     dp.tamaño_archivo,
                     dp.tipo_mime,
                     dp.descripcion,
-                    dp.es_confidencial,
-                    dp.fecha_vencimiento,
-                    dp.estado,
                     dp.fecha_creacion,
                     dp.fecha_modificacion,
                     u_creacion.usuario as usuario_creacion_nombre,
@@ -79,8 +76,7 @@ class DocumentoPacienteComponent:
                 FROM documentos_paciente dp
                 LEFT JOIN usuario u_creacion ON dp.usuario_creacion = u_creacion.id
                 LEFT JOIN usuario u_modificacion ON dp.usuario_modificacion = u_modificacion.id
-                WHERE dp.paciente_id = %(paciente_id)s 
-                  AND dp.estado != 'eliminado'
+                WHERE dp.id_paciente = %(paciente_id)s 
                 ORDER BY dp.fecha_creacion DESC
             """
 
@@ -132,23 +128,19 @@ class DocumentoPacienteComponent:
             query = """
                 SELECT 
                     dp.id,
-                    dp.paciente_id,
+                    dp.id_paciente,
                     dp.nombre_archivo,
-                    dp.nombre_original,
+                    dp.nombre_archivo as nombre_original,
                     dp.ruta_archivo,
                     dp.tipo_documento,
                     dp.tamaño_archivo,
                     dp.tipo_mime,
                     dp.descripcion,
-                    dp.es_confidencial,
-                    dp.fecha_vencimiento,
-                    dp.estado,
                     dp.fecha_creacion,
                     dp.fecha_modificacion
                 FROM documentos_paciente dp
                 WHERE dp.id = %(documento_id)s 
-                  AND dp.paciente_id = %(paciente_id)s
-                  AND dp.estado != 'eliminado'
+                  AND dp.id_paciente = %(paciente_id)s
             """
 
             result = DataBaseHandle.getRecordsWithStatus(query, {
@@ -197,12 +189,10 @@ class DocumentoPacienteComponent:
                 SET 
                     tipo_documento = %(tipo_documento)s,
                     descripcion = %(descripcion)s,
-                    es_confidencial = %(es_confidencial)s,
-                    fecha_vencimiento = %(fecha_vencimiento)s,
                     usuario_modificacion = %(usuario_modificacion)s,
                     fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id = %(documento_id)s 
-                  AND paciente_id = %(paciente_id)s
+                  AND id_paciente = %(paciente_id)s
             """
             
             parametros = {
@@ -247,7 +237,7 @@ class DocumentoPacienteComponent:
                     estado = 'eliminado',
                     fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id = %(documento_id)s 
-                  AND paciente_id = %(paciente_id)s
+                  AND id_paciente = %(paciente_id)s
             """
 
             result = DataBaseHandle.ExecuteNonQuery(query, {
@@ -286,12 +276,11 @@ class DocumentoPacienteComponent:
             query = """
                 SELECT 
                     COUNT(*) as total_documentos,
-                    COUNT(CASE WHEN estado = 'activo' THEN 1 END) as documentos_activos,
-                    COUNT(CASE WHEN es_confidencial = true THEN 1 END) as documentos_confidenciales,
+                    COUNT(*) as documentos_activos,
+                    0 as documentos_confidenciales,
                     tipo_documento,
                     COUNT(*) as cantidad_por_tipo
-                FROM documentos_paciente 
-                WHERE estado != 'eliminado'
+                FROM documentos_paciente dp
                 GROUP BY tipo_documento
             """
 

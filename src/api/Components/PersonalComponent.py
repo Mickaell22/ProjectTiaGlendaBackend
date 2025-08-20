@@ -1,6 +1,7 @@
 from src.utils.database.connection_db import DataBaseHandle
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import internal_response
+from src.utils.general.centro_middleware import CentroMiddleware
 
 
 class PersonalComponent:
@@ -9,11 +10,12 @@ class PersonalComponent:
     def get_all_personal():
         """Obtener todo el personal con información completa incluyendo especialidades"""
         try:
-            # Obtener información básica del personal
+            # Obtener información básica del personal con información del centro
             query = """
             SELECT 
                 p.id,
-                p.titulo_profesional,
+                p.cargo as titulo_profesional,
+                p.id_centro,
                 p.estado,
                 p.fecha_creacion,
                 p.fecha_modificacion,
@@ -27,12 +29,17 @@ class PersonalComponent:
                 pe.direccion,
                 u.id as usuario_id,
                 u.usuario as nombre_usuario,
-                r.nombre as rol_usuario
+                r.nombre as rol_usuario,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno
             FROM personal p
             INNER JOIN persona pe ON p.persona_id = pe.id
             LEFT JOIN usuario u ON pe.id = u.persona_id
             LEFT JOIN rol r ON u.rol_id = r.id
-            ORDER BY pe.nombre, pe.apellido
+            LEFT JOIN centros c ON p.id_centro = c.id
+            WHERE p.estado != 'eliminado'
+            ORDER BY c.nombre, pe.nombre, pe.apellido
             """
 
             personal = DataBaseHandle.getRecords(query)
@@ -44,12 +51,12 @@ class PersonalComponent:
                     SELECT 
                         e.id,
                         e.nombre,
-                        e.area,
+                        e.descripcion as area,
                         ps.fecha_creacion as fecha_asignacion
-                    FROM personal_especialidad ps
-                    INNER JOIN especialidad e ON ps.especialidad_id = e.id
-                    WHERE ps.personal_id = %s AND e.estado = 'activo'
-                    ORDER BY e.area, e.nombre
+                    FROM personal_especialidades ps
+                    INNER JOIN especialidad e ON ps.id_especialidad = e.id
+                    WHERE ps.id_personal = %s AND e.estado = 'activo'
+                    ORDER BY e.descripcion as area, e.nombre
                     """
                     
                     especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
@@ -73,7 +80,7 @@ class PersonalComponent:
             query_personal = """
             SELECT 
                 p.id,
-                p.titulo_profesional,
+                p.cargo as titulo_profesional,
                 p.estado,
                 p.fecha_creacion,
                 p.fecha_modificacion,
@@ -104,12 +111,12 @@ class PersonalComponent:
                 SELECT 
                     e.id,
                     e.nombre,
-                    e.area,
+                    e.descripcion as area,
                     ps.fecha_creacion as fecha_asignacion
-                FROM personal_especialidad ps
-                INNER JOIN especialidad e ON ps.especialidad_id = e.id
-                WHERE ps.personal_id = %s AND e.estado = 'activo'
-                ORDER BY e.area, e.nombre
+                FROM personal_especialidades ps
+                INNER JOIN especialidad e ON ps.id_especialidad = e.id
+                WHERE ps.id_personal = %s AND e.estado = 'activo'
+                ORDER BY e.descripcion as area, e.nombre
                 """
 
                 especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_id,))
@@ -302,7 +309,7 @@ class PersonalComponent:
 
             # Verificar que no esté ya asignada
             assignment_check = """
-                SELECT id FROM personal_especialidad 
+                SELECT id FROM personal_especialidades 
                 WHERE personal_id = %s AND especialidad_id = %s
             """
             existing = DataBaseHandle.getRecords(assignment_check, (personal_id, especialidad_id), size=1)
@@ -312,7 +319,7 @@ class PersonalComponent:
 
             # Asignar especialidad
             insert_query = """
-                INSERT INTO personal_especialidad (personal_id, especialidad_id, usuario_creacion)
+                INSERT INTO personal_especialidades (personal_id, especialidad_id, usuario_creacion)
                 VALUES (%s, %s, %s)
                 RETURNING id
             """
@@ -336,7 +343,7 @@ class PersonalComponent:
         try:
             # Verificar que la asignación existe
             assignment_check = """
-                SELECT id FROM personal_especialidad 
+                SELECT id FROM personal_especialidades 
                 WHERE personal_id = %s AND especialidad_id = %s
             """
             existing = DataBaseHandle.getRecords(assignment_check, (personal_id, especialidad_id), size=1)
@@ -346,7 +353,7 @@ class PersonalComponent:
 
             # Quitar asignación
             delete_query = """
-                DELETE FROM personal_especialidad 
+                DELETE FROM personal_especialidades 
                 WHERE personal_id = %s AND especialidad_id = %s
             """
 
@@ -370,19 +377,19 @@ class PersonalComponent:
             query = """
             SELECT DISTINCT
                 p.id,
-                p.titulo_profesional,
+                p.cargo as titulo_profesional,
                 p.estado,
                 pe.id as persona_id,
                 CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
                 pe.nombre,
                 pe.apellido,
                 pe.correo,
-                COUNT(ps.especialidad_id) as especialidades_en_area
+                COUNT(ps.id_especialidad) as especialidades_en_area
             FROM personal p
             INNER JOIN persona pe ON p.persona_id = pe.id
-            INNER JOIN personal_especialidad ps ON p.id = ps.personal_id
-            INNER JOIN especialidad e ON ps.especialidad_id = e.id
-            WHERE e.area = %s AND p.estado = 'activo' AND e.estado = 'activo'
+            INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
+            INNER JOIN especialidad e ON ps.id_especialidad = e.id
+            WHERE e.descripcion as area = %s AND p.estado = 'activo' AND e.estado = 'activo'
             GROUP BY p.id, p.titulo_profesional, p.estado, pe.id, pe.nombre, pe.apellido, pe.correo
             ORDER BY pe.nombre, pe.apellido
             """
@@ -421,14 +428,14 @@ class PersonalComponent:
             # Estadísticas por área
             query_areas = """
             SELECT 
-                e.area,
+                e.descripcion as area,
                 COUNT(DISTINCT p.id) as personal_por_area
             FROM personal p
-            INNER JOIN personal_especialidad ps ON p.id = ps.personal_id
-            INNER JOIN especialidad e ON ps.especialidad_id = e.id
+            INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
+            INNER JOIN especialidad e ON ps.id_especialidad = e.id
             WHERE p.estado = 'activo' AND e.estado = 'activo'
-            GROUP BY e.area
-            ORDER BY e.area
+            GROUP BY e.descripcion as area
+            ORDER BY e.descripcion as area
             """
 
             estadisticas_areas = DataBaseHandle.getRecords(query_areas)
@@ -447,4 +454,224 @@ class PersonalComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"PersonalComponent.get_estadisticas_personal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_personal_by_centro(centro_id):
+        """Obtener personal filtrado por centro"""
+        try:
+            query = """
+            SELECT 
+                p.id,
+                p.cargo as titulo_profesional,
+                p.id_centro,
+                p.estado,
+                p.fecha_creacion,
+                p.fecha_modificacion,
+                pe.id as persona_id,
+                CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
+                pe.nombre,
+                pe.apellido,
+                pe.cedula,
+                pe.telefono,
+                pe.correo,
+                pe.direccion,
+                u.id as usuario_id,
+                u.usuario as nombre_usuario,
+                r.nombre as rol_usuario,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno
+            FROM personal p
+            INNER JOIN persona pe ON p.persona_id = pe.id
+            LEFT JOIN usuario u ON pe.id = u.persona_id
+            LEFT JOIN rol r ON u.rol_id = r.id
+            INNER JOIN centros c ON p.id_centro = c.id
+            WHERE p.estado != 'eliminado' AND p.id_centro = %s
+            ORDER BY pe.nombre, pe.apellido
+            """
+
+            personal = DataBaseHandle.getRecords(query, (centro_id,))
+
+            if personal is not None:
+                # Para cada miembro del personal, obtener sus especialidades
+                for i, personal_item in enumerate(personal):
+                    query_especialidades = """
+                    SELECT 
+                        e.id,
+                        e.nombre,
+                        e.descripcion as area,
+                        ps.fecha_creacion as fecha_asignacion
+                    FROM personal_especialidades ps
+                    INNER JOIN especialidad e ON ps.id_especialidad = e.id
+                    WHERE ps.id_personal = %s AND e.estado = 'activo'
+                    ORDER BY e.descripcion as area, e.nombre
+                    """
+                    
+                    especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
+                    personal[i]['especialidades'] = especialidades if especialidades else []
+                    personal[i]['total_especialidades'] = len(personal[i]['especialidades'])
+
+                HandleLogs.write_log(f"PersonalComponent.get_personal_by_centro - {len(personal)} miembros del personal encontrados para centro {centro_id}")
+                return internal_response(True, personal, "Personal obtenido correctamente")
+            else:
+                HandleLogs.write_error("PersonalComponent.get_personal_by_centro - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.get_personal_by_centro - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def agregar_especialidad_personal(personal_id, especialidad_id, usuario_id):
+        """Agregar una especialidad a un miembro del personal"""
+        try:
+            # Verificar que no exista ya la asociación
+            query_check = """
+            SELECT id FROM personal_especialidades 
+            WHERE personal_id = %s AND especialidad_id = %s
+            """
+            
+            existing = DataBaseHandle.getRecords(query_check, (personal_id, especialidad_id), size=1)
+            
+            if existing:
+                HandleLogs.write_log(f"PersonalComponent.agregar_especialidad_personal - Especialidad {especialidad_id} ya existe para personal {personal_id}")
+                return internal_response(False, None, "La especialidad ya está asignada a este personal")
+            
+            # Insertar nueva especialidad
+            query_insert = """
+            INSERT INTO personal_especialidades (personal_id, especialidad_id, usuario_creacion)
+            VALUES (%s, %s, %s)
+            """
+            
+            success = DataBaseHandle.ExecuteNonQuery(query_insert, (personal_id, especialidad_id, usuario_id))
+            
+            if success:
+                HandleLogs.write_log(f"PersonalComponent.agregar_especialidad_personal - Especialidad {especialidad_id} agregada a personal {personal_id}")
+                return internal_response(True, {"personal_id": personal_id, "especialidad_id": especialidad_id}, "Especialidad agregada exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonalComponent.agregar_especialidad_personal - Error agregando especialidad {especialidad_id} a personal {personal_id}")
+                return internal_response(False, None, "Error agregando especialidad")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.agregar_especialidad_personal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def remover_especialidad_personal(personal_id, especialidad_id):
+        """Remover una especialidad de un miembro del personal"""
+        try:
+            query_delete = """
+            DELETE FROM personal_especialidades 
+            WHERE personal_id = %s AND especialidad_id = %s
+            """
+            
+            success = DataBaseHandle.ExecuteNonQuery(query_delete, (personal_id, especialidad_id))
+            
+            if success:
+                HandleLogs.write_log(f"PersonalComponent.remover_especialidad_personal - Especialidad {especialidad_id} removida de personal {personal_id}")
+                return internal_response(True, {"personal_id": personal_id, "especialidad_id": especialidad_id}, "Especialidad removida exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonalComponent.remover_especialidad_personal - Error removiendo especialidad {especialidad_id} de personal {personal_id}")
+                return internal_response(False, None, "Error removiendo especialidad")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.remover_especialidad_personal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_personal_by_especialidad(especialidad_id, centro_id=None):
+        """Obtener personal por especialidad, opcionalmente filtrado por centro"""
+        try:
+            if centro_id:
+                query = """
+                SELECT 
+                    p.id,
+                    p.cargo as titulo_profesional,
+                    p.id_centro,
+                    pe.id as persona_id,
+                    CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
+                    pe.nombre,
+                    pe.apellido,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    e.nombre as especialidad_nombre,
+                    e.descripcion as area as especialidad_area
+                FROM personal p
+                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
+                INNER JOIN especialidad e ON ps.id_especialidad = e.id
+                INNER JOIN centros c ON p.id_centro = c.id
+                WHERE ps.id_especialidad = %s AND p.id_centro = %s AND p.estado = 'activo'
+                ORDER BY pe.nombre, pe.apellido
+                """
+                params = (especialidad_id, centro_id)
+            else:
+                query = """
+                SELECT 
+                    p.id,
+                    p.cargo as titulo_profesional,
+                    p.id_centro,
+                    pe.id as persona_id,
+                    CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
+                    pe.nombre,
+                    pe.apellido,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    e.nombre as especialidad_nombre,
+                    e.descripcion as area as especialidad_area
+                FROM personal p
+                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
+                INNER JOIN especialidad e ON ps.id_especialidad = e.id
+                INNER JOIN centros c ON p.id_centro = c.id
+                WHERE ps.id_especialidad = %s AND p.estado = 'activo'
+                ORDER BY c.nombre, pe.nombre, pe.apellido
+                """
+                params = (especialidad_id,)
+
+            personal = DataBaseHandle.getRecords(query, params)
+
+            if personal is not None:
+                HandleLogs.write_log(f"PersonalComponent.get_personal_by_especialidad - {len(personal)} miembros del personal encontrados para especialidad {especialidad_id}")
+                return internal_response(True, personal, "Personal obtenido correctamente")
+            else:
+                HandleLogs.write_error("PersonalComponent.get_personal_by_especialidad - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.get_personal_by_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_especialidades_disponibles(personal_id):
+        """Obtener especialidades que no están asignadas a un personal específico"""
+        try:
+            query = """
+            SELECT 
+                e.id,
+                e.nombre,
+                e.descripcion as area,
+                e.descripcion
+            FROM especialidad e
+            WHERE e.estado = 'activo' 
+            AND e.id NOT IN (
+                SELECT ps.id_especialidad 
+                FROM personal_especialidades ps 
+                WHERE ps.id_personal = %s
+            )
+            ORDER BY e.descripcion as area, e.nombre
+            """
+
+            especialidades = DataBaseHandle.getRecords(query, (personal_id,))
+
+            if especialidades is not None:
+                HandleLogs.write_log(f"PersonalComponent.get_especialidades_disponibles - {len(especialidades)} especialidades disponibles para personal {personal_id}")
+                return internal_response(True, especialidades, "Especialidades disponibles obtenidas correctamente")
+            else:
+                HandleLogs.write_error("PersonalComponent.get_especialidades_disponibles - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.get_especialidades_disponibles - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")

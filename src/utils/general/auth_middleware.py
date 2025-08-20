@@ -135,7 +135,9 @@ def token_required(f):
                 'usuario': user_info['usuario'],
                 'rol': user_info['rol'],
                 'rol_id': user_info['rol_id'],
-                'nombre_completo': user_info['nombre_completo']
+                'nombre_completo': user_info['nombre_completo'],
+                'estado': user_info.get('estado', 'activo'),
+                'id_centro': user_info.get('id_centro')
             }
 
             return f(*args, **kwargs)

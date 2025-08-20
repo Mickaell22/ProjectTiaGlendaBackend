@@ -4,6 +4,7 @@ from src.utils.general.response import response_success, response_error
 from src.utils.general.security import SecurityUtils
 from src.utils.general.validators import Validators
 from src.api.Components.LoginComponent import LoginComponent
+from src.api.Service.CentroService import CentroService
 
 
 class LoginService:
@@ -53,12 +54,13 @@ class LoginService:
                 HandleLogs.write_log(f"LoginService.login - Contrasena incorrecta para: {username}")
                 return response_error("Credenciales invalidas", 401)
 
-            # Generar token JWT
+            # Generar token JWT incluyendo información del centro
             token_data = {
                 'id': user['id'],
                 'usuario': user['usuario'],
                 'rol': user['rol'],
-                'nombre_completo': user['nombre_completo']
+                'nombre_completo': user['nombre_completo'],
+                'id_centro': user['id_centro']
             }
 
             token = SecurityUtils.generate_token(token_data)
@@ -70,7 +72,7 @@ class LoginService:
             # Actualizar ultimo acceso
             LoginComponent.update_last_access(user['id'])
 
-            # Respuesta exitosa
+            # Respuesta exitosa con información del centro
             response_data = {
                 'token': token,
                 'user': {
@@ -78,7 +80,13 @@ class LoginService:
                     'usuario': user['usuario'],
                     'nombre_completo': user['nombre_completo'],
                     'rol': user['rol'],
-                    'correo': user['correo']
+                    'correo': user['correo'],
+                    'centro': {
+                        'id': user['id_centro'],
+                        'nombre': user['centro_nombre'],
+                        'codigo': user['centro_codigo'],
+                        'turno': user['centro_turno']
+                    }
                 }
             }
 
@@ -121,3 +129,20 @@ class LoginService:
         except Exception as e:
             HandleLogs.write_error(f"LoginService.verify_token - Error: {str(e)}")
             return response_error("Error verificando token", 500)
+
+    @staticmethod
+    def get_centros_disponibles():
+        """Obtener lista de centros disponibles para el selector de login"""
+        try:
+            HandleLogs.write_log("LoginService.get_centros_disponibles - Solicitando centros para login")
+            
+            result = CentroService.get_centros_for_login()
+            
+            if result["success"]:
+                return response_success(result["data"], result["message"])
+            else:
+                return response_error(result["message"], 500)
+                
+        except Exception as e:
+            HandleLogs.write_error(f"LoginService.get_centros_disponibles - Error: {str(e)}")
+            return response_error("Error obteniendo centros disponibles", 500)

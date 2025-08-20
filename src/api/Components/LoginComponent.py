@@ -16,13 +16,18 @@ class LoginComponent:
                 u.usuario,
                 u.contrasenia,
                 u.estado,
+                u.id_centro,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.correo,
                 r.nombre as rol,
-                r.id as rol_id
+                r.id as rol_id,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno
             FROM usuario u
             INNER JOIN persona p ON u.persona_id = p.id
             INNER JOIN rol r ON u.rol_id = r.id
+            LEFT JOIN centros c ON u.id_centro = c.id
             WHERE u.usuario = %s
             """
 
@@ -67,13 +72,18 @@ class LoginComponent:
                 u.id,
                 u.usuario,
                 u.estado,
+                u.id_centro,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.correo,
                 r.nombre as rol,
-                r.id as rol_id
+                r.id as rol_id,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno
             FROM usuario u
             INNER JOIN persona p ON u.persona_id = p.id
             INNER JOIN rol r ON u.rol_id = r.id
+            LEFT JOIN centros c ON u.id_centro = c.id
             WHERE u.id = %s AND u.estado = 'activo'
             """
 

@@ -118,6 +118,12 @@ def register_routes(app):
         from src.api.Service.LoginService import LoginService
         return LoginService.login()
 
+    @app.route('/api/centros-disponibles', methods=['GET'])
+    def get_centros_disponibles():
+        """Obtener centros disponibles para selector de login"""
+        from src.api.Service.LoginService import LoginService
+        return LoginService.get_centros_disponibles()
+
     @app.route('/api/verify-token', methods=['GET'])
     @token_required
     def verify_token():
@@ -305,6 +311,183 @@ def register_routes(app):
         from src.api.Service.PersonalService import PersonalService
         return PersonalService.remove_especialidad(personal_id, especialidad_id)
 
+    # Nuevas rutas para especialidades múltiples - Fase 2
+    @app.route('/api/personal/<int:personal_id>/especialidades-multiples', methods=['GET'])
+    @token_required
+    def get_personal_especialidades_multiples(personal_id):
+        """Obtener todas las especialidades asignadas a un personal"""
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_especialidades_personal(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>/especialidades-multiples', methods=['POST'])
+    @admin_required
+    def agregar_especialidad_personal(personal_id):
+        """Agregar especialidad a un personal (especialidades múltiples)"""
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.agregar_especialidad_personal(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>/especialidades-multiples/<int:especialidad_id>', methods=['DELETE'])
+    @admin_required
+    def remover_especialidad_personal(personal_id, especialidad_id):
+        """Remover especialidad de un personal (especialidades múltiples)"""
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.remover_especialidad_personal(personal_id, especialidad_id)
+
+    @app.route('/api/personal/por-especialidad/<int:especialidad_id>', methods=['GET'])
+    @token_required
+    def get_personal_por_especialidad(especialidad_id):
+        """Obtener personal que maneja una especialidad específica"""
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_personal_por_especialidad(especialidad_id)
+
+    @app.route('/api/personal/especialidades-disponibles', methods=['GET'])
+    @token_required
+    def get_especialidades_disponibles_personal():
+        """Obtener especialidades disponibles para asignar al personal"""
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.get_especialidades_disponibles()
+
+    # ============================================
+    # RUTAS DE DOCUMENTOS DE PERSONAL - Fase 2
+    # ============================================
+    @app.route('/api/personal/<int:personal_id>/documentos', methods=['GET'])
+    @token_required
+    def get_documentos_personal(personal_id):
+        """Obtener documentos de un miembro del personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.get_documentos_personal(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>/documentos', methods=['POST'])
+    @token_required
+    def subir_documento_personal(personal_id):
+        """Subir documento para un miembro del personal"""
+        from flask import request
+        # Agregar personal_id al form data
+        if request.form:
+            request.form = request.form.copy()
+            request.form['personal_id'] = str(personal_id)
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.subir_documento()
+
+    @app.route('/api/documentos-personal/<int:documento_id>', methods=['GET'])
+    @token_required
+    def get_documento_personal(documento_id):
+        """Obtener información específica de un documento del personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.get_documento_by_id(documento_id)
+
+    @app.route('/api/documentos-personal/<int:documento_id>', methods=['PUT'])
+    @token_required
+    def actualizar_documento_personal(documento_id):
+        """Actualizar información de un documento del personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.actualizar_documento()
+
+    @app.route('/api/documentos-personal/<int:documento_id>', methods=['DELETE'])
+    @token_required
+    def eliminar_documento_personal(documento_id):
+        """Eliminar un documento del personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.eliminar_documento(documento_id)
+
+    @app.route('/api/documentos-personal/<int:documento_id>/descargar', methods=['GET'])
+    @token_required
+    def descargar_documento_personal(documento_id):
+        """Descargar archivo de documento del personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        from flask import send_file
+        from src.utils.general.logs import HandleLogs
+        
+        result = DocumentoPersonalService.descargar_documento(documento_id)
+        
+        if result['success']:
+            try:
+                import os
+                
+                file_path = result['data']['ruta_archivo']
+                file_name = result['data']['nombre_documento']
+                mime_type = result['data']['tipo_mime']
+                
+                # Verificar que el archivo existe
+                if not os.path.exists(file_path):
+                    HandleLogs.write_error(f"descargar_documento_personal - Archivo no encontrado: {file_path}")
+                    return response_error("Archivo no encontrado en el sistema", 404)
+                
+                # Limpiar nombre de archivo
+                import urllib.parse
+                import re
+                
+                clean_filename = file_name
+                # Reemplazar caracteres acentuados
+                replacements = {
+                    'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+                    'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+                    'ñ': 'n', 'Ñ': 'N', 'ü': 'u', 'Ü': 'U'
+                }
+                
+                for original, replacement in replacements.items():
+                    clean_filename = clean_filename.replace(original, replacement)
+                
+                # Remover caracteres especiales
+                clean_filename = re.sub(r'[^\w\s\-\.\(\)]', '', clean_filename)
+                clean_filename = re.sub(r'\s+', '_', clean_filename.strip())
+                
+                HandleLogs.write_log(f"descargar_documento_personal - Descargando: {clean_filename}")
+                
+                try:
+                    # Flask 2.x+
+                    response = send_file(
+                        file_path,
+                        as_attachment=True,
+                        download_name=clean_filename,
+                        mimetype=mime_type
+                    )
+                except TypeError:
+                    # Flask 1.x
+                    response = send_file(
+                        file_path,
+                        as_attachment=True,
+                        attachment_filename=clean_filename,
+                        mimetype=mime_type
+                    )
+                
+                response.headers['Content-Disposition'] = f'attachment; filename="{clean_filename}"'
+                return response
+                        
+            except Exception as e:
+                HandleLogs.write_error(f"descargar_documento_personal - Error: {str(e)}")
+                return response_error(f"Error enviando archivo: {str(e)}", 500)
+        else:
+            return response_error(result['message'], 404 if 'no encontrado' in result['message'].lower() else 400)
+
+    @app.route('/api/documentos-personal/tipo/<tipo_documento>', methods=['GET'])
+    @token_required
+    def get_documentos_por_tipo(tipo_documento):
+        """Obtener documentos por tipo"""
+        from flask import request
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        
+        centro_id = request.args.get('centro_id')
+        if centro_id:
+            try:
+                centro_id = int(centro_id)
+            except ValueError:
+                return response_error("ID de centro inválido", 400)
+        
+        return DocumentoPersonalService.get_documentos_por_tipo(tipo_documento, centro_id)
+
+    @app.route('/api/documentos-personal/por-vencer', methods=['GET'])
+    @token_required
+    def get_documentos_por_vencer():
+        """Obtener documentos que están por vencer"""
+        from flask import request
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        
+        dias_adelanto = request.args.get('dias', 30, type=int)
+        centro_id = request.args.get('centro_id', type=int)
+        
+        return DocumentoPersonalService.get_documentos_por_vencer(dias_adelanto, centro_id)
+
     # ============================================
     # RUTAS DE USUARIOS (Protegidas)
     # ============================================
@@ -461,6 +644,75 @@ def register_routes(app):
     def delete_paciente(paciente_id):
         from src.api.Service.PacienteService import PacienteService
         return PacienteService.delete_paciente(paciente_id)
+
+    # ============================================
+    # RUTAS DE ESPECIALIDADES MÚLTIPLES PARA PACIENTES - Fase 2
+    # ============================================
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples', methods=['GET'])
+    @token_required
+    def get_paciente_especialidades_multiples(paciente_id):
+        """Obtener especialidades asignadas a un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_especialidades_paciente(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples', methods=['POST'])
+    @token_required
+    def agregar_especialidad_paciente(paciente_id):
+        """Agregar especialidad a un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.agregar_especialidad_paciente(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples/<int:especialidad_id>', methods=['DELETE'])
+    @token_required
+    def remover_especialidad_paciente(paciente_id, especialidad_id):
+        """Remover especialidad de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.remover_especialidad_paciente(paciente_id, especialidad_id)
+
+    # ============================================
+    # RUTAS DE CONTROL DE PAUSAS PARA PACIENTES - Fase 2
+    # ============================================
+    @app.route('/api/pacientes/<int:paciente_id>/pausar', methods=['PUT'])
+    @token_required
+    def pausar_paciente_general(paciente_id):
+        """Pausar paciente de forma general (todas las especialidades)"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.pausar_paciente_general(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/reactivar', methods=['PUT'])
+    @token_required
+    def reactivar_paciente_general(paciente_id):
+        """Reactivar paciente de forma general"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.reactivar_paciente_general(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples/<int:especialidad_id>/pausar', methods=['PUT'])
+    @token_required
+    def pausar_especialidad_paciente(paciente_id, especialidad_id):
+        """Pausar tratamiento de especialidad específica para un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.pausar_especialidad_paciente(paciente_id, especialidad_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples/<int:especialidad_id>/reactivar', methods=['PUT'])
+    @token_required
+    def reactivar_especialidad_paciente(paciente_id, especialidad_id):
+        """Reactivar tratamiento de especialidad específica para un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.reactivar_especialidad_paciente(paciente_id, especialidad_id)
+
+    @app.route('/api/pacientes/pausados', methods=['GET'])
+    @token_required
+    def get_pacientes_pausados():
+        """Obtener lista de pacientes pausados (general y por especialidad)"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_pacientes_pausados()
+
+    @app.route('/api/pacientes/por-especialidad/<int:especialidad_id>', methods=['GET'])
+    @token_required
+    def get_pacientes_por_especialidad(especialidad_id):
+        """Obtener pacientes que reciben tratamiento en una especialidad específica"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_pacientes_por_especialidad(especialidad_id)
 
     # ============================================
     # RUTAS DE DOCUMENTOS DE PACIENTES (Protegidas)
@@ -1226,5 +1478,644 @@ def register_routes(app):
     # REGISTRAR RUTAS DE SESIONES PEDAGÓGICAS
     # ============================================
     register_sesiones_pedagogicas_routes(app)
+
+    # ============================================
+    # RUTAS DEL SISTEMA DE CHAT
+    # ============================================
+    def register_chat_routes(app):
+        """Registrar rutas del sistema de chat"""
+        
+        @app.route('/api/chat/conversaciones', methods=['GET'])
+        @token_required
+        def get_conversaciones():
+            """Obtener lista de conversaciones del usuario"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                resultado = ChatService.obtener_conversaciones(request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['conversaciones'], "Conversaciones obtenidas exitosamente")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_conversaciones: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/chat/mensajes/<int:id_contacto>', methods=['GET'])
+        @token_required
+        def get_mensajes_conversacion(id_contacto):
+            """Obtener mensajes de una conversación específica"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                # Obtener límite de mensajes (opcional)
+                limite = request.args.get('limite', 50, type=int)
+                
+                resultado = ChatService.obtener_mensajes_conversacion(id_contacto, request.current_user, limite)
+                
+                if resultado['success']:
+                    return response_success(resultado['mensajes'], "Mensajes obtenidos exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_mensajes_conversacion: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/chat/enviar', methods=['POST'])
+        @token_required
+        def enviar_mensaje():
+            """Enviar un nuevo mensaje"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                data = request.get_json()
+                if not data:
+                    return response_error("Datos requeridos", 400)
+                
+                resultado = ChatService.enviar_mensaje(data, request.current_user)
+                
+                if resultado['success']:
+                    return response_success({
+                        'id_mensaje': resultado['id_mensaje'],
+                        'fecha_envio': resultado['fecha_envio']
+                    }, "Mensaje enviado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en enviar_mensaje: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/chat/marcar-leido/<int:id_mensaje>', methods=['PUT'])
+        @token_required
+        def marcar_mensaje_leido(id_mensaje):
+            """Marcar un mensaje como leído"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                resultado = ChatService.marcar_mensaje_leido(id_mensaje, request.current_user)
+                
+                if resultado['success']:
+                    return response_success({}, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en marcar_mensaje_leido: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/chat/usuarios-disponibles', methods=['GET'])
+        @token_required
+        def get_usuarios_disponibles_chat():
+            """Obtener usuarios disponibles para iniciar conversación"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                resultado = ChatService.obtener_usuarios_disponibles(request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['usuarios'], "Usuarios disponibles obtenidos")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_usuarios_disponibles_chat: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/chat/estadisticas', methods=['GET'])
+        @token_required
+        def get_estadisticas_chat():
+            """Obtener estadísticas de mensajes del usuario"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                resultado = ChatService.obtener_estadisticas_mensajes(request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['estadisticas'], "Estadísticas obtenidas")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_estadisticas_chat: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/chat/buscar', methods=['GET'])
+        @token_required
+        def buscar_mensajes_chat():
+            """Buscar mensajes por contenido"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+                
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                # Obtener parámetros de búsqueda
+                texto_busqueda = request.args.get('q')
+                id_contacto = request.args.get('contacto', type=int)
+                
+                if not texto_busqueda:
+                    return response_error("Parámetro 'q' requerido para la búsqueda", 400)
+                
+                resultado = ChatService.buscar_mensajes(texto_busqueda, request.current_user, id_contacto)
+                
+                if resultado['success']:
+                    return response_success(resultado['mensajes'], "Búsqueda realizada exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en buscar_mensajes_chat: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DE CHAT
+    # ============================================
+    register_chat_routes(app)
+
+    # ============================================
+    # RUTAS DE FOTOS DE PERFIL
+    # ============================================
+    def register_foto_perfil_routes(app):
+        """Registrar rutas de fotos de perfil"""
+        
+        @app.route('/api/perfil/foto', methods=['POST'])
+        @token_required
+        def subir_foto_perfil(current_user):
+            """Subir foto de perfil del usuario autenticado"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Validar que se envió un archivo
+                if 'foto' not in request.files:
+                    return response_error("No se proporcionó archivo de foto", 400)
+                
+                archivo = request.files['foto']
+                
+                resultado = FotoPerfilService.subir_foto_perfil(archivo, current_user)
+                
+                if resultado['success']:
+                    return response_success({
+                        'ruta_foto': resultado['ruta_foto']
+                    }, resultado['mensaje'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en subir_foto_perfil: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/perfil/foto', methods=['GET'])
+        @token_required
+        def obtener_mi_foto_perfil(current_user):
+            """Obtener información de foto de perfil del usuario autenticado"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = FotoPerfilService.obtener_mi_foto_perfil(current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['foto_perfil'], "Información de foto obtenida")
+                else:
+                    return response_error(resultado['message'], 404)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_mi_foto_perfil: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/perfil/foto', methods=['DELETE'])
+        @token_required
+        def eliminar_mi_foto_perfil(current_user):
+            """Eliminar foto de perfil del usuario autenticado"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = FotoPerfilService.eliminar_foto_perfil(current_user)
+                
+                if resultado['success']:
+                    return response_success({}, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en eliminar_mi_foto_perfil: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/usuarios/<int:usuario_id>/foto', methods=['GET'])
+        @token_required
+        def obtener_foto_perfil_usuario(current_user, usuario_id):
+            """Obtener información de foto de perfil de un usuario específico"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = FotoPerfilService.obtener_foto_perfil(usuario_id, current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['foto_perfil'], "Información de foto obtenida")
+                else:
+                    return response_error(resultado['message'], 404)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_foto_perfil_usuario: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/usuarios/<int:usuario_id>/foto', methods=['POST'])
+        @token_required
+        def subir_foto_perfil_admin(current_user, usuario_id):
+            """Subir foto de perfil para otro usuario (solo admin)"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Validar que se envió un archivo
+                if 'foto' not in request.files:
+                    return response_error("No se proporcionó archivo de foto", 400)
+                
+                archivo = request.files['foto']
+                
+                resultado = FotoPerfilService.subir_foto_perfil_admin(archivo, usuario_id, current_user)
+                
+                if resultado['success']:
+                    return response_success({
+                        'ruta_foto': resultado['ruta_foto']
+                    }, resultado['mensaje'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en subir_foto_perfil_admin: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/usuarios/<int:usuario_id>/foto', methods=['DELETE'])
+        @token_required
+        def eliminar_foto_perfil_admin(current_user, usuario_id):
+            """Eliminar foto de perfil de otro usuario (solo admin)"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = FotoPerfilService.eliminar_foto_perfil_admin(usuario_id, current_user)
+                
+                if resultado['success']:
+                    return response_success({}, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en eliminar_foto_perfil_admin: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/fotos-perfil/archivo/<path:ruta_foto>', methods=['GET'])
+        @token_required
+        def obtener_archivo_foto_perfil(current_user, ruta_foto):
+            """Obtener archivo físico de foto de perfil"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_error
+                from flask import send_file
+                
+                resultado = FotoPerfilService.obtener_archivo_foto(ruta_foto, current_user)
+                
+                if resultado['success']:
+                    return send_file(
+                        resultado['ruta_archivo'],
+                        mimetype='image/jpeg',
+                        as_attachment=False,
+                        download_name=f"perfil_{current_user['id']}.jpg"
+                    )
+                else:
+                    return response_error(resultado['message'], 404)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_archivo_foto_perfil: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/fotos-perfil/estadisticas', methods=['GET'])
+        @token_required
+        def obtener_estadisticas_fotos_perfil(current_user):
+            """Obtener estadísticas de fotos de perfil (solo admin)"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = FotoPerfilService.obtener_estadisticas_fotos(current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['estadisticas'], "Estadísticas obtenidas")
+                else:
+                    return response_error(resultado['message'], 403)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_estadisticas_fotos_perfil: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/fotos-perfil/formatos', methods=['GET'])
+        @token_required
+        def obtener_formatos_soportados_fotos(current_user):
+            """Obtener información sobre formatos soportados"""
+            try:
+                from src.api.Service.FotoPerfilService import FotoPerfilService
+                from src.utils.general.response import response_success
+                
+                resultado = FotoPerfilService.obtener_formatos_soportados()
+                
+                return response_success(resultado['formatos'], "Formatos soportados")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_formatos_soportados_fotos: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DE FOTOS DE PERFIL
+    # ============================================
+    register_foto_perfil_routes(app)
+
+    # ============================================
+    # RUTAS DEL SISTEMA DE OBSERVACIONES
+    # ============================================
+    def register_observaciones_routes(app):
+        """Registrar rutas del sistema de observaciones"""
+        
+        @app.route('/api/observaciones', methods=['POST'])
+        @token_required
+        def crear_observacion(current_user):
+            """Crear una nueva observación"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                if not data:
+                    return response_error("Datos requeridos", 400)
+                
+                resultado = ObservacionesService.crear_observacion(data, current_user)
+                
+                if resultado['success']:
+                    return response_success({
+                        'id_observacion': resultado['id_observacion'],
+                        'fecha_registro': resultado['fecha_registro']
+                    }, "Observación creada exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en crear_observacion: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/sesion/<int:id_sesion>/<tipo_sesion>', methods=['GET'])
+        @token_required
+        def obtener_observaciones_sesion(current_user, id_sesion, tipo_sesion):
+            """Obtener observaciones de una sesión específica"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                incluir_privadas = request.args.get('incluir_privadas', 'false').lower() == 'true'
+                
+                resultado = ObservacionesService.obtener_observaciones_sesion(
+                    id_sesion, tipo_sesion, current_user, incluir_privadas
+                )
+                
+                if resultado['success']:
+                    return response_success(resultado['observaciones'], "Observaciones obtenidas")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_observaciones_sesion: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/<int:id_observacion>', methods=['GET'])
+        @token_required
+        def obtener_observacion_por_id(current_user, id_observacion):
+            """Obtener una observación específica"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = ObservacionesService.obtener_observacion_por_id(id_observacion, current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['observacion'], "Observación obtenida")
+                else:
+                    return response_error(resultado['message'], 404)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_observacion_por_id: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/<int:id_observacion>', methods=['PUT'])
+        @token_required
+        def actualizar_observacion(current_user, id_observacion):
+            """Actualizar una observación existente"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                if not data:
+                    return response_error("Datos requeridos", 400)
+                
+                resultado = ObservacionesService.actualizar_observacion(id_observacion, data, current_user)
+                
+                if resultado['success']:
+                    return response_success({
+                        'fecha_modificacion': resultado['fecha_modificacion']
+                    }, "Observación actualizada exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en actualizar_observacion: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/<int:id_observacion>', methods=['DELETE'])
+        @token_required
+        def eliminar_observacion(current_user, id_observacion):
+            """Eliminar una observación"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = ObservacionesService.eliminar_observacion(id_observacion, current_user)
+                
+                if resultado['success']:
+                    return response_success({}, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en eliminar_observacion: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/estadisticas', methods=['GET'])
+        @token_required
+        def obtener_estadisticas_observaciones(current_user):
+            """Obtener estadísticas de observaciones"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                solo_propias = request.args.get('solo_propias', 'false').lower() == 'true'
+                
+                resultado = ObservacionesService.obtener_estadisticas_observaciones(current_user, solo_propias)
+                
+                if resultado['success']:
+                    return response_success(resultado['estadisticas'], "Estadísticas obtenidas")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_estadisticas_observaciones: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/seguimientos-pendientes', methods=['GET'])
+        @token_required
+        def obtener_seguimientos_pendientes(current_user):
+            """Obtener observaciones con seguimiento pendiente"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                solo_asignados = request.args.get('solo_asignados', 'false').lower() == 'true'
+                
+                resultado = ObservacionesService.obtener_seguimientos_pendientes(current_user, solo_asignados)
+                
+                if resultado['success']:
+                    return response_success(resultado['observaciones_pendientes'], "Seguimientos pendientes obtenidos")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_seguimientos_pendientes: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/buscar', methods=['GET'])
+        @token_required
+        def buscar_observaciones(current_user):
+            """Buscar observaciones con criterios específicos"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Recoger criterios de búsqueda de los query parameters
+                criterios = {}
+                
+                if request.args.get('texto'):
+                    criterios['texto'] = request.args.get('texto')
+                    
+                if request.args.get('tipo_observacion'):
+                    criterios['tipo_observacion'] = request.args.get('tipo_observacion')
+                    
+                if request.args.get('tipo_sesion'):
+                    criterios['tipo_sesion'] = request.args.get('tipo_sesion')
+                    
+                if request.args.get('es_critica'):
+                    criterios['es_critica'] = request.args.get('es_critica').lower() == 'true'
+                    
+                if request.args.get('requiere_seguimiento'):
+                    criterios['requiere_seguimiento'] = request.args.get('requiere_seguimiento').lower() == 'true'
+                    
+                if request.args.get('estado_seguimiento'):
+                    criterios['estado_seguimiento'] = request.args.get('estado_seguimiento')
+                    
+                if request.args.get('fecha_inicio'):
+                    criterios['fecha_inicio'] = request.args.get('fecha_inicio')
+                    
+                if request.args.get('fecha_fin'):
+                    criterios['fecha_fin'] = request.args.get('fecha_fin')
+                
+                resultado = ObservacionesService.buscar_observaciones(criterios, current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['observaciones'], "Búsqueda realizada exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en buscar_observaciones: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/observaciones/tipos', methods=['GET'])
+        @token_required
+        def obtener_tipos_observacion(current_user):
+            """Obtener tipos de observación disponibles"""
+            try:
+                from src.api.Service.ObservacionesService import ObservacionesService
+                from src.utils.general.response import response_success
+                
+                resultado = ObservacionesService.obtener_tipos_observacion()
+                
+                return response_success(resultado, "Tipos de observación obtenidos")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_tipos_observacion: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DE OBSERVACIONES
+    # ============================================
+    register_observaciones_routes(app)
 
 

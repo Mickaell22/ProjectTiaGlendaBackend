@@ -21,7 +21,9 @@
       "Bash(npm install:*)",
       "Bash(del:*)",
       "Bash(grep:*)",
-      "Bash(dir /O:D)"
+      "Bash(dir /O:D)",
+      "Bash(dir)",
+      "Bash(chcp:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

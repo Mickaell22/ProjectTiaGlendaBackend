@@ -291,16 +291,13 @@ class PacienteService:
             # Preparar datos para la base de datos
             current_user_id = getattr(request, 'current_user', {}).get('id')
             documento_data = {
-                'paciente_id': paciente_id,
+                'id_paciente': paciente_id,
                 'nombre_archivo': nombre_unico,
-                'nombre_original': nombre_original,
                 'ruta_archivo': ruta_archivo.replace('\\', '/'),  # Normalizar separadores
                 'tipo_documento': tipo_documento,
                 'tamaño_archivo': tamaño_archivo,
                 'tipo_mime': 'application/pdf',
                 'descripcion': descripcion if descripcion else None,
-                'es_confidencial': es_confidencial,
-                'fecha_vencimiento': fecha_vencimiento if fecha_vencimiento else None,
                 'usuario_creacion': current_user_id
             }
 
@@ -445,4 +442,311 @@ class PacienteService:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.delete_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_pacientes_by_centro(centro_id):
+        """Obtener lista de pacientes filtrados por centro"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_pacientes_by_centro - Centro ID: {centro_id}")
+
+            if not centro_id or centro_id <= 0:
+                return response_error("ID de centro inválido", 400)
+
+            result = PacienteComponent.get_all_pacientes_by_centro(centro_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_pacientes_by_centro - Pacientes del centro {centro_id} obtenidos exitosamente")
+                return response_success(result['data'], "Lista de pacientes del centro obtenida correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_pacientes_by_centro - Error: {result['message']}")
+                return response_error("Error obteniendo pacientes del centro", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_pacientes_by_centro - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_paciente_by_id_and_centro(paciente_id, centro_id):
+        """Obtener un paciente por ID validando que pertenezca al centro"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_paciente_by_id_and_centro - Paciente ID: {paciente_id}, Centro ID: {centro_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            if not centro_id or centro_id <= 0:
+                return response_error("ID de centro inválido", 400)
+
+            result = PacienteComponent.get_paciente_by_id_and_centro(paciente_id, centro_id)
+
+            if result['success']:
+                if result['data']:
+                    HandleLogs.write_log(f"PacienteService.get_paciente_by_id_and_centro - Paciente {paciente_id} encontrado en centro {centro_id}")
+                    return response_success(result['data'], "Paciente encontrado")
+                else:
+                    return response_error("Paciente no encontrado en el centro especificado", 404)
+            else:
+                HandleLogs.write_error(f"PacienteService.get_paciente_by_id_and_centro - Error: {result['message']}")
+                return response_error(result['message'], 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_paciente_by_id_and_centro - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def agregar_especialidad_paciente():
+        """Agregar una especialidad a un paciente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PacienteService.agregar_especialidad_paciente - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['paciente_id', 'especialidad_id']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            paciente_id = data['paciente_id']
+            especialidad_id = data['especialidad_id']
+            fecha_inicio_tratamiento = data.get('fecha_inicio_tratamiento')
+            observaciones = data.get('observaciones')
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Validar IDs
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PacienteComponent.agregar_especialidad_paciente(
+                paciente_id, especialidad_id, fecha_inicio_tratamiento, observaciones, usuario_id
+            )
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.agregar_especialidad_paciente - Especialidad {especialidad_id} agregada a paciente {paciente_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.agregar_especialidad_paciente - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.agregar_especialidad_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def remover_especialidad_paciente():
+        """Remover una especialidad de un paciente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PacienteService.remover_especialidad_paciente - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['paciente_id', 'especialidad_id']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            paciente_id = data['paciente_id']
+            especialidad_id = data['especialidad_id']
+
+            # Validar IDs
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PacienteComponent.remover_especialidad_paciente(paciente_id, especialidad_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.remover_especialidad_paciente - Especialidad {especialidad_id} removida de paciente {paciente_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.remover_especialidad_paciente - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.remover_especialidad_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def pausar_especialidad_paciente():
+        """Pausar una especialidad específica de un paciente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PacienteService.pausar_especialidad_paciente - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['paciente_id', 'especialidad_id', 'fecha_inicio_pausa']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            paciente_id = data['paciente_id']
+            especialidad_id = data['especialidad_id']
+            fecha_inicio_pausa = data['fecha_inicio_pausa']
+            fecha_fin_pausa = data.get('fecha_fin_pausa')
+            motivo_pausa = data.get('motivo_pausa')
+            observaciones_pausa = data.get('observaciones_pausa')
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Validar IDs
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PacienteComponent.pausar_especialidad_paciente(
+                paciente_id, especialidad_id, fecha_inicio_pausa, fecha_fin_pausa, 
+                motivo_pausa, observaciones_pausa, usuario_id
+            )
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.pausar_especialidad_paciente - Especialidad {especialidad_id} pausada para paciente {paciente_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.pausar_especialidad_paciente - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.pausar_especialidad_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def reactivar_especialidad_paciente():
+        """Reactivar una especialidad pausada de un paciente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PacienteService.reactivar_especialidad_paciente - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['paciente_id', 'especialidad_id']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            paciente_id = data['paciente_id']
+            especialidad_id = data['especialidad_id']
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Validar IDs
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PacienteComponent.reactivar_especialidad_paciente(paciente_id, especialidad_id, usuario_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.reactivar_especialidad_paciente - Especialidad {especialidad_id} reactivada para paciente {paciente_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.reactivar_especialidad_paciente - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.reactivar_especialidad_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_especialidades_paciente(paciente_id):
+        """Obtener especialidades de un paciente"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_especialidades_paciente - Paciente ID: {paciente_id}")
+
+            if not paciente_id or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.get_especialidades_paciente(paciente_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_especialidades_paciente - Especialidades obtenidas para paciente {paciente_id}")
+                return response_success(result['data'], "Especialidades del paciente obtenidas correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_especialidades_paciente - Error: {result['message']}")
+                return response_error("Error obteniendo especialidades del paciente", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_especialidades_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def pausar_paciente_general():
+        """Pausar todas las especialidades de un paciente (pausa general)"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PacienteService.pausar_paciente_general - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['paciente_id', 'fecha_inicio_pausa']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            paciente_id = data['paciente_id']
+            fecha_inicio_pausa = data['fecha_inicio_pausa']
+            fecha_fin_pausa = data.get('fecha_fin_pausa')
+            motivo_pausa = data.get('motivo_pausa')
+            observaciones_pausa = data.get('observaciones_pausa')
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Validar ID
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.pausar_paciente_general(
+                paciente_id, fecha_inicio_pausa, fecha_fin_pausa, 
+                motivo_pausa, observaciones_pausa, usuario_id
+            )
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.pausar_paciente_general - Paciente {paciente_id} pausado generalmente")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.pausar_paciente_general - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.pausar_paciente_general - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def reactivar_paciente_general():
+        """Reactivar un paciente pausado generalmente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PacienteService.reactivar_paciente_general - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(data, ['paciente_id'])
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            paciente_id = data['paciente_id']
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Validar ID
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            result = PacienteComponent.reactivar_paciente_general(paciente_id, usuario_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.reactivar_paciente_general - Paciente {paciente_id} reactivado")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.reactivar_paciente_general - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.reactivar_paciente_general - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)

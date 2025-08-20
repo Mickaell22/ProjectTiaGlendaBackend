@@ -310,3 +310,147 @@ class PersonalService:
         except Exception as e:
             HandleLogs.write_error(f"PersonalService.get_estadisticas - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_personal_by_centro(centro_id):
+        """Obtener personal filtrado por centro"""
+        try:
+            HandleLogs.write_log(f"PersonalService.get_personal_by_centro - Centro ID: {centro_id}")
+
+            if not centro_id or centro_id <= 0:
+                return response_error("ID de centro inválido", 400)
+
+            result = PersonalComponent.get_personal_by_centro(centro_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.get_personal_by_centro - Personal del centro {centro_id} obtenido exitosamente")
+                return response_success(result['data'], "Personal del centro obtenido correctamente")
+            else:
+                HandleLogs.write_error(f"PersonalService.get_personal_by_centro - Error: {result['message']}")
+                return response_error("Error obteniendo personal del centro", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.get_personal_by_centro - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def agregar_especialidad_personal():
+        """Agregar una especialidad a un miembro del personal"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PersonalService.agregar_especialidad_personal - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['personal_id', 'especialidad_id']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            personal_id = data['personal_id']
+            especialidad_id = data['especialidad_id']
+            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Validar IDs
+            if not isinstance(personal_id, int) or personal_id <= 0:
+                return response_error("ID de personal inválido", 400)
+
+            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PersonalComponent.agregar_especialidad_personal(personal_id, especialidad_id, usuario_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.agregar_especialidad_personal - Especialidad {especialidad_id} agregada a personal {personal_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PersonalService.agregar_especialidad_personal - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.agregar_especialidad_personal - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def remover_especialidad_personal():
+        """Remover una especialidad de un miembro del personal"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log("PersonalService.remover_especialidad_personal - Iniciando")
+
+            # Validar datos requeridos
+            required_validation = Validators.validate_required_fields(
+                data, ['personal_id', 'especialidad_id']
+            )
+            if not required_validation['valid']:
+                return response_error(required_validation['message'], 400)
+
+            personal_id = data['personal_id']
+            especialidad_id = data['especialidad_id']
+
+            # Validar IDs
+            if not isinstance(personal_id, int) or personal_id <= 0:
+                return response_error("ID de personal inválido", 400)
+
+            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            result = PersonalComponent.remover_especialidad_personal(personal_id, especialidad_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.remover_especialidad_personal - Especialidad {especialidad_id} removida de personal {personal_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PersonalService.remover_especialidad_personal - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.remover_especialidad_personal - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_personal_by_especialidad(especialidad_id, centro_id=None):
+        """Obtener personal por especialidad"""
+        try:
+            HandleLogs.write_log(f"PersonalService.get_personal_by_especialidad - Especialidad ID: {especialidad_id}, Centro ID: {centro_id}")
+
+            if not especialidad_id or especialidad_id <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            if centro_id and centro_id <= 0:
+                return response_error("ID de centro inválido", 400)
+
+            result = PersonalComponent.get_personal_by_especialidad(especialidad_id, centro_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.get_personal_by_especialidad - Personal encontrado para especialidad {especialidad_id}")
+                return response_success(result['data'], "Personal por especialidad obtenido correctamente")
+            else:
+                HandleLogs.write_error(f"PersonalService.get_personal_by_especialidad - Error: {result['message']}")
+                return response_error("Error obteniendo personal por especialidad", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.get_personal_by_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_especialidades_disponibles(personal_id):
+        """Obtener especialidades disponibles para asignar a un personal"""
+        try:
+            HandleLogs.write_log(f"PersonalService.get_especialidades_disponibles - Personal ID: {personal_id}")
+
+            if not personal_id or personal_id <= 0:
+                return response_error("ID de personal inválido", 400)
+
+            result = PersonalComponent.get_especialidades_disponibles(personal_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.get_especialidades_disponibles - Especialidades disponibles obtenidas para personal {personal_id}")
+                return response_success(result['data'], "Especialidades disponibles obtenidas correctamente")
+            else:
+                HandleLogs.write_error(f"PersonalService.get_especialidades_disponibles - Error: {result['message']}")
+                return response_error("Error obteniendo especialidades disponibles", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.get_especialidades_disponibles - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)

@@ -30,6 +30,7 @@ python tests/test_personas_api.py
 python tests/test_roles_api.py
 python tests/test_sesiones_terapia_api.py
 python tests/test_sesiones_pedagogicas_api.py
+python tests/test_documentos_pacientes_api.py
 
 # Unit tests
 python tests/test_units.py
