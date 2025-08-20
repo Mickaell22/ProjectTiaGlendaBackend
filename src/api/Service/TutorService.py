@@ -65,10 +65,17 @@ class TutorService:
 
             # Preparar datos para inserción
             tutor_data = {
-                'persona_id': int(data['persona_id']),
+                'nombre': data['nombre'].strip(),
+                'apellido': data['apellido'].strip(),
+                'cedula': data['cedula'].strip(),
+                'telefono': data.get('telefono', '').strip(),
+                'email': data.get('email', '').strip(),
+                'direccion': data.get('direccion', '').strip(),
                 'parentesco': data['parentesco'],
-                'es_contacto_emergencia': data.get('es_contacto_emergencia', False),
-                'observaciones_tutor': data.get('observaciones_tutor', '').strip() if data.get('observaciones_tutor') else None,
+                'ocupacion': data.get('ocupacion', '').strip(),
+                'direccion_empresa': data.get('direccion_empresa', '').strip(),
+                'telefono_empresa': data.get('telefono_empresa', '').strip(),
+                'nombre_empresa': data.get('nombre_empresa', '').strip(),
                 'estado': data.get('estado', 'activo'),
                 'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
             }

@@ -12,31 +12,30 @@ class TutorComponent:
             query = """
             SELECT 
                 t.id,
+                t.nombre,
+                t.apellido,
+                CONCAT(t.nombre, ' ', t.apellido) as nombre_completo,
+                t.cedula,
+                t.telefono,
+                t.email,
+                t.direccion,
                 t.parentesco,
-                t.es_contacto_emergencia,
-                t.observaciones_tutor,
+                t.ocupacion,
+                t.direccion_empresa,
+                t.telefono_empresa,
+                t.nombre_empresa,
                 t.estado,
                 t.fecha_creacion,
                 t.fecha_modificacion,
-                p.id as persona_id,
-                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
-                p.nombre,
-                p.apellido,
-                p.cedula,
-                p.telefono,
-                p.correo,
-                p.direccion,
-                p.fecha_nacimiento,
                 COUNT(pac.id) as total_pacientes,
                 COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
             FROM tutor t
-            INNER JOIN persona p ON t.persona_id = p.id
-            LEFT JOIN paciente pac ON t.id = pac.tutor_id
-            GROUP BY t.id, t.parentesco, t.es_contacto_emergencia, t.observaciones_tutor, 
-                     t.estado, t.fecha_creacion, t.fecha_modificacion,
-                     p.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo, 
-                     p.direccion, p.fecha_nacimiento
-            ORDER BY p.nombre, p.apellido
+            LEFT JOIN paciente pac ON t.id = pac.id_tutor
+            GROUP BY t.id, t.nombre, t.apellido, t.cedula, t.telefono, t.email, 
+                     t.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
+                     t.telefono_empresa, t.nombre_empresa, t.estado, 
+                     t.fecha_creacion, t.fecha_modificacion
+            ORDER BY t.nombre, t.apellido
             """
 
             tutores = DataBaseHandle.getRecords(query)
@@ -60,23 +59,22 @@ class TutorComponent:
             query_tutor = """
             SELECT 
                 t.id,
+                t.nombre,
+                t.apellido,
+                CONCAT(t.nombre, ' ', t.apellido) as nombre_completo,
+                t.cedula,
+                t.telefono,
+                t.email,
+                t.direccion,
                 t.parentesco,
-                t.es_contacto_emergencia,
-                t.observaciones_tutor,
+                t.ocupacion,
+                t.direccion_empresa,
+                t.telefono_empresa,
+                t.nombre_empresa,
                 t.estado,
                 t.fecha_creacion,
-                t.fecha_modificacion,
-                p.id as persona_id,
-                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
-                p.nombre,
-                p.apellido,
-                p.cedula,
-                p.telefono,
-                p.correo,
-                p.direccion,
-                p.fecha_nacimiento
+                t.fecha_modificacion
             FROM tutor t
-            INNER JOIN persona p ON t.persona_id = p.id
             WHERE t.id = %s
             """
 
@@ -89,6 +87,7 @@ class TutorComponent:
                     pac.id,
                     pac.fecha_ingreso,
                     pac.estado,
+                    pac.codigo_paciente,
                     pp.id as persona_id,
                     CONCAT(pp.nombre, ' ', pp.apellido) as nombre_completo,
                     pp.nombre,
@@ -97,7 +96,7 @@ class TutorComponent:
                     pp.fecha_nacimiento
                 FROM paciente pac
                 INNER JOIN persona pp ON pac.persona_id = pp.id
-                WHERE pac.tutor_id = %s
+                WHERE pac.id_tutor = %s
                 ORDER BY pp.nombre, pp.apellido
                 """
 
@@ -118,38 +117,37 @@ class TutorComponent:
     def create_tutor(data):
         """Crear un nuevo tutor"""
         try:
-            # Verificar si la persona ya está registrada como tutor
-            persona_check = TutorComponent.check_persona_is_tutor(data['persona_id'])
-            if persona_check['success'] and persona_check['data']:
-                return internal_response(False, None, "Esta persona ya está registrada como tutor")
-
-            # Verificar que la persona existe y está activa
-            persona_exists = DataBaseHandle.getRecords(
-                "SELECT id, estado FROM persona WHERE id = %s",
-                (data['persona_id'],), size=1
+            # Verificar si ya existe un tutor con la misma cédula
+            cedula_check = DataBaseHandle.getRecords(
+                "SELECT id FROM tutor WHERE cedula = %s",
+                (data['cedula'],), size=1
             )
-
-            if not persona_exists:
-                return internal_response(False, None, "La persona especificada no existe")
-
-            if persona_exists['estado'] != 'activo':
-                return internal_response(False, None, "La persona debe estar activa para ser registrada como tutor")
+            if cedula_check:
+                return internal_response(False, None, "Ya existe un tutor con esta cédula")
 
             # Insertar nuevo tutor
             insert_query = """
                 INSERT INTO tutor (
-                    persona_id, parentesco, es_contacto_emergencia, 
-                    observaciones_tutor, estado, usuario_creacion
+                    nombre, apellido, cedula, telefono, email, direccion,
+                    parentesco, ocupacion, direccion_empresa, telefono_empresa,
+                    nombre_empresa, estado, usuario_creacion
                 )
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """
 
             params = (
-                data['persona_id'],
+                data['nombre'],
+                data['apellido'], 
+                data['cedula'],
+                data.get('telefono', ''),
+                data.get('email', ''),
+                data.get('direccion', ''),
                 data['parentesco'],
-                data.get('es_contacto_emergencia', False),
-                data.get('observaciones_tutor', '').strip() if data.get('observaciones_tutor') else None,
+                data.get('ocupacion', ''),
+                data.get('direccion_empresa', ''),
+                data.get('telefono_empresa', ''),
+                data.get('nombre_empresa', ''),
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
             )
@@ -184,21 +182,15 @@ class TutorComponent:
             update_fields = []
             params = []
 
-            allowed_fields = ['parentesco', 'es_contacto_emergencia', 'observaciones_tutor', 'estado',
+            allowed_fields = ['nombre', 'apellido', 'telefono', 'email', 'direccion', 
+                              'parentesco', 'ocupacion', 'direccion_empresa', 
+                              'telefono_empresa', 'nombre_empresa', 'estado',
                               'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
-                    if field == 'observaciones_tutor':
-                        if data[field].strip():
-                            update_fields.append(f"{field} = %s")
-                            params.append(data[field].strip())
-                        else:
-                            update_fields.append(f"{field} = %s")
-                            params.append(None)
-                    else:
-                        update_fields.append(f"{field} = %s")
-                        params.append(data[field])
+                    update_fields.append(f"{field} = %s")
+                    params.append(data[field])
 
             if not update_fields:
                 return internal_response(False, None, "No hay campos para actualizar")
@@ -248,7 +240,7 @@ class TutorComponent:
             patients_check = """
                 SELECT COUNT(*) as total 
                 FROM paciente 
-                WHERE tutor_id = %s AND estado = 'activo'
+                WHERE id_tutor = %s AND estado = 'activo'
             """
             active_patients = DataBaseHandle.getRecords(patients_check, (tutor_id,), size=1)
 
@@ -278,21 +270,21 @@ class TutorComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def check_persona_is_tutor(persona_id, exclude_id=None):
-        """Verificar si una persona ya está registrada como tutor"""
+    def check_cedula_exists(cedula, exclude_id=None):
+        """Verificar si ya existe un tutor con la cédula especificada"""
         try:
             if exclude_id:
-                query = "SELECT id FROM tutor WHERE persona_id = %s AND id != %s"
-                params = (persona_id, exclude_id)
+                query = "SELECT id FROM tutor WHERE cedula = %s AND id != %s"
+                params = (cedula, exclude_id)
             else:
-                query = "SELECT id FROM tutor WHERE persona_id = %s"
-                params = (persona_id,)
+                query = "SELECT id FROM tutor WHERE cedula = %s"
+                params = (cedula,)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
             return internal_response(True, existing is not None, "Consulta ejecutada")
 
         except Exception as e:
-            HandleLogs.write_error(f"TutorComponent.check_persona_is_tutor - Error: {str(e)}")
+            HandleLogs.write_error(f"TutorComponent.check_cedula_exists - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
@@ -302,15 +294,15 @@ class TutorComponent:
             query = """
             SELECT 
                 t.id,
-                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                CONCAT(t.nombre, ' ', t.apellido) as nombre_completo,
+                t.nombre,
+                t.apellido,
                 t.parentesco,
-                p.telefono,
-                p.correo,
-                t.es_contacto_emergencia
+                t.telefono,
+                t.email
             FROM tutor t
-            INNER JOIN persona p ON t.persona_id = p.id
-            WHERE t.estado = 'activo' AND p.estado = 'activo'
-            ORDER BY p.nombre, p.apellido
+            WHERE t.estado = 'activo'
+            ORDER BY t.nombre, t.apellido
             """
 
             tutores = DataBaseHandle.getRecords(query)
@@ -335,14 +327,13 @@ class TutorComponent:
                 COUNT(*) as total_tutores,
                 COUNT(CASE WHEN t.estado = 'activo' THEN 1 END) as tutores_activos,
                 COUNT(CASE WHEN t.estado = 'inactivo' THEN 1 END) as tutores_inactivos,
-                COUNT(CASE WHEN t.es_contacto_emergencia = true THEN 1 END) as contactos_emergencia,
                 AVG(pacientes_por_tutor.total_pacientes) as promedio_pacientes_por_tutor
             FROM tutor t
             LEFT JOIN (
-                SELECT tutor_id, COUNT(*) as total_pacientes
+                SELECT id_tutor, COUNT(*) as total_pacientes
                 FROM paciente
-                GROUP BY tutor_id
-            ) pacientes_por_tutor ON t.id = pacientes_por_tutor.tutor_id
+                GROUP BY id_tutor
+            ) pacientes_por_tutor ON t.id = pacientes_por_tutor.id_tutor
             """
 
             estadisticas_generales = DataBaseHandle.getRecords(query, size=1)
@@ -378,7 +369,7 @@ class TutorComponent:
 
     @staticmethod
     def get_personas_disponibles_para_tutor():
-        """Obtener personas que no están registradas como tutores"""
+        """Obtener personas que no están registradas como tutores (usando cédula)"""
         try:
             query = """
             SELECT 
@@ -390,7 +381,7 @@ class TutorComponent:
                 p.telefono,
                 p.correo
             FROM persona p
-            LEFT JOIN tutor t ON p.id = t.persona_id
+            LEFT JOIN tutor t ON p.cedula = t.cedula
             WHERE t.id IS NULL AND p.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """

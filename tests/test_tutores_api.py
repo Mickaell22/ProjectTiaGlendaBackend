@@ -17,6 +17,7 @@ HEADERS = {"Content-Type": "application/json"}
 token = None
 created_tutor_id = None
 created_persona_id = None
+created_tutor_cedula = None
 
 
 def print_test_info(test_name, status, data=None, error=None):
@@ -32,7 +33,7 @@ def test_login():
     global token
 
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 
@@ -68,46 +69,16 @@ def setup_test_data():
         print_test_info("Setup", "FAILED", error="No hay token disponible")
         return False
 
-    auth_headers = {**HEADERS, "Authorization": f"Bearer {token}"}
-
-    # Crear una persona para usar como tutor
-    persona_data = {
-        "nombre": "Carmen Elena",
-        "apellido": "Vargas Solís",
-        "cedula": f"99{int(time.time())}",
-        "telefono": "+50699887766",
-        "correo": f"carmen.vargas.{int(time.time())}@email.com",
-        "direccion": "Cartago, Costa Rica",
-        "fecha_nacimiento": "1985-06-15"
-    }
-
-    try:
-        response = requests.post(
-            f"{BASE_URL}/api/personas",
-            headers=auth_headers,
-            json=persona_data,
-            timeout=10
-        )
-
-        success = response.status_code == 201
-        response_data = response.json()
-
-        if success and response_data.get("data", {}).get("id"):
-            created_persona_id = response_data["data"]["id"]
-            print_test_info("Setup", "SUCCESS", {"persona_id": created_persona_id})
-            return True
-        else:
-            print_test_info("Setup", "FAILED", response_data)
-            return False
-
-    except Exception as e:
-        print_test_info("Setup", "ERROR", error=str(e))
-        return False
+    # Para el nuevo sistema, no necesitamos crear persona separada
+    # Los datos se crean directamente en el tutor
+    created_persona_id = int(time.time())  # Solo para compatibilidad con el test
+    print_test_info("Setup", "SUCCESS", {"ready_for_tutor_creation": True})
+    return True
 
 
 def test_tutores_crud():
     """Probar CRUD completo de tutores"""
-    global token, created_tutor_id, created_persona_id
+    global token, created_tutor_id, created_persona_id, created_tutor_cedula
 
     if not token or not created_persona_id:
         print_test_info("CRUD", "FAILED", error="Faltan datos de configuración")
@@ -139,13 +110,19 @@ def test_tutores_crud():
         return False
 
     # 2. Crear nuevo tutor
+    cedula_tutor = f"99{int(time.time())}"
     new_tutor_data = {
-        "persona_id": created_persona_id,
+        "nombre": "Carmen Elena",
+        "apellido": "Vargas Solís",
+        "cedula": cedula_tutor,
+        "telefono": "+50699887766",
+        "email": f"carmen.vargas.{int(time.time())}@email.com",
+        "direccion": "Cartago, Costa Rica",
         "parentesco": "madre",
-        "es_contacto_emergencia": True,
-        "observaciones_tutor": "Madre muy colaborativa, disponible en horarios matutinos",
+        "ocupacion": "Profesora",
         "estado": "activo"
     }
+    created_tutor_cedula = cedula_tutor
 
     try:
         response = requests.post(
@@ -192,8 +169,9 @@ def test_tutores_crud():
     # 4. Actualizar tutor
     if created_tutor_id:
         update_data = {
-            "es_contacto_emergencia": False,
-            "observaciones_tutor": "Madre colaborativa, disponible tardes y fines de semana"
+            "telefono": "+50699887799",
+            "ocupacion": "Ingeniera",
+            "direccion": "San José, Costa Rica"
         }
 
         try:
@@ -294,7 +272,7 @@ def test_tutores_endpoints_adicionales():
 
 def test_tutores_validations():
     """Probar validaciones de tutores"""
-    global token
+    global token, created_tutor_cedula
 
     if not token:
         print_test_info("Validaciones", "FAILED", error="No hay token disponible")
@@ -304,7 +282,8 @@ def test_tutores_validations():
 
     # 1. Tutor con campos faltantes
     invalid_tutor_data = {
-        # persona_id faltante
+        # nombre faltante
+        "apellido": "Test",
         "parentesco": "madre"
     }
 
@@ -326,9 +305,11 @@ def test_tutores_validations():
         print_test_info("Validacion campos faltantes", "ERROR", error=str(e))
         return False
 
-    # 2. Tutor con persona_id inválido
-    invalid_id_data = {
-        "persona_id": "no_es_numero",
+    # 2. Tutor con cédula inválida
+    invalid_cedula_data = {
+        "nombre": "Test",
+        "apellido": "User",
+        "cedula": "123",  # Cédula muy corta
         "parentesco": "padre"
     }
 
@@ -336,18 +317,18 @@ def test_tutores_validations():
         response = requests.post(
             f"{BASE_URL}/api/tutores",
             headers=auth_headers,
-            json=invalid_id_data,
+            json=invalid_cedula_data,
             timeout=10
         )
 
         success = response.status_code == 400
-        print_test_info("Validacion persona_id invalido", "SUCCESS" if success else "FAILED", response.json())
+        print_test_info("Validacion cedula invalida", "SUCCESS" if success else "FAILED", response.json())
 
         if not success:
             return False
 
     except Exception as e:
-        print_test_info("Validacion persona_id invalido", "ERROR", error=str(e))
+        print_test_info("Validacion cedula invalida", "ERROR", error=str(e))
         return False
 
     # 3. Parentesco inválido
@@ -374,10 +355,12 @@ def test_tutores_validations():
         print_test_info("Validacion parentesco invalido", "ERROR", error=str(e))
         return False
 
-    # 4. Tutor con persona que ya es tutor (usando persona existente)
-    if created_persona_id:
+    # 4. Tutor con cédula duplicada (usar la misma cédula del tutor creado)
+    if created_tutor_cedula:
         duplicate_tutor_data = {
-            "persona_id": created_persona_id,
+            "nombre": "Otro",
+            "apellido": "Tutor",
+            "cedula": created_tutor_cedula,  # Misma cédula
             "parentesco": "padre"
         }
 
@@ -390,38 +373,40 @@ def test_tutores_validations():
             )
 
             success = response.status_code == 400
-            print_test_info("Validacion persona ya es tutor", "SUCCESS" if success else "FAILED", response.json())
+            print_test_info("Validacion cedula duplicada", "SUCCESS" if success else "FAILED", response.json())
 
             if not success:
                 return False
 
         except Exception as e:
-            print_test_info("Validacion persona ya es tutor", "ERROR", error=str(e))
+            print_test_info("Validacion cedula duplicada", "ERROR", error=str(e))
             return False
 
-    # 5. Observaciones muy largas
-    long_observations_data = {
-        "persona_id": 1,
+    # 5. Dirección muy larga
+    long_address_data = {
+        "nombre": "Test",
+        "apellido": "User",
+        "cedula": "9988776655",
         "parentesco": "madre",
-        "observaciones_tutor": "A" * 501  # Más de 500 caracteres
+        "direccion": "A" * 256  # Más de 255 caracteres
     }
 
     try:
         response = requests.post(
             f"{BASE_URL}/api/tutores",
             headers=auth_headers,
-            json=long_observations_data,
+            json=long_address_data,
             timeout=10
         )
 
         success = response.status_code == 400
-        print_test_info("Validacion observaciones muy largas", "SUCCESS" if success else "FAILED", response.json())
+        print_test_info("Validacion direccion muy larga", "SUCCESS" if success else "FAILED", response.json())
 
         if not success:
             return False
 
     except Exception as e:
-        print_test_info("Validacion observaciones muy largas", "ERROR", error=str(e))
+        print_test_info("Validacion direccion muy larga", "ERROR", error=str(e))
         return False
 
     return True
