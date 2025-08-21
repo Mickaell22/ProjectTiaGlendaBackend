@@ -28,6 +28,9 @@
       "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\")"
     ],
     "deny": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\Users\\ASUS\\Desktop\\Proyecto\\Project D"
+    ]
   }
 }

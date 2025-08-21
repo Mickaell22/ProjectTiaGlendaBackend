@@ -9,14 +9,23 @@ class PersonaService:
 
     @staticmethod
     def get_personas():
-        """Obtener lista de todas las personas"""
+        """Obtener lista de todas las personas (filtradas por centro del usuario)"""
         try:
             HandleLogs.write_log("PersonaService.get_personas - Iniciando")
-
-            result = PersonaComponent.get_all_personas()
+            
+            # Obtener centro del usuario actual
+            current_user = getattr(request, 'current_user', {})
+            centro_id = current_user.get('id_centro')
+            
+            # Solo filtrar por centro si el usuario no es administrador de sistema
+            # o si tiene un centro asignado específico
+            filter_centro = centro_id if centro_id else None
+            
+            result = PersonaComponent.get_all_personas(filter_centro)
 
             if result['success']:
-                HandleLogs.write_log("PersonaService.get_personas - Personas obtenidas exitosamente")
+                filter_msg = f" (filtradas por centro {centro_id})" if filter_centro else ""
+                HandleLogs.write_log(f"PersonaService.get_personas - Personas obtenidas exitosamente{filter_msg}")
                 return response_success(result['data'], "Lista de personas obtenida correctamente")
             else:
                 HandleLogs.write_error(f"PersonaService.get_personas - Error: {result['message']}")
@@ -64,6 +73,7 @@ class PersonaService:
                 return response_error(validation_result['message'], 400)
 
             # Preparar datos para inserción
+            current_user = getattr(request, 'current_user', {})
             persona_data = {
                 'nombre': data['nombre'].strip(),
                 'apellido': data['apellido'].strip(),
@@ -73,7 +83,9 @@ class PersonaService:
                 'direccion': data.get('direccion', '').strip() if data.get('direccion') else None,
                 'fecha_nacimiento': data.get('fecha_nacimiento') if data.get('fecha_nacimiento') else None,
                 'estado': data.get('estado', 'activo'),
-                'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
+                'usuario_creacion': current_user.get('id', 1),
+                # Agregar contexto del centro para logging/auditoria
+                'centro_creacion': current_user.get('id_centro')
             }
 
             result = PersonaComponent.create_persona(persona_data)

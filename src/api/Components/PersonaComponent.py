@@ -6,38 +6,98 @@ from src.utils.general.response import internal_response
 class PersonaComponent:
 
     @staticmethod
-    def get_all_personas():
-        """Obtener todas las personas"""
+    def get_all_personas(centro_id=None):
+        """Obtener todas las personas (filtradas por centro si se especifica)"""
         try:
-            query = """
-            SELECT 
-                p.id,
-                p.nombre,
-                p.apellido,
-                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
-                p.cedula,
-                p.telefono,
-                p.correo,
-                p.direccion,
-                p.fecha_nacimiento,
-                p.estado,
-                p.fecha_creacion,
-                p.fecha_modificacion,
-                CASE 
-                    WHEN u.id IS NOT NULL THEN 'Si'
-                    ELSE 'No'
-                END as tiene_usuario,
-                r.nombre as rol_usuario
-            FROM persona p
-            LEFT JOIN usuario u ON p.id = u.persona_id
-            LEFT JOIN rol r ON u.rol_id = r.id
-            ORDER BY p.id
-            """
-
-            personas = DataBaseHandle.getRecords(query)
+            if centro_id:
+                # Consulta filtrada por centro: incluye personas que son usuarios, personal, pacientes 
+                # o tutores de pacientes del centro
+                query = """
+                SELECT DISTINCT
+                    p.id,
+                    p.nombre,
+                    p.apellido,
+                    CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                    p.cedula,
+                    p.telefono,
+                    p.correo,
+                    p.direccion,
+                    p.fecha_nacimiento,
+                    p.estado,
+                    p.fecha_creacion,
+                    p.fecha_modificacion,
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'Si'
+                        ELSE 'No'
+                    END as tiene_usuario,
+                    r.nombre as rol_usuario,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    CASE
+                        WHEN u.id IS NOT NULL THEN 'Usuario'
+                        WHEN per.id IS NOT NULL THEN 'Personal'
+                        WHEN pac.id IS NOT NULL THEN 'Paciente'
+                        WHEN tut.id IS NOT NULL THEN 'Tutor'
+                        ELSE 'Otro'
+                    END as tipo_relacion_centro
+                FROM persona p
+                LEFT JOIN usuario u ON p.id = u.persona_id AND u.id_centro = %s
+                LEFT JOIN rol r ON u.rol_id = r.id
+                LEFT JOIN centros c ON u.id_centro = c.id
+                LEFT JOIN personal per ON p.id = per.persona_id AND per.id_centro = %s
+                LEFT JOIN paciente pac ON p.id = pac.persona_id AND pac.id_centro = %s
+                -- Incluir personas que son tutores de pacientes del centro
+                LEFT JOIN (
+                    SELECT DISTINCT t.nombre as tutor_nombre, t.apellido as tutor_apellido, t.cedula as tutor_cedula, t.id
+                    FROM tutor t
+                    INNER JOIN paciente pac_t ON t.id = pac_t.id_tutor
+                    WHERE pac_t.id_centro = %s
+                ) tut ON p.cedula = tut.tutor_cedula
+                WHERE (
+                    u.id_centro = %s OR 
+                    per.id_centro = %s OR 
+                    pac.id_centro = %s OR
+                    tut.id IS NOT NULL
+                )
+                ORDER BY p.id
+                """
+                
+                personas = DataBaseHandle.getRecords(query, (centro_id, centro_id, centro_id, centro_id, centro_id, centro_id, centro_id))
+            else:
+                # Consulta sin filtro (solo para administradores de sistema)
+                query = """
+                SELECT 
+                    p.id,
+                    p.nombre,
+                    p.apellido,
+                    CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                    p.cedula,
+                    p.telefono,
+                    p.correo,
+                    p.direccion,
+                    p.fecha_nacimiento,
+                    p.estado,
+                    p.fecha_creacion,
+                    p.fecha_modificacion,
+                    CASE 
+                        WHEN u.id IS NOT NULL THEN 'Si'
+                        ELSE 'No'
+                    END as tiene_usuario,
+                    r.nombre as rol_usuario,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo
+                FROM persona p
+                LEFT JOIN usuario u ON p.id = u.persona_id
+                LEFT JOIN rol r ON u.rol_id = r.id
+                LEFT JOIN centros c ON u.id_centro = c.id
+                ORDER BY p.id
+                """
+                
+                personas = DataBaseHandle.getRecords(query)
 
             if personas is not None:
-                HandleLogs.write_log(f"PersonaComponent.get_all_personas - {len(personas)} personas encontradas")
+                filter_msg = f" (filtradas por centro {centro_id})" if centro_id else ""
+                HandleLogs.write_log(f"PersonaComponent.get_all_personas - {len(personas)} personas encontradas{filter_msg}")
                 return internal_response(True, personas, "Personas obtenidas correctamente")
             else:
                 HandleLogs.write_error("PersonaComponent.get_all_personas - Error en consulta")
