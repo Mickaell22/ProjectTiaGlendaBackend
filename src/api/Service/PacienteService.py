@@ -71,7 +71,7 @@ class PacienteService:
             # Preparar datos para inserción usando DataUtils
             base_data = {
                 'persona_id': int(data['persona_id']),
-                'tutor_id': int(data['tutor_id']),
+                'id_tutor': int(data['tutor_id']),  # Map tutor_id to id_tutor for database
                 'especialidad_id': data.get('especialidad_id'),
                 'fecha_ingreso': data['fecha_ingreso'],
                 'fecha_inicio_tratamiento': data.get('fecha_inicio_tratamiento'),  # AGREGAR
@@ -501,15 +501,14 @@ class PacienteService:
             data = request.get_json()
             HandleLogs.write_log("PacienteService.agregar_especialidad_paciente - Iniciando")
 
-            # Validar datos requeridos
-            required_validation = Validators.validate_required_fields(
-                data, ['paciente_id', 'especialidad_id']
-            )
-            if not required_validation['valid']:
-                return response_error(required_validation['message'], 400)
-
-            paciente_id = data['paciente_id']
-            especialidad_id = data['especialidad_id']
+            # Validar datos requeridos - aceptar ambos formatos de campos
+            paciente_id = data.get('paciente_id') or data.get('id_paciente')
+            especialidad_id = data.get('especialidad_id') or data.get('id_especialidad')
+            
+            if not paciente_id:
+                return response_error("Campo requerido faltante: paciente_id o id_paciente", 400)
+            if not especialidad_id:
+                return response_error("Campo requerido faltante: especialidad_id o id_especialidad", 400)
             fecha_inicio_tratamiento = data.get('fecha_inicio_tratamiento')
             observaciones = data.get('observaciones')
             usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
@@ -534,6 +533,43 @@ class PacienteService:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.agregar_especialidad_paciente - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def cambiar_especialidad_principal(paciente_id):
+        """Cambiar especialidad principal de un paciente"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log(f"PacienteService.cambiar_especialidad_principal - Paciente ID: {paciente_id}")
+
+            # Validar datos requeridos
+            nueva_especialidad_principal = data.get('nueva_especialidad_principal')
+            
+            if not nueva_especialidad_principal:
+                return response_error("Campo requerido faltante: nueva_especialidad_principal", 400)
+
+            # Validar IDs
+            if not isinstance(paciente_id, int) or paciente_id <= 0:
+                return response_error("ID de paciente inválido", 400)
+
+            if not isinstance(nueva_especialidad_principal, int) or nueva_especialidad_principal <= 0:
+                return response_error("ID de especialidad inválido", 400)
+
+            usuario_id = getattr(request, 'current_user', {}).get('id', 1)
+
+            result = PacienteComponent.cambiar_especialidad_principal(
+                paciente_id, nueva_especialidad_principal, usuario_id
+            )
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.cambiar_especialidad_principal - Especialidad principal cambiada para paciente {paciente_id}")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.cambiar_especialidad_principal - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.cambiar_especialidad_principal - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod

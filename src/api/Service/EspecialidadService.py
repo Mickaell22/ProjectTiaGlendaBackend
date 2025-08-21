@@ -198,3 +198,41 @@ class EspecialidadService:
         except Exception as e:
             HandleLogs.write_error(f"EspecialidadService.get_estadisticas - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def verificar_compatibilidad(personal_id, paciente_id):
+        """Verificar compatibilidad de especialidades entre personal y paciente"""
+        try:
+            HandleLogs.write_log(f"EspecialidadService.verificar_compatibilidad - Personal: {personal_id}, Paciente: {paciente_id}")
+
+            result = EspecialidadComponent.verificar_compatibilidad_especialidades(personal_id, paciente_id)
+
+            if result['success']:
+                HandleLogs.write_log("EspecialidadService.verificar_compatibilidad - Compatibilidad verificada")
+                return response_success(result['data'], "Compatibilidad verificada exitosamente")
+            else:
+                HandleLogs.write_error(f"EspecialidadService.verificar_compatibilidad - Error: {result['message']}")
+                return response_error("Error verificando compatibilidad", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"EspecialidadService.verificar_compatibilidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_estadisticas_multiples():
+        """Obtener estadísticas de especialidades múltiples"""
+        try:
+            HandleLogs.write_log("EspecialidadService.get_estadisticas_multiples - Iniciando")
+
+            result = EspecialidadComponent.get_estadisticas_especialidades_multiples()
+
+            if result['success']:
+                HandleLogs.write_log("EspecialidadService.get_estadisticas_multiples - Estadísticas obtenidas")
+                return response_success(result['data'], "Estadísticas de especialidades múltiples obtenidas")
+            else:
+                HandleLogs.write_error(f"EspecialidadService.get_estadisticas_multiples - Error: {result['message']}")
+                return response_error("Error obteniendo estadísticas múltiples", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"EspecialidadService.get_estadisticas_multiples - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)

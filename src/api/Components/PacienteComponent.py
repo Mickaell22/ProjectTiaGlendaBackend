@@ -154,7 +154,7 @@ class PacienteComponent:
             # Verificar que el tutor existe y está activo
             tutor_exists = DataBaseHandle.getRecords(
                 "SELECT id, estado FROM tutor WHERE id = %s",
-                (data['tutor_id'],), size=1
+                (data['id_tutor'],), size=1
             )
 
             if not tutor_exists:
@@ -176,34 +176,59 @@ class PacienteComponent:
                 if especialidad_exists['estado'] != 'activo':
                     return internal_response(False, None, "La especialidad debe estar activa")
 
-            # Insertar nuevo paciente
+            # Insertar nuevo paciente (sin especialidad - se maneja en tabla separada)
             insert_query = """
                 INSERT INTO paciente (
-                    persona_id, id_tutor, especialidad_id, fecha_ingreso, 
-                    fecha_inicio_tratamiento, fecha_fin_tratamiento, estado_tratamiento,
-                    observaciones_tratamiento, observaciones, estado, usuario_creacion
+                    persona_id, id_tutor, fecha_ingreso, motivo_consulta,
+                    estado_tratamiento, observaciones, estado, id_centro, usuario_creacion
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """
+
+            # Obtener centro del usuario actual (fallback a centro 13 - Norte)
+            id_centro = CentroMiddleware.get_current_user_centro() or 13
 
             params = (
                 data['persona_id'],
                 data['id_tutor'],
-                data.get('especialidad_id'),
                 data['fecha_ingreso'],
-                data.get('fecha_inicio_tratamiento'),
-                data.get('fecha_fin_tratamiento'),
+                data.get('observaciones_tratamiento'),  # usar como motivo_consulta temporalmente
                 data.get('estado_tratamiento', 'activo'),
-                data.get('observaciones_tratamiento'),
                 data.get('observaciones'),
                 data.get('estado', 'activo'),
+                id_centro,
                 data.get('usuario_creacion')
             )
 
             new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
 
             if new_id:
+                # Si se proporciona especialidad, crear relación en paciente_especialidades
+                if data.get('especialidad_id'):
+                    especialidad_query = """
+                        INSERT INTO paciente_especialidades (
+                            id_paciente, id_especialidad, es_principal, fecha_inicio_tratamiento,
+                            observaciones, estado, usuario_creacion
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """
+                    
+                    especialidad_params = (
+                        new_id,
+                        data['especialidad_id'],
+                        True,  # es_principal = True para la primera especialidad
+                        data.get('fecha_inicio_tratamiento'),
+                        data.get('observaciones_tratamiento'),
+                        'activo',
+                        data.get('usuario_creacion')
+                    )
+                    
+                    especialidad_success = DataBaseHandle.ExecuteNonQuery(especialidad_query, especialidad_params)
+                    if not especialidad_success:
+                        HandleLogs.write_error(f"PacienteComponent.create_paciente - Error asignando especialidad al paciente {new_id}")
+                        # No fallar completamente, solo logar el error
+
                 # Obtener el paciente creado con información completa
                 new_paciente = PacienteComponent.get_paciente_by_id(new_id)
                 HandleLogs.write_log(f"PacienteComponent.create_paciente - Paciente creado con ID: {new_id}")
@@ -240,26 +265,14 @@ class PacienteComponent:
                 if tutor_exists['estado'] != 'activo':
                     return internal_response(False, None, "El tutor debe estar activo")
 
-            # Si se cambia la especialidad, verificar que esté activa
-            if 'especialidad_id' in data and data['especialidad_id']:
-                especialidad_exists = DataBaseHandle.getRecords(
-                    "SELECT id, estado FROM especialidad WHERE id = %s",
-                    (data['especialidad_id'],), size=1
-                )
-
-                if not especialidad_exists:
-                    return internal_response(False, None, "La especialidad especificada no existe")
-
-                if especialidad_exists['estado'] != 'activo':
-                    return internal_response(False, None, "La especialidad debe estar activa")
+            # Specialties are now managed in paciente_especialidades table separately
 
             # Construir query de actualización dinámicamente
             update_fields = []
             params = []
 
-            allowed_fields = ['id_tutor', 'especialidad_id', 'fecha_ingreso', 'fecha_inicio_tratamiento', 
-                            'fecha_fin_tratamiento', 'estado_tratamiento', 'observaciones_tratamiento', 
-                            'observaciones', 'estado', 'usuario_modificacion']
+            allowed_fields = ['id_tutor', 'fecha_ingreso', 'motivo_consulta',
+                            'estado_tratamiento', 'observaciones', 'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
@@ -374,21 +387,30 @@ class PacienteComponent:
                 pac.id,
                 pac.fecha_ingreso,
                 pac.estado,
-                pac.especialidad_id,
                 pac.estado_tratamiento,
+                pac.fecha_creacion,
+                pac.fecha_modificacion,
+                -- Información del paciente (persona)
+                p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
                 p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
                 p.fecha_nacimiento,
-                -- Información de especialidad si está asignada
-                e.nombre as especialidad_nombre,
-                e.area as especialidad_area,
-                -- Calcular totales basado en si tiene especialidad asignada
-                CASE WHEN pac.especialidad_id IS NOT NULL THEN 1 ELSE 0 END as total_especialidades,
-                CASE WHEN pac.especialidad_id IS NOT NULL AND pac.estado_tratamiento = 'activo' THEN 1 ELSE 0 END as especialidades_activas
+                -- Información del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                CONCAT(t.nombre, ' ', t.apellido) as nombre_tutor,
+                t.telefono as telefono_tutor,
+                t.email as correo_tutor,
+                pac.observaciones
             FROM paciente pac
             INNER JOIN persona p ON pac.persona_id = p.id
-            WHERE pac.id_tutor = %s
+            INNER JOIN tutor t ON pac.id_tutor = t.id
+            WHERE pac.id_tutor = %s AND pac.estado != 'eliminado'
             ORDER BY p.nombre, p.apellido
             """
 
@@ -397,16 +419,10 @@ class PacienteComponent:
             if pacientes is not None:
                 # Formatear los datos para mantener compatibilidad con el frontend
                 for paciente in pacientes:
-                    # Temporarily commented out especialidad logic
-                    if False:  # paciente['especialidad_id']:
-                        paciente['especialidades'] = [{
-                            'id': paciente['especialidad_id'],
-                            'nombre': paciente['especialidad_nombre'],
-                            'area': paciente['especialidad_area'],
-                            'estado_tratamiento': paciente['estado_tratamiento']
-                        }]
-                    else:
-                        paciente['especialidades'] = []
+                    # Agregar especialidades vacías por ahora (se pueden cargar por separado si es necesario)
+                    paciente['especialidades'] = []
+                    paciente['total_especialidades'] = 0
+                    paciente['especialidades_activas'] = 0
 
                 HandleLogs.write_log(
                     f"PacienteComponent.get_pacientes_by_tutor - {len(pacientes)} pacientes del tutor {tutor_id} encontrados")
@@ -700,7 +716,7 @@ class PacienteComponent:
             # Verificar que no exista ya la asociación activa
             query_check = """
             SELECT id FROM paciente_especialidades 
-            WHERE paciente_id = %s AND especialidad_id = %s AND estado = 'activo'
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
             """
             
             existing = DataBaseHandle.getRecords(query_check, (paciente_id, especialidad_id), size=1)
@@ -712,8 +728,8 @@ class PacienteComponent:
             # Insertar nueva especialidad
             query_insert = """
             INSERT INTO paciente_especialidades (
-                paciente_id, especialidad_id, fecha_inicio_tratamiento, 
-                observaciones_tratamiento, usuario_creacion
+                id_paciente, id_especialidad, fecha_inicio_tratamiento, 
+                observaciones, usuario_creacion
             )
             VALUES (%s, %s, %s, %s, %s)
             """
@@ -732,6 +748,61 @@ class PacienteComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.agregar_especialidad_paciente - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def cambiar_especialidad_principal(paciente_id, nueva_especialidad_id, usuario_id=None):
+        """Cambiar especialidad principal de un paciente"""
+        try:
+            # Verificar que la nueva especialidad esté asignada al paciente
+            query_check = """
+            SELECT id FROM paciente_especialidades 
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
+            """
+            
+            existing = DataBaseHandle.getRecords(query_check, (paciente_id, nueva_especialidad_id), size=1)
+            
+            if not existing:
+                HandleLogs.write_error(f"PacienteComponent.cambiar_especialidad_principal - Especialidad {nueva_especialidad_id} no está asignada al paciente {paciente_id}")
+                return internal_response(False, None, "La especialidad debe estar asignada al paciente antes de ser principal")
+            
+            # Quitar el flag de principal de todas las especialidades del paciente
+            query_update_all = """
+            UPDATE paciente_especialidades 
+            SET es_principal = FALSE, usuario_modificacion = %s, fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE id_paciente = %s AND estado = 'activo'
+            """
+            
+            success_all = DataBaseHandle.ExecuteNonQuery(query_update_all, (usuario_id, paciente_id))
+            
+            if not success_all:
+                HandleLogs.write_error(f"PacienteComponent.cambiar_especialidad_principal - Error removiendo flags principales del paciente {paciente_id}")
+                return internal_response(False, None, "Error actualizando especialidades")
+            
+            # Marcar la nueva especialidad como principal
+            query_update_principal = """
+            UPDATE paciente_especialidades 
+            SET es_principal = TRUE, usuario_modificacion = %s, fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
+            """
+            
+            success_principal = DataBaseHandle.ExecuteNonQuery(
+                query_update_principal, 
+                (usuario_id, paciente_id, nueva_especialidad_id)
+            )
+            
+            if success_principal:
+                HandleLogs.write_log(f"PacienteComponent.cambiar_especialidad_principal - Especialidad {nueva_especialidad_id} marcada como principal para paciente {paciente_id}")
+                return internal_response(True, {
+                    "paciente_id": paciente_id, 
+                    "nueva_especialidad_principal": nueva_especialidad_id
+                }, "Especialidad principal cambiada exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.cambiar_especialidad_principal - Error marcando especialidad {nueva_especialidad_id} como principal")
+                return internal_response(False, None, "Error cambiando especialidad principal")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.cambiar_especialidad_principal - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
@@ -825,23 +896,22 @@ class PacienteComponent:
             query = """
             SELECT 
                 pe.id,
-                pe.especialidad_id,
+                pe.id_especialidad,
                 e.nombre as especialidad_nombre,
-                e.area as especialidad_area,
+                e.descripcion as especialidad_area,
                 pe.fecha_asignacion,
                 pe.fecha_inicio_tratamiento,
                 pe.fecha_fin_tratamiento,
-                pe.estado_tratamiento,
-                pe.fecha_inicio_pausa,
-                pe.fecha_fin_pausa,
-                pe.motivo_pausa,
-                pe.observaciones_pausa,
-                pe.observaciones_tratamiento,
+                pe.estado_pausa,
+                pe.fecha_inicio_pausa_esp,
+                pe.fecha_fin_pausa_esp,
+                pe.motivo_pausa_esp,
+                pe.observaciones,
                 pe.estado
             FROM paciente_especialidades pe
-            INNER JOIN especialidad e ON pe.especialidad_id = e.id
-            WHERE pe.paciente_id = %s AND pe.estado != 'eliminado'
-            ORDER BY e.area, e.nombre
+            INNER JOIN especialidad e ON pe.id_especialidad = e.id
+            WHERE pe.id_paciente = %s AND pe.estado != 'eliminado'
+            ORDER BY e.descripcion, e.nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query, (paciente_id,))

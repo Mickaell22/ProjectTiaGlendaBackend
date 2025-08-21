@@ -303,6 +303,138 @@ class EspecialidadComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
+    def verificar_compatibilidad_especialidades(personal_id, paciente_id):
+        """Verificar compatibilidad de especialidades entre personal y paciente"""
+        try:
+            # Obtener especialidades del personal
+            query_personal = """
+            SELECT pe.id_especialidad, e.nombre
+            FROM personal_especialidades pe
+            INNER JOIN especialidad e ON pe.id_especialidad = e.id
+            WHERE pe.id_personal = %s AND pe.estado = 'activo'
+            """
+            
+            especialidades_personal = DataBaseHandle.getRecords(query_personal, (personal_id,))
+            
+            # Obtener especialidades del paciente
+            query_paciente = """
+            SELECT pe.id_especialidad, e.nombre
+            FROM paciente_especialidades pe
+            INNER JOIN especialidad e ON pe.id_especialidad = e.id
+            WHERE pe.id_paciente = %s AND pe.estado = 'activo'
+            """
+            
+            especialidades_paciente = DataBaseHandle.getRecords(query_paciente, (paciente_id,))
+            
+            if especialidades_personal is None or especialidades_paciente is None:
+                return internal_response(False, None, "Error obteniendo especialidades")
+            
+            # Encontrar especialidades en común
+            especialidades_personal_ids = {esp['id_especialidad'] for esp in especialidades_personal} if especialidades_personal else set()
+            especialidades_paciente_ids = {esp['id_especialidad'] for esp in especialidades_paciente} if especialidades_paciente else set()
+            
+            especialidades_comunes = especialidades_personal_ids.intersection(especialidades_paciente_ids)
+            
+            # Calcular compatibilidad
+            total_especialidades_paciente = len(especialidades_paciente_ids)
+            total_compatibles = len(especialidades_comunes)
+            
+            porcentaje_compatibilidad = (total_compatibles / total_especialidades_paciente * 100) if total_especialidades_paciente > 0 else 0
+            
+            compatibilidad_data = {
+                "personal_id": personal_id,
+                "paciente_id": paciente_id,
+                "especialidades_personal": len(especialidades_personal_ids),
+                "especialidades_paciente": len(especialidades_paciente_ids),
+                "especialidades_comunes": total_compatibles,
+                "porcentaje_compatibilidad": round(porcentaje_compatibilidad, 2),
+                "es_compatible": porcentaje_compatibilidad > 0,
+                "recomendacion": "Asignación recomendada" if porcentaje_compatibilidad >= 50 else "Revisar asignación" if porcentaje_compatibilidad > 0 else "No compatible"
+            }
+            
+            HandleLogs.write_log(f"EspecialidadComponent.verificar_compatibilidad_especialidades - Personal {personal_id} y Paciente {paciente_id}: {porcentaje_compatibilidad}% compatible")
+            return internal_response(True, compatibilidad_data, "Compatibilidad verificada")
+            
+        except Exception as e:
+            HandleLogs.write_error(f"EspecialidadComponent.verificar_compatibilidad_especialidades - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_estadisticas_especialidades_multiples():
+        """Obtener estadísticas detalladas de especialidades múltiples"""
+        try:
+            # Estadísticas de personal con especialidades múltiples
+            query_personal = """
+            SELECT 
+                COUNT(DISTINCT id_personal) as personal_con_especialidades,
+                COUNT(*) as total_asignaciones_personal,
+                AVG(especialidades_por_personal) as promedio_especialidades_personal
+            FROM (
+                SELECT id_personal, COUNT(*) as especialidades_por_personal
+                FROM personal_especialidades
+                WHERE estado = 'activo'
+                GROUP BY id_personal
+            ) subq
+            """
+            
+            # Estadísticas de pacientes con especialidades múltiples
+            query_pacientes = """
+            SELECT 
+                COUNT(DISTINCT id_paciente) as pacientes_con_especialidades,
+                COUNT(*) as total_asignaciones_pacientes,
+                AVG(especialidades_por_paciente) as promedio_especialidades_paciente
+            FROM (
+                SELECT id_paciente, COUNT(*) as especialidades_por_paciente
+                FROM paciente_especialidades
+                WHERE estado = 'activo'
+                GROUP BY id_paciente
+            ) subq
+            """
+            
+            # Especialidades más asignadas
+            query_mas_asignadas = """
+            SELECT 
+                e.nombre,
+                e.descripcion,
+                COUNT(DISTINCT pe.id_personal) as personal_asignado,
+                COUNT(DISTINCT pac.id_paciente) as pacientes_asignados,
+                (COUNT(DISTINCT pe.id_personal) + COUNT(DISTINCT pac.id_paciente)) as total_asignaciones
+            FROM especialidad e
+            LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad AND pe.estado = 'activo'
+            LEFT JOIN paciente_especialidades pac ON e.id = pac.id_especialidad AND pac.estado = 'activo'
+            WHERE e.estado = 'activo'
+            GROUP BY e.id, e.nombre, e.descripcion
+            ORDER BY total_asignaciones DESC
+            LIMIT 5
+            """
+            
+            stats_personal = DataBaseHandle.getRecords(query_personal, size=1)
+            stats_pacientes = DataBaseHandle.getRecords(query_pacientes, size=1)
+            mas_asignadas = DataBaseHandle.getRecords(query_mas_asignadas)
+            
+            if stats_personal is None or stats_pacientes is None:
+                return internal_response(False, None, "Error obteniendo estadísticas")
+            
+            estadisticas = {
+                "resumen": {
+                    "personal_con_especialidades": stats_personal.get('personal_con_especialidades', 0) if stats_personal else 0,
+                    "pacientes_con_especialidades": stats_pacientes.get('pacientes_con_especialidades', 0) if stats_pacientes else 0,
+                    "total_asignaciones_personal": stats_personal.get('total_asignaciones_personal', 0) if stats_personal else 0,
+                    "total_asignaciones_pacientes": stats_pacientes.get('total_asignaciones_pacientes', 0) if stats_pacientes else 0,
+                    "promedio_especialidades_personal": round(float(stats_personal.get('promedio_especialidades_personal', 0) or 0), 2) if stats_personal else 0,
+                    "promedio_especialidades_paciente": round(float(stats_pacientes.get('promedio_especialidades_paciente', 0) or 0), 2) if stats_pacientes else 0
+                },
+                "especialidades_mas_asignadas": mas_asignadas if mas_asignadas else []
+            }
+            
+            HandleLogs.write_log("EspecialidadComponent.get_estadisticas_especialidades_multiples - Estadísticas obtenidas")
+            return internal_response(True, estadisticas, "Estadísticas de especialidades múltiples obtenidas")
+            
+        except Exception as e:
+            HandleLogs.write_error(f"EspecialidadComponent.get_estadisticas_especialidades_multiples - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
     def get_especialidades_activas():
         """Obtener solo especialidades activas (útil para combos/selects)"""
         try:

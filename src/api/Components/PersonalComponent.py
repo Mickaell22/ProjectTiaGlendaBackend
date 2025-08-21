@@ -360,6 +360,67 @@ class PersonalComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
+    def update_especialidad(personal_id, especialidad_id, data, usuario_modificacion=1):
+        """Actualizar una especialidad de un miembro del personal"""
+        try:
+            # Verificar que la asignación existe
+            assignment_check = """
+                SELECT id FROM personal_especialidades 
+                WHERE id_personal = %s AND id_especialidad = %s
+            """
+            existing = DataBaseHandle.getRecords(assignment_check, (personal_id, especialidad_id), size=1)
+
+            if not existing:
+                return internal_response(False, None, "Asignación de especialidad no encontrada")
+
+            # Construir la consulta de actualización dinámicamente
+            update_fields = []
+            update_values = []
+            
+            # Campos permitidos para actualizar
+            allowed_fields = {
+                'nivel_competencia': 'nivel_competencia',
+                'es_principal': 'es_principal', 
+                'certificacion': 'certificacion',
+                'observaciones': 'observaciones'
+            }
+            
+            for field, db_field in allowed_fields.items():
+                if field in data:
+                    update_fields.append(f"{db_field} = %s")
+                    update_values.append(data[field])
+            
+            if not update_fields:
+                return internal_response(False, None, "No hay campos válidos para actualizar")
+            
+            # Agregar campos de auditoría
+            update_fields.append("usuario_modificacion = %s")
+            update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+            update_values.append(usuario_modificacion)
+            
+            # Agregar condiciones WHERE
+            update_values.extend([personal_id, especialidad_id])
+            
+            update_query = f"""
+                UPDATE personal_especialidades 
+                SET {', '.join(update_fields)}
+                WHERE id_personal = %s AND id_especialidad = %s
+            """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, tuple(update_values))
+
+            if success:
+                HandleLogs.write_log(f"PersonalComponent.update_especialidad - Especialidad {especialidad_id} actualizada para personal {personal_id}")
+                return internal_response(True, {"personal_id": personal_id, "especialidad_id": especialidad_id}, "Especialidad actualizada exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonalComponent.update_especialidad - Error actualizando especialidad")
+                return internal_response(False, None, "Error actualizando especialidad")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.update_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
     def remove_especialidad(personal_id, especialidad_id):
         """Quitar una especialidad de un miembro del personal"""
         try:

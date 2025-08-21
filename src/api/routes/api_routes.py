@@ -248,6 +248,23 @@ def register_routes(app):
         return EspecialidadService.get_estadisticas()
 
     # ============================================
+    # RUTAS DE ESPECIALIDADES MÚLTIPLES - COMPATIBILIDAD Y ESTADÍSTICAS
+    # ============================================
+    @app.route('/api/compatibilidad-especialidades/<int:personal_id>/<int:paciente_id>', methods=['GET'])
+    @token_required
+    def verificar_compatibilidad_especialidades(personal_id, paciente_id):
+        """Verificar compatibilidad de especialidades entre personal y paciente"""
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.verificar_compatibilidad(personal_id, paciente_id)
+
+    @app.route('/api/especialidades-multiples/estadisticas', methods=['GET'])
+    @token_required
+    def get_estadisticas_especialidades_multiples():
+        """Obtener estadísticas de especialidades múltiples"""
+        from src.api.Service.EspecialidadService import EspecialidadService
+        return EspecialidadService.get_estadisticas_multiples()
+
+    # ============================================
     # RUTAS DE PERSONAL (Protegidas)
     # ============================================
     @app.route('/api/personal', methods=['GET'])
@@ -304,6 +321,14 @@ def register_routes(app):
     def assign_especialidad_to_personal(personal_id):
         from src.api.Service.PersonalService import PersonalService
         return PersonalService.assign_especialidad(personal_id)
+
+    @app.route('/api/personal/<int:personal_id>/especialidades/<int:especialidad_id>', methods=['PUT'])
+    @token_required
+    @admin_required
+    def update_especialidad_personal(personal_id, especialidad_id):
+        """Actualizar especialidad de personal"""
+        from src.api.Service.PersonalService import PersonalService
+        return PersonalService.update_especialidad(personal_id, especialidad_id)
 
     @app.route('/api/personal/<int:personal_id>/especialidades/<int:especialidad_id>', methods=['DELETE'])
     @admin_required
@@ -702,6 +727,37 @@ def register_routes(app):
     def delete_paciente(paciente_id):
         from src.api.Service.PacienteService import PacienteService
         return PacienteService.delete_paciente(paciente_id)
+
+    # ============================================
+    # RUTAS DE ESPECIALIDADES PARA PACIENTES
+    # ============================================
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades', methods=['POST'])
+    @token_required
+    def assign_especialidad_paciente(paciente_id):
+        """Asignar especialidad a un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.agregar_especialidad_paciente()
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades', methods=['GET'])
+    @token_required
+    def get_paciente_especialidades(paciente_id):
+        """Obtener especialidades de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.get_especialidades_paciente(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidades/<int:especialidad_id>', methods=['DELETE'])
+    @token_required
+    def remove_especialidad_paciente(paciente_id, especialidad_id):
+        """Remover especialidad de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.remover_especialidad_paciente()
+
+    @app.route('/api/pacientes/<int:paciente_id>/especialidad-principal', methods=['PUT'])
+    @token_required
+    def cambiar_especialidad_principal_paciente(paciente_id):
+        """Cambiar especialidad principal de un paciente"""
+        from src.api.Service.PacienteService import PacienteService
+        return PacienteService.cambiar_especialidad_principal(paciente_id)
 
     # ============================================
     # RUTAS DE ESPECIALIDADES MÚLTIPLES PARA PACIENTES - Fase 2

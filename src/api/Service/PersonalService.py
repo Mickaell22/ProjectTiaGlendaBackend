@@ -216,13 +216,14 @@ class PersonalService:
             if not personal_id or personal_id <= 0:
                 return response_error("ID de personal invalido", 400)
 
-            # Validar datos requeridos
-            required_validation = Validators.validate_required_fields(data, ['especialidad_id'])
-            if not required_validation['valid']:
-                return response_error(required_validation['message'], 400)
+            # Validar datos requeridos - aceptar ambos formatos de campos
+            especialidad_id = data.get('especialidad_id') or data.get('id_especialidad')
+            
+            if not especialidad_id:
+                return response_error("Campo requerido faltante: especialidad_id o id_especialidad", 400)
 
             try:
-                especialidad_id = int(data['especialidad_id'])
+                especialidad_id = int(especialidad_id)
             except (ValueError, TypeError):
                 return response_error("ID de especialidad debe ser un numero entero", 400)
 
@@ -241,6 +242,33 @@ class PersonalService:
 
         except Exception as e:
             HandleLogs.write_error(f"PersonalService.assign_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def update_especialidad(personal_id, especialidad_id):
+        """Actualizar una especialidad de un miembro del personal"""
+        try:
+            data = request.get_json()
+            HandleLogs.write_log(f"PersonalService.update_especialidad - Personal ID: {personal_id}, Especialidad ID: {especialidad_id}")
+
+            if not personal_id or personal_id <= 0:
+                return response_error("ID de personal invalido", 400)
+
+            if not especialidad_id or especialidad_id <= 0:
+                return response_error("ID de especialidad invalido", 400)
+
+            usuario_modificacion = getattr(request, 'current_user', {}).get('id', 1)
+            result = PersonalComponent.update_especialidad(personal_id, especialidad_id, data, usuario_modificacion)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.update_especialidad - Especialidad {especialidad_id} actualizada para personal {personal_id}")
+                return response_success(result['data'], "Especialidad actualizada exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonalService.update_especialidad - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.update_especialidad - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod

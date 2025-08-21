@@ -34,7 +34,7 @@ def test_login():
     global token
 
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 
@@ -73,45 +73,17 @@ def setup_test_data():
 
     auth_headers = {**HEADERS, "Authorization": f"Bearer {token}"}
 
-    # 1. Crear una persona para usar como tutor
-    tutor_persona_data = {
+    # 1. Crear el tutor directamente (sin necesidad de persona separada)
+    tutor_data = {
         "nombre": "María Elena",
         "apellido": "Jiménez Mora",
         "cedula": f"88{int(time.time())}",
         "telefono": "+50688776655",
-        "correo": f"maria.jimenez.{int(time.time())}@email.com",
+        "email": f"maria.jimenez.{int(time.time())}@email.com",
         "direccion": "Heredia, Costa Rica",
-        "fecha_nacimiento": "1985-08-20"
-    }
-
-    try:
-        response = requests.post(
-            f"{BASE_URL}/api/personas",
-            headers=auth_headers,
-            json=tutor_persona_data,
-            timeout=10
-        )
-
-        success = response.status_code == 201
-        response_data = response.json()
-
-        if success and response_data.get("data", {}).get("id"):
-            tutor_persona_id = response_data["data"]["id"]
-            print_test_info("Crear persona para tutor", "SUCCESS", {"persona_id": tutor_persona_id})
-        else:
-            raise Exception(f"Error creando persona tutor: {response_data}")
-
-    except Exception as e:
-        if "Error creando persona tutor:" in str(e):
-            raise e
-        raise Exception(f"Error en creación persona tutor: {str(e)}")
-
-    # 2. Crear el tutor
-    tutor_data = {
-        "persona_id": tutor_persona_id,
         "parentesco": "madre",
-        "es_contacto_emergencia": True,
-        "observaciones_tutor": "Madre responsable, disponible en horarios matutinos"
+        "ocupacion": "Administradora",
+        "estado": "activo"
     }
 
     try:
@@ -136,7 +108,7 @@ def setup_test_data():
             raise e
         raise Exception(f"Error en creación tutor: {str(e)}")
 
-    # 3. Crear una persona para usar como paciente
+    # 2. Crear una persona para usar como paciente
     paciente_persona_data = {
         "nombre": "Santiago",
         "apellido": "Jiménez López",
@@ -210,7 +182,7 @@ def test_pacientes_crud():
     new_paciente_data = {
         "persona_id": created_persona_id,
         "tutor_id": created_tutor_id,
-        "especialidad_id": 1,  # Terapia Ocupacional Pediátrica (primera especialidad en datos iniciales)
+        "especialidad_id": 37,  # Terapia Ocupacional (especialidad existente)
         "fecha_ingreso": fecha_ingreso,
         "fecha_inicio_tratamiento": fecha_ingreso,
         "estado_tratamiento": "activo",
