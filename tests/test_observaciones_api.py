@@ -52,24 +52,29 @@ class ObservacionesAPITest:
 
     def authenticate_users(self):
         """Autenticar usuarios para tests"""
-        print("\n🔐 Autenticando usuarios para tests de observaciones...")
+        print("\n[AUTH] Autenticando usuarios para tests de observaciones...")
         
         # Autenticar admin
         try:
             login_data = {
-                "usuario": "admin",
+                "usuario": "admin.norte",
                 "contrasenia": "admin123"
             }
             response = requests.post(f"{self.base_url}/api/login", 
                                    json=login_data, headers=self.headers)
             
             if response.status_code == 200:
-                self.admin_token = response.json()['token']
-                self.test_users['admin'] = {
-                    'token': self.admin_token,
-                    'id': response.json()['usuario']['id'],
-                    'nombre': response.json()['usuario']['nombre_completo']
-                }
+                response_data = response.json()
+                if response_data.get("data", {}).get("token"):
+                    self.admin_token = response_data["data"]["token"]
+                    self.test_users['admin'] = {
+                        'token': self.admin_token,
+                        'id': response_data["data"]["user"]["id"],
+                        'nombre': response_data["data"]["user"]["nombre_completo"]
+                    }
+                else:
+                    self.print_test_result("Autenticación Admin", False, f"Token no encontrado en respuesta: {response_data}")
+                    return False
                 self.print_test_result("Autenticación Admin", True, "Token obtenido exitosamente")
             else:
                 self.print_test_result("Autenticación Admin", False, f"Error: {response.status_code}")
@@ -82,7 +87,7 @@ class ObservacionesAPITest:
 
     def setup_test_sessions(self):
         """Obtener sesiones de prueba existentes"""
-        print("\n📚 Obteniendo sesiones para tests...")
+        print("\n[INFO] Obteniendo sesiones para tests...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -121,7 +126,7 @@ class ObservacionesAPITest:
 
     def test_crear_observacion_terapeutica(self):
         """Test: Crear observación para sesión terapéutica"""
-        print("\n📝 Testeando creación de observación terapéutica...")
+        print("\n[INFO] Testeando creación de observación terapéutica...")
         
         if 'terapeutica' not in self.test_sessions:
             self.print_test_result("Crear observación terapéutica", False, "No hay sesión terapéutica disponible")
@@ -157,7 +162,7 @@ class ObservacionesAPITest:
 
     def test_crear_observacion_pedagogica(self):
         """Test: Crear observación para sesión pedagógica"""
-        print("\n🎓 Testeando creación de observación pedagógica...")
+        print("\n[INFO] Testeando creación de observación pedagógica...")
         
         if 'pedagogica' not in self.test_sessions:
             self.print_test_result("Crear observación pedagógica", False, "No hay sesión pedagógica disponible")
@@ -193,7 +198,7 @@ class ObservacionesAPITest:
 
     def test_obtener_observaciones_sesion(self, tipo_sesion):
         """Test: Obtener observaciones de una sesión específica"""
-        print(f"\n📋 Testeando obtención de observaciones de sesión {tipo_sesion}...")
+        print(f"\n[INFO] Testeando obtención de observaciones de sesión {tipo_sesion}...")
         
         if tipo_sesion not in self.test_sessions:
             self.print_test_result(f"Obtener observaciones {tipo_sesion}", False, 
@@ -221,7 +226,7 @@ class ObservacionesAPITest:
 
     def test_obtener_observacion_especifica(self, observacion_id):
         """Test: Obtener observación específica por ID"""
-        print("\n🔍 Testeando obtención de observación específica...")
+        print("\n[INFO] Testeando obtención de observación específica...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -271,7 +276,7 @@ class ObservacionesAPITest:
 
     def test_buscar_observaciones(self):
         """Test: Búsqueda avanzada de observaciones"""
-        print("\n🔍 Testeando búsqueda avanzada de observaciones...")
+        print("\n[INFO] Testeando búsqueda avanzada de observaciones...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -320,7 +325,7 @@ class ObservacionesAPITest:
 
     def test_obtener_estadisticas_observaciones(self):
         """Test: Obtener estadísticas de observaciones"""
-        print("\n📊 Testeando obtención de estadísticas de observaciones...")
+        print("\n[INFO] Testeando obtención de estadísticas de observaciones...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -363,7 +368,7 @@ class ObservacionesAPITest:
 
     def test_casos_error(self):
         """Test: Casos de error y validaciones"""
-        print("\n❌ Testeando casos de error...")
+        print("\n[INFO] Testeando casos de error...")
         
         # Test sin autenticación
         try:
@@ -404,7 +409,7 @@ class ObservacionesAPITest:
 
     def test_flujo_completo_observaciones(self):
         """Test: Flujo completo de gestión de observaciones"""
-        print("\n🔄 Testeando flujo completo de observaciones...")
+        print("\n[INFO] Testeando flujo completo de observaciones...")
         
         # 1. Crear observación terapéutica
         print("   Paso 1: Creando observación terapéutica...")
@@ -445,19 +450,19 @@ class ObservacionesAPITest:
 
     def run_all_tests(self):
         """Ejecutar todos los tests de observaciones"""
-        print("🚀 INICIANDO TESTS DEL SISTEMA DE OBSERVACIONES")
+        print("INICIANDO TESTS DEL SISTEMA DE OBSERVACIONES")
         print("=" * 70)
         
         start_time = time.time()
         
         # Autenticación
         if not self.authenticate_users():
-            print("❌ No se pudo autenticar usuarios. Tests cancelados.")
+            print("ERROR: No se pudo autenticar usuarios. Tests cancelados.")
             return False
         
         # Setup de sesiones de prueba
         if not self.setup_test_sessions():
-            print("❌ No se pudieron obtener sesiones de prueba. Algunos tests se saltarán.")
+            print("WARNING: No se pudieron obtener sesiones de prueba. Algunos tests se saltaran.")
         
         # Test flujo completo
         self.test_flujo_completo_observaciones()
@@ -476,20 +481,20 @@ class ObservacionesAPITest:
         duration = end_time - start_time
         
         print("\n" + "=" * 70)
-        print("📊 RESUMEN DE TESTS DE OBSERVACIONES")
+        print("RESUMEN DE TESTS DE OBSERVACIONES")
         print("=" * 70)
         print(f"Total de tests: {self.results['total_tests']}")
-        print(f"✅ Exitosos: {self.results['passed']}")
-        print(f"❌ Fallidos: {self.results['failed']}")
-        print(f"⏱️  Duración: {duration:.2f} segundos")
+        print(f"OK Exitosos: {self.results['passed']}")
+        print(f"X Fallidos: {self.results['failed']}")
+        print(f"TIME Duracion: {duration:.2f} segundos")
         
         if self.results['failed'] > 0:
-            print("\n❌ ERRORES ENCONTRADOS:")
+            print("\nERRORES ENCONTRADOS:")
             for error in self.results['errors']:
                 print(f"   • {error}")
         
         success_rate = (self.results['passed'] / self.results['total_tests']) * 100
-        print(f"\n🎯 Tasa de éxito: {success_rate:.1f}%")
+        print(f"\nTasa de exito: {success_rate:.1f}%")
         
         return self.results['failed'] == 0
 
@@ -499,10 +504,10 @@ def main():
     success = tester.run_all_tests()
     
     if success:
-        print("\n🎉 ¡Todos los tests de observaciones pasaron exitosamente!")
+        print("\nTodos los tests de observaciones pasaron exitosamente!")
         return 0
     else:
-        print("\n💥 Algunos tests fallaron. Revisar logs arriba.")
+        print("\nAlgunos tests fallaron. Revisar logs arriba.")
         return 1
 
 if __name__ == "__main__":

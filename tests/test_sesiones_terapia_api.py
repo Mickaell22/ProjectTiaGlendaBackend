@@ -36,7 +36,7 @@ def test_login():
     global token
 
     login_data = {
-        "usuario": "admin",
+        "usuario": "admin.norte",
         "contrasenia": "admin123"
     }
 
@@ -100,7 +100,7 @@ def setup_test_data():
     # 2. Obtener terapeutas disponibles
     try:
         response = requests.get(
-            f"{BASE_URL}/api/sesiones-terapia/terapeutas-disponibles",
+            f"{BASE_URL}/api/personal",
             headers=auth_headers,
             timeout=10
         )
@@ -109,7 +109,12 @@ def setup_test_data():
         response_data = response.json()
 
         if success and response_data.get("data") and len(response_data["data"]) > 0:
-            created_terapeuta_id = response_data["data"][0]["id"]
+            # Filtrar personal con especialidades terapéuticas
+            personal_con_esp_terapeutica = [p for p in response_data["data"] if any(esp.get("area") == "Especialidad terapéutica" for esp in p.get("especialidades", []))]
+            if len(personal_con_esp_terapeutica) > 0:
+                created_terapeuta_id = personal_con_esp_terapeutica[0]["id"]
+            else:
+                created_terapeuta_id = response_data["data"][0]["id"]  # Fallback to any staff
             print_test_info("Obtener terapeuta", "SUCCESS", {"terapeuta_id": created_terapeuta_id})
         else:
             raise Exception(f"Error obteniendo terapeutas: {response_data}")
@@ -122,7 +127,7 @@ def setup_test_data():
     # 3. Obtener pacientes disponibles
     try:
         response = requests.get(
-            f"{BASE_URL}/api/sesiones-terapia/pacientes-disponibles",
+            f"{BASE_URL}/api/pacientes",
             headers=auth_headers,
             timeout=10
         )
@@ -185,12 +190,10 @@ def test_sesiones_terapia_crud():
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
         "dias_semana": ["lunes", "miercoles", "viernes"],  # SIN TILDES
-        "estado": "activo",  # Especificar estado explícitamente
+        "estado": "planificada",  # Usar estado válido del esquema
         "hora_inicio": "09:00",
         "duracion_minutos": 45,
-        "numero_sesiones_contratadas": 12,
-        "costo_total": 240000.0,
-        "meses_contrato": 1,
+        "costo_sesion": 20000.0,  # Usar campo que existe en el esquema
         "observaciones": "Sesión de prueba para testing automatizado"
     }
 

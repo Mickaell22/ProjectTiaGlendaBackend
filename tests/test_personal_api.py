@@ -171,7 +171,6 @@ def test_personal_crud():
     new_personal_data = {
         "persona_id": created_persona_id,
         "titulo_profesional": "Licenciatura en Terapia Ocupacional",
-        "observaciones_personal": "Personal creado durante tests automatizados. Especialista en pediatría.",
         "estado": "activo"
     }
 

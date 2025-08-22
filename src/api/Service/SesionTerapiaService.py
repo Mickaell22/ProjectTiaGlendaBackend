@@ -68,7 +68,7 @@ class SesionTerapiaService:
                         'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
                         'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                         'duracion_minutos': sesion['duracion_minutos'],
-                        'numero_sesiones_contratadas': sesion['numero_sesiones_contratadas'],
+                        'numero_sesiones_contratadas': sesion['numero_sesion_semanales_contratadas'],
                         'costo_total': float(sesion['costo_total']),
                         'costo_por_sesion': float(sesion['costo_por_sesion']),
                         'meses_contrato': sesion['meses_contrato'],
@@ -118,9 +118,9 @@ class SesionTerapiaService:
                     for sesion_cronograma in cronograma_raw:
                         cronograma_data = {
                             'id': sesion_cronograma['id'],
-                            'numero_sesion': sesion_cronograma['numero_sesion'],
+                            'numero_sesion': sesion_cronograma['numero_sesion_semanal'],
                             'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
-                            'hora_programada': str(sesion_cronograma['hora_programada']) if sesion_cronograma['hora_programada'] else None,
+                            'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                             'estado': sesion_cronograma['estado'],
                             'fecha_realizacion': sesion_cronograma['fecha_realizacion'].isoformat() if sesion_cronograma.get('fecha_realizacion') else None,
                             'observaciones_cronograma': sesion_cronograma.get('observaciones_cronograma'),
@@ -146,7 +146,7 @@ class SesionTerapiaService:
                     'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
                     'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                     'duracion_minutos': sesion['duracion_minutos'],
-                    'numero_sesiones_contratadas': sesion['numero_sesiones_contratadas'],
+                    'numero_sesiones_contratadas': sesion['numero_sesion_semanales_contratadas'],
                     'costo_total': float(sesion['costo_total']),
                     'costo_por_sesion': float(sesion['costo_por_sesion']),
                     'meses_contrato': sesion['meses_contrato'],
@@ -187,14 +187,11 @@ class SesionTerapiaService:
                 'especialidad_id': data['especialidad_id'],
                 'fecha_inicio': datetime.strptime(data['fecha_inicio'], '%Y-%m-%d').date(),
                 'fecha_fin': datetime.strptime(data['fecha_fin'], '%Y-%m-%d').date(),
-                'dias_semana': ','.join([dia.lower().strip() for dia in data['dias_semana']]),
+                'dias_semana': [dia.lower().strip() for dia in data['dias_semana']],
                 'hora_inicio': datetime.strptime(data['hora_inicio'], '%H:%M').time(),
                 'duracion_minutos': data.get('duracion_minutos', 45),
-                'numero_sesiones_contratadas': data['numero_sesiones_contratadas'],
-                'costo_total': float(data['costo_total']),
-                'meses_contrato': data.get('meses_contrato'),
-                'estado': data.get('estado', 'activo'),
-                'observaciones': data.get('observaciones', '').strip() if data.get('observaciones') else None,
+                'estado': data.get('estado', 'planificada'),
+                'id_centro': current_user.get('centro', {}).get('id', 1),  # Use user's center
                 'usuario_creacion': current_user['id']
             }
 
@@ -447,8 +444,7 @@ class SesionTerapiaService:
         """Validar datos de entrada para sesión"""
         # Validar campos requeridos
         required_fields = ['titulo', 'terapeuta_id', 'especialidad_id', 'fecha_inicio',
-                           'fecha_fin', 'dias_semana', 'hora_inicio', 'numero_sesiones_contratadas',
-                           'costo_total']
+                           'fecha_fin', 'dias_semana', 'hora_inicio']
 
         for field in required_fields:
             if not data.get(field):
@@ -458,8 +454,6 @@ class SesionTerapiaService:
         try:
             terapeuta_id = int(data['terapeuta_id'])
             especialidad_id = int(data['especialidad_id'])
-            numero_sesiones = int(data['numero_sesiones_contratadas'])
-            costo_total = float(data['costo_total'])
             duracion_minutos = int(data.get('duracion_minutos', 45))
         except (ValueError, TypeError):
             return response_error("Tipos de datos inválidos en campos numéricos", 400)
@@ -471,11 +465,7 @@ class SesionTerapiaService:
         if especialidad_id <= 0:
             return response_error("ID de especialidad debe ser positivo", 400)
 
-        if numero_sesiones <= 0:
-            return response_error("Número de sesiones debe ser positivo", 400)
 
-        if costo_total < 0:
-            return response_error("Costo total no puede ser negativo", 400)
 
         if duracion_minutos < 15 or duracion_minutos > 120:
             return response_error("Duración debe estar entre 15 y 120 minutos", 400)
@@ -581,7 +571,7 @@ class SesionTerapiaService:
                 'especialidad_id': data['especialidad_id'],
                 'fecha_inicio': datetime.strptime(data['fecha_inicio'], '%Y-%m-%d').date(),
                 'fecha_fin': datetime.strptime(data['fecha_fin'], '%Y-%m-%d').date(),
-                'dias_semana': ','.join([dia.lower().strip() for dia in data['dias_semana']]),
+                'dias_semana': [dia.lower().strip() for dia in data['dias_semana']],
                 'hora_inicio': datetime.strptime(data['hora_inicio'], '%H:%M').time(),
                 'duracion_minutos': data.get('duracion_minutos', 45),
                 'numero_sesiones_contratadas': data['numero_sesiones_contratadas'],
@@ -663,7 +653,7 @@ class SesionTerapiaService:
                 for sesion_cronograma in cronograma_raw:
                     cronograma_data = {
                         'id': sesion_cronograma['id'],
-                        'numero_sesion': sesion_cronograma['numero_sesion'],
+                        'numero_sesion': sesion_cronograma['numero_sesion_semanal'],
                         'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
                         'hora_programada': str(sesion_cronograma['hora_programada']) if sesion_cronograma['hora_programada'] else None,
                         'estado': sesion_cronograma['estado'],
@@ -704,7 +694,7 @@ class SesionTerapiaService:
                         'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
                         'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                         'duracion_minutos': sesion['duracion_minutos'],
-                        'numero_sesiones_contratadas': sesion['numero_sesiones_contratadas'],
+                        'numero_sesiones_contratadas': sesion['numero_sesion_semanales_contratadas'],
                         'costo_total': float(sesion['costo_total']) if sesion['costo_total'] else 0.0,
                         'costo_por_sesion': float(sesion['costo_por_sesion']) if sesion['costo_por_sesion'] else 0.0,
                         'meses_contrato': sesion['meses_contrato'],

@@ -134,19 +134,24 @@ class PersonaComponent:
                 u.usuario as nombre_usuario,
                 r.nombre as rol_usuario
             FROM persona p
-            LEFT JOIN usuario u ON p.id = u.persona_id
-            LEFT JOIN rol r ON u.rol_id = r.id
+            LEFT JOIN usuario u ON p.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
             WHERE p.id = %s
             """
 
-            persona = DataBaseHandle.getRecords(query, (id_persona,), size=1)
+            result = DataBaseHandle.getRecordsWithStatus(query, (id_persona,), size=1)
 
-            if persona is not None:
-                HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} encontrada")
-                return internal_response(True, persona, "Persona encontrada")
+            if result['success']:
+                if result['data']:
+                    persona = result['data']
+                    HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} encontrada")
+                    return internal_response(True, persona, "Persona encontrada")
+                else:
+                    HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} no encontrada")
+                    return internal_response(True, None, "Persona no encontrada")
             else:
-                HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} no encontrada")
-                return internal_response(True, None, "Persona no encontrada")
+                HandleLogs.write_error(f"PersonaComponent.get_persona_by_id - Error en consulta: {result['message']}")
+                return internal_response(False, None, f"Error en consulta: {result['message']}")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaComponent.get_persona_by_id - Error: {str(e)}")
@@ -195,7 +200,12 @@ class PersonaComponent:
                 # Obtener la persona creada con información completa
                 new_persona = PersonaComponent.get_persona_by_id(new_id)
                 HandleLogs.write_log(f"PersonaComponent.create_persona - Persona creada con ID: {new_id}")
-                return internal_response(True, new_persona['data'], "Persona creada exitosamente")
+                
+                if new_persona and new_persona.get('success') and new_persona.get('data'):
+                    return internal_response(True, new_persona['data'], "Persona creada exitosamente")
+                else:
+                    # Si no podemos obtener los datos, retornar al menos el ID
+                    return internal_response(True, {"id": new_id}, "Persona creada exitosamente")
             else:
                 HandleLogs.write_error("PersonaComponent.create_persona - Error insertando persona")
                 return internal_response(False, None, "Error creando persona")
@@ -369,19 +379,20 @@ class PersonaComponent:
                 p.cedula,
                 p.correo
             FROM persona p
-            LEFT JOIN usuario u ON p.id = u.persona_id
+            LEFT JOIN usuario u ON p.id = u.id_persona
             WHERE u.id IS NULL AND p.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """
 
-            personas = DataBaseHandle.getRecords(query)
+            result = DataBaseHandle.getRecordsWithStatus(query)
 
-            if personas is not None:
+            if result['success']:
+                personas = result['data'] if result['data'] else []
                 HandleLogs.write_log(f"PersonaComponent.get_personas_disponibles_para_usuario - {len(personas)} personas disponibles")
                 return internal_response(True, personas, "Personas disponibles obtenidas")
             else:
-                HandleLogs.write_error("PersonaComponent.get_personas_disponibles_para_usuario - Error en consulta")
-                return internal_response(False, None, "Error ejecutando consulta")
+                HandleLogs.write_error(f"PersonaComponent.get_personas_disponibles_para_usuario - Error: {result['message']}")
+                return internal_response(False, None, f"Error ejecutando consulta: {result['message']}")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaComponent.get_personas_disponibles_para_usuario - Error: {str(e)}")

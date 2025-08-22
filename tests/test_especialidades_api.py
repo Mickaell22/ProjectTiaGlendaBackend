@@ -97,7 +97,7 @@ def test_especialidades_crud():
     # 2. Crear nueva especialidad
     new_especialidad_data = {
         "nombre": f"Terapia Innovadora {int(time.time())}",
-        "area": "terapeutico",
+        "area": "Especialidad terapéutica",
         "descripcion": "Especialidad creada durante tests automatizados para validar funcionalidad",
         "estado": "activo"
     }
@@ -185,7 +185,7 @@ def test_especialidades_por_area():
     auth_headers = {**HEADERS, "Authorization": f"Bearer {token}"}
 
     # Áreas a probar
-    areas = ["terapeutico", "pedagogico"]
+    areas = ["Especialidad terapéutica", "Especialidad pedagógica"]
 
     for area in areas:
         try:
@@ -281,22 +281,22 @@ def test_especialidades_validations():
     validations = [
         {
             "name": "campos faltantes",
-            "data": {"area": "terapeutico"},  # nombre faltante
+            "data": {"area": "Especialidad terapéutica"},  # nombre faltante
             "expected_status": 400
         },
         {
             "name": "nombre vacio",
-            "data": {"nombre": "", "area": "terapeutico"},
+            "data": {"nombre": "", "area": "Especialidad terapéutica"},
             "expected_status": 400
         },
         {
             "name": "nombre muy corto",
-            "data": {"nombre": "AB", "area": "terapeutico"},
+            "data": {"nombre": "AB", "area": "Especialidad terapéutica"},
             "expected_status": 400
         },
         {
             "name": "nombre muy largo",
-            "data": {"nombre": "A" * 200, "area": "terapeutico"},
+            "data": {"nombre": "A" * 200, "area": "Especialidad terapéutica"},
             "expected_status": 400
         },
         {
@@ -306,12 +306,12 @@ def test_especialidades_validations():
         },
         {
             "name": "caracteres especiales no permitidos",
-            "data": {"nombre": "Terapia @#$%^&*", "area": "terapeutico"},
+            "data": {"nombre": "Terapia @#$%^&*", "area": "Especialidad terapéutica"},
             "expected_status": 400
         },
         {
             "name": "especialidad duplicada",
-            "data": {"nombre": "Terapia Ocupacional Pediátrica", "area": "terapeutico"},  # Ya existe
+            "data": {"nombre": "Terapia Ocupacional Pediátrica", "area": "Especialidad terapéutica"},  # Ya existe
             "expected_status": 400
         }
     ]

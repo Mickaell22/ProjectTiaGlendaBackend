@@ -476,7 +476,7 @@ class PersonalComponent:
             INNER JOIN persona pe ON p.id_persona = pe.id
             INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
             INNER JOIN especialidad e ON ps.id_especialidad = e.id
-            WHERE e.descripcion LIKE %s AND p.estado = 'activo' AND e.estado = 'activo'
+            WHERE e.area LIKE %s AND p.estado = 'activo' AND e.estado = 'activo'
             GROUP BY p.id, p.cargo, p.estado, pe.id, pe.nombre, pe.apellido, pe.correo
             ORDER BY pe.nombre, pe.apellido
             """

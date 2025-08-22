@@ -21,9 +21,17 @@ created_persona_id = None
 def print_test_info(test_name, status, data=None, error=None):
     """Función helper para logging de tests individuales"""
     if data and isinstance(data, dict):
-        print(f"   Datos: {json.dumps(data, indent=2, ensure_ascii=False)[:200]}...")
+        try:
+            # Usar ensure_ascii=True para evitar problemas con Unicode en Windows
+            print(f"   Datos: {json.dumps(data, indent=2, ensure_ascii=True)[:200]}...")
+        except UnicodeEncodeError:
+            # Fallback si hay problemas de codificación
+            print(f"   Datos: {str(data)[:200]}...")
     if error:
-        print(f"   Error: {error}")
+        try:
+            print(f"   Error: {error}")
+        except UnicodeEncodeError:
+            print(f"   Error: {str(error).encode('ascii', 'replace').decode('ascii')}")
 
 
 def test_login():

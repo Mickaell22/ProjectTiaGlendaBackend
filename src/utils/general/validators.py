@@ -163,7 +163,7 @@ class Validators:
         # Campos requeridos para crear usuario
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['usuario', 'contrasenia', 'persona_id', 'rol_id']
+                data, ['usuario', 'contrasenia', 'id_persona', 'id_rol']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
@@ -181,7 +181,7 @@ class Validators:
                 errors.append(password_validation['message'])
 
         # Validar IDs numéricos
-        numeric_fields = ['persona_id', 'rol_id', 'usuario_creacion', 'usuario_modificacion']
+        numeric_fields = ['id_persona', 'id_rol', 'usuario_creacion', 'usuario_modificacion']
         for field in numeric_fields:
             if field in data and data[field]:
                 try:
@@ -513,7 +513,7 @@ class Validators:
         # Campos requeridos para crear paciente
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['persona_id', 'tutor_id', 'fecha_ingreso']
+                data, ['persona_id', 'tutor_id', 'especialidad_id', 'fecha_ingreso', 'fecha_inicio_tratamiento']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])

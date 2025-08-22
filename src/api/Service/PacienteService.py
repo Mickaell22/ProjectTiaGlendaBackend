@@ -69,9 +69,13 @@ class PacienteService:
                 return response_error(validation_result['message'], 400)
 
             # Preparar datos para inserción usando DataUtils
+            # Normalizar nombres de campos (test usa persona_id, tutor_id pero DB usa id_persona, id_tutor)
+            persona_id = data.get('persona_id') or data.get('id_persona')
+            tutor_id = data.get('tutor_id') or data.get('id_tutor')
+            
             base_data = {
-                'id_persona': int(data['id_persona']),
-                'id_tutor': int(data['tutor_id']),  # Map tutor_id to id_tutor for database
+                'id_persona': int(persona_id),
+                'id_tutor': int(tutor_id),
                 'especialidad_id': data.get('especialidad_id'),
                 'fecha_ingreso': data['fecha_ingreso'],
                 'fecha_inicio_tratamiento': data.get('fecha_inicio_tratamiento'),  # AGREGAR

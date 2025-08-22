@@ -23,9 +23,17 @@ test_rol_id = None
 def print_test_info(test_name, status, data=None, error=None):
     """Función helper para logging de tests individuales"""
     if data and isinstance(data, dict):
-        print(f"   Datos: {json.dumps(data, indent=2, ensure_ascii=False)[:200]}...")
+        try:
+            # Usar ensure_ascii=True para evitar problemas con Unicode en Windows
+            print(f"   Datos: {json.dumps(data, indent=2, ensure_ascii=True)[:200]}...")
+        except UnicodeEncodeError:
+            # Fallback si hay problemas de codificación
+            print(f"   Datos: {str(data)[:200]}...")
     if error:
-        print(f"   Error: {error}")
+        try:
+            print(f"   Error: {error}")
+        except UnicodeEncodeError:
+            print(f"   Error: {str(error).encode('ascii', 'replace').decode('ascii')}")
 
 
 def test_login():
@@ -178,10 +186,10 @@ def test_usuarios_crud():
     # 2. Crear nuevo usuario
     timestamp = int(time.time())
     new_usuario_data = {
-        "persona_id": created_persona_id,
+        "id_persona": created_persona_id,
         "usuario": f"usuario_test_{timestamp}",
         "contrasenia": "TestPassword123!",
-        "rol_id": test_rol_id,
+        "id_rol": test_rol_id,
         "estado": "activo"
     }
 
@@ -376,47 +384,47 @@ def test_usuarios_validations():
     validations = [
         {
             "name": "campos faltantes",
-            "data": {"usuario": "test_user", "rol_id": 1},  # persona_id y contrasenia faltantes
+            "data": {"usuario": "test_user", "id_rol": 1},  # id_persona y contrasenia faltantes
             "expected_status": 400
         },
         {
             "name": "usuario muy corto",
-            "data": {"persona_id": 1, "usuario": "ab", "contrasenia": "Password123!", "rol_id": 1},
+            "data": {"id_persona": 1, "usuario": "ab", "contrasenia": "Password123!", "id_rol": 1},
             "expected_status": 400
         },
         {
             "name": "usuario muy largo",
-            "data": {"persona_id": 1, "usuario": "a" * 100, "contrasenia": "Password123!", "rol_id": 1},
+            "data": {"id_persona": 1, "usuario": "a" * 100, "contrasenia": "Password123!", "id_rol": 1},
             "expected_status": 400
         },
         {
             "name": "contrasenia muy corta",
-            "data": {"persona_id": 1, "usuario": "test_user", "contrasenia": "123", "rol_id": 1},
+            "data": {"id_persona": 1, "usuario": "test_user", "contrasenia": "123", "id_rol": 1},
             "expected_status": 400
         },
         {
-            "name": "persona_id invalido",
-            "data": {"persona_id": "no_es_numero", "usuario": "test_user", "contrasenia": "Password123!", "rol_id": 1},
+            "name": "id_persona invalido",
+            "data": {"id_persona": "no_es_numero", "usuario": "test_user", "contrasenia": "Password123!", "id_rol": 1},
             "expected_status": 400
         },
         {
-            "name": "rol_id invalido",
-            "data": {"persona_id": 1, "usuario": "test_user", "contrasenia": "Password123!", "rol_id": "no_es_numero"},
+            "name": "id_rol invalido",
+            "data": {"id_persona": 1, "usuario": "test_user", "contrasenia": "Password123!", "id_rol": "no_es_numero"},
             "expected_status": 400
         },
         {
             "name": "persona inexistente",
-            "data": {"persona_id": 99999, "usuario": "test_user", "contrasenia": "Password123!", "rol_id": 1},
+            "data": {"id_persona": 99999, "usuario": "test_user", "contrasenia": "Password123!", "id_rol": 1},
             "expected_status": 400
         },
         {
             "name": "rol inexistente",
-            "data": {"persona_id": 1, "usuario": "test_user", "contrasenia": "Password123!", "rol_id": 99999},
+            "data": {"id_persona": 1, "usuario": "test_user", "contrasenia": "Password123!", "id_rol": 99999},
             "expected_status": 400
         },
         {
             "name": "usuario duplicado",
-            "data": {"persona_id": 1, "usuario": "admin", "contrasenia": "Password123!", "rol_id": 1},
+            "data": {"id_persona": 1, "usuario": "admin", "contrasenia": "Password123!", "id_rol": 1},
             # Usuario admin ya existe
             "expected_status": 400
         }

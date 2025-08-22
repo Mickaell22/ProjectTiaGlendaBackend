@@ -14,7 +14,8 @@ from datetime import datetime
 from PIL import Image
 
 # Configuración base
-BASE_URL = "http://localhost:5000"
+import os
+BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:5000')
 HEADERS = {"Content-Type": "application/json"}
 
 class FotoPerfilAPITest:
@@ -61,23 +62,24 @@ class FotoPerfilAPITest:
 
     def authenticate_users(self):
         """Autenticar usuarios para tests"""
-        print("\n🔐 Autenticando usuarios para tests de fotos...")
+        print("\n[AUTH] Autenticando usuarios para tests de fotos...")
         
         # Autenticar admin
         try:
             login_data = {
-                "usuario": "admin",
+                "usuario": "admin.norte",
                 "contrasenia": "admin123"
             }
             response = requests.post(f"{self.base_url}/api/login", 
                                    json=login_data, headers=self.headers)
             
             if response.status_code == 200:
-                self.admin_token = response.json()['token']
+                response_data = response.json()
+                self.admin_token = response_data['data']['token']
                 self.test_users['admin'] = {
                     'token': self.admin_token,
-                    'id': response.json()['usuario']['id'],
-                    'nombre': response.json()['usuario']['nombre_completo']
+                    'id': response_data['data']['user']['id'],
+                    'nombre': response_data['data']['user']['nombre_completo']
                 }
                 self.print_test_result("Autenticación Admin", True, "Token obtenido exitosamente")
             else:
@@ -91,7 +93,7 @@ class FotoPerfilAPITest:
 
     def test_obtener_formatos_soportados(self):
         """Test: Obtener formatos soportados"""
-        print("\n📋 Testeando obtención de formatos soportados...")
+        print("\n[FORMATS] Testeando obtención de formatos soportados...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -113,7 +115,7 @@ class FotoPerfilAPITest:
 
     def test_subir_foto_perfil(self):
         """Test: Subir foto de perfil"""
-        print("\n📸 Testeando subida de foto de perfil...")
+        print("\n[UPLOAD] Testeando subida de foto de perfil...")
         
         try:
             # Crear imagen de prueba
@@ -145,7 +147,7 @@ class FotoPerfilAPITest:
 
     def test_obtener_mi_foto_perfil(self):
         """Test: Obtener mi foto de perfil"""
-        print("\n🖼️ Testeando obtención de mi foto de perfil...")
+        print("\n[GET] Testeando obtención de mi foto de perfil...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -171,7 +173,7 @@ class FotoPerfilAPITest:
 
     def test_obtener_foto_otro_usuario(self, usuario_id):
         """Test: Obtener foto de otro usuario"""
-        print("\n👤 Testeando obtención de foto de otro usuario...")
+        print("\n[USER] Testeando obtención de foto de otro usuario...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -197,7 +199,7 @@ class FotoPerfilAPITest:
 
     def test_eliminar_foto_perfil(self):
         """Test: Eliminar foto de perfil"""
-        print("\n🗑️ Testeando eliminación de foto de perfil...")
+        print("\n[DELETE] Testeando eliminación de foto de perfil...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -222,7 +224,7 @@ class FotoPerfilAPITest:
 
     def test_obtener_estadisticas_fotos(self):
         """Test: Obtener estadísticas de fotos (solo admin)"""
-        print("\n📊 Testeando obtención de estadísticas de fotos...")
+        print("\n[STATS] Testeando obtención de estadísticas de fotos...")
         
         try:
             headers_with_token = {**self.headers, "Authorization": f"Bearer {self.admin_token}"}
@@ -244,7 +246,7 @@ class FotoPerfilAPITest:
 
     def test_casos_error(self):
         """Test: Casos de error y validaciones"""
-        print("\n❌ Testeando casos de error...")
+        print("\n[ERROR] Testeando casos de error...")
         
         # Test sin autenticación
         try:
@@ -284,7 +286,7 @@ class FotoPerfilAPITest:
 
     def test_flujo_completo_foto(self):
         """Test: Flujo completo de gestión de foto"""
-        print("\n🔄 Testeando flujo completo de gestión de foto...")
+        print("\n[FLOW] Testeando flujo completo de gestión de foto...")
         
         # 1. Subir foto
         print("   Paso 1: Subiendo foto...")
@@ -327,7 +329,7 @@ class FotoPerfilAPITest:
 
     def run_all_tests(self):
         """Ejecutar todos los tests de fotos de perfil"""
-        print("🚀 INICIANDO TESTS DEL SISTEMA DE FOTOS DE PERFIL")
+        print("[START] INICIANDO TESTS DEL SISTEMA DE FOTOS DE PERFIL")
         print("=" * 70)
         
         start_time = time.time()
@@ -357,26 +359,26 @@ class FotoPerfilAPITest:
         duration = end_time - start_time
         
         print("\n" + "=" * 70)
-        print("📊 RESUMEN DE TESTS DE FOTOS DE PERFIL")
+        print("[SUMMARY] RESUMEN DE TESTS DE FOTOS DE PERFIL")
         print("=" * 70)
         print(f"Total de tests: {self.results['total_tests']}")
-        print(f"✅ Exitosos: {self.results['passed']}")
-        print(f"❌ Fallidos: {self.results['failed']}")
-        print(f"⏱️  Duración: {duration:.2f} segundos")
+        print(f"[PASS] Exitosos: {self.results['passed']}")
+        print(f"[FAIL] Fallidos: {self.results['failed']}")
+        print(f"[TIME] Duración: {duration:.2f} segundos")
         
         if self.results['failed'] > 0:
-            print("\n❌ ERRORES ENCONTRADOS:")
+            print("\n[FAIL] ERRORES ENCONTRADOS:")
             for error in self.results['errors']:
                 print(f"   • {error}")
         
         success_rate = (self.results['passed'] / self.results['total_tests']) * 100
-        print(f"\n🎯 Tasa de éxito: {success_rate:.1f}%")
+        print(f"\n[RATE] Tasa de éxito: {success_rate:.1f}%")
         
         return self.results['failed'] == 0
 
 def main():
     """Función principal"""
-    print("⚠️  NOTA: Este test requiere la librería Pillow para generar imágenes de prueba")
+    print("[INFO] NOTA: Este test requiere la librería Pillow para generar imágenes de prueba")
     print("   Instalar con: pip install Pillow")
     
     try:
@@ -384,13 +386,13 @@ def main():
         success = tester.run_all_tests()
         
         if success:
-            print("\n🎉 ¡Todos los tests de fotos de perfil pasaron exitosamente!")
+            print("\n[SUCCESS] Todos los tests de fotos de perfil pasaron exitosamente!")
             return 0
         else:
-            print("\n💥 Algunos tests fallaron. Revisar logs arriba.")
+            print("\n[FAILED] Algunos tests fallaron. Revisar logs arriba.")
             return 1
     except ImportError:
-        print("\n❌ Error: Librería Pillow no encontrada. Instalar con: pip install Pillow")
+        print("\n[ERROR] Error: Librería Pillow no encontrada. Instalar con: pip install Pillow")
         return 1
 
 if __name__ == "__main__":

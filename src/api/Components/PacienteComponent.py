@@ -188,8 +188,8 @@ class PacienteComponent:
                 RETURNING id
                 """
 
-            # Obtener centro del usuario actual (fallback a centro 13 - Norte)
-            id_centro = CentroMiddleware.get_current_user_centro() or 13
+            # Obtener centro del usuario actual (fallback a centro 1 - Norte)
+            id_centro = CentroMiddleware.get_current_user_centro() or 1
 
             params = (
                 data['id_persona'],

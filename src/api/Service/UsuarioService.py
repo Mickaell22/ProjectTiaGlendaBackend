@@ -70,14 +70,19 @@ class UsuarioService:
                 return response_error("Error procesando contrasena", 500)
 
             # Preparar datos para inserción
-            user_data = {
-                'usuario': data['usuario'].strip(),
-                'contrasenia': hashed_password,
-                'id_persona': int(data['id_persona']),
-                'id_rol': int(data['id_rol']),
-                'estado': data.get('estado', 'activo'),
-                'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
-            }
+            try:
+                user_data = {
+                    'usuario': data['usuario'].strip(),
+                    'contrasenia': hashed_password,
+                    'id_persona': int(data['id_persona']),
+                    'id_rol': int(data['id_rol']),
+                    'estado': data.get('estado', 'activo'),
+                    'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
+                }
+            except KeyError as e:
+                return response_error(f"Campo requerido faltante: {str(e)}", 400)
+            except ValueError as e:
+                return response_error(f"Valor inválido en campo numérico: {str(e)}", 400)
 
             result = UsuarioComponent.create_usuario(user_data)
 

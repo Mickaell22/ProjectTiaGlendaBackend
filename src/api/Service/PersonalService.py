@@ -75,7 +75,7 @@ class PersonalService:
             # Preparar datos para inserción
             current_user = getattr(request, 'current_user', {})
             personal_data = {
-                'id_persona': int(data['id_persona']),
+                'id_persona': int(data['persona_id']),
                 'titulo_profesional': data.get('titulo_profesional', '').strip() if data.get('titulo_profesional') else None,
                 'estado': data.get('estado', 'activo'),
                 'id_centro': current_user.get('id_centro'),  # Usar centro del usuario actual

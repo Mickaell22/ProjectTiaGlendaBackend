@@ -26,7 +26,8 @@
       "Bash(chcp:*)",
       "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\"\")",
       "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\")",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(dir \"src\\utils\\general\\LOGS\" /O:-D)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

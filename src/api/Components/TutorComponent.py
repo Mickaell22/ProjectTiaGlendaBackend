@@ -119,32 +119,54 @@ class TutorComponent:
     def create_tutor(data):
         """Crear un nuevo tutor"""
         try:
-            # Verificar si ya existe un tutor con la misma cédula
-            cedula_check = DataBaseHandle.getRecords(
-                "SELECT id FROM tutor WHERE cedula = %s",
+            # Verificar si ya existe una persona con la misma cédula
+            persona_existente = DataBaseHandle.getRecords(
+                "SELECT id FROM persona WHERE cedula = %s",
                 (data['cedula'],), size=1
             )
-            if cedula_check:
-                return internal_response(False, None, "Ya existe un tutor con esta cédula")
+            if persona_existente:
+                return internal_response(False, None, "Ya existe una persona con esta cedula")
 
-            # Insertar nuevo tutor
-            insert_query = """
-                INSERT INTO tutor (
-                    nombre, apellido, cedula, telefono, email, direccion,
-                    parentesco, ocupacion, direccion_empresa, telefono_empresa,
-                    nombre_empresa, estado, usuario_creacion
+            # Primero insertar en persona
+            insert_persona_query = """
+                INSERT INTO persona (
+                    nombre, apellido, cedula, telefono, correo, direccion,
+                    fecha_nacimiento, estado, usuario_creacion
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """
 
-            params = (
+            persona_params = (
                 data['nombre'],
                 data['apellido'], 
                 data['cedula'],
                 data.get('telefono', ''),
                 data.get('email', ''),
                 data.get('direccion', ''),
+                data.get('fecha_nacimiento', '1980-01-01'),  # Fecha por defecto para tutores
+                'activo',
+                data.get('usuario_creacion', 1)
+            )
+
+            persona_id = DataBaseHandle.ExecuteInsert(insert_persona_query, persona_params)
+
+            if not persona_id:
+                HandleLogs.write_error("TutorComponent.create_tutor - Error creando persona")
+                return internal_response(False, None, "Error creando persona")
+
+            # Luego insertar en tutor
+            insert_tutor_query = """
+                INSERT INTO tutor (
+                    id_persona, parentesco, ocupacion, direccion_empresa, 
+                    telefono_empresa, nombre_empresa, estado, usuario_creacion
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """
+
+            tutor_params = (
+                persona_id,
                 data['parentesco'],
                 data.get('ocupacion', ''),
                 data.get('direccion_empresa', ''),
@@ -154,14 +176,16 @@ class TutorComponent:
                 data.get('usuario_creacion', 1)
             )
 
-            new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
+            tutor_id = DataBaseHandle.ExecuteInsert(insert_tutor_query, tutor_params)
 
-            if new_id:
+            if tutor_id:
                 # Obtener el tutor creado con información completa
-                new_tutor = TutorComponent.get_tutor_by_id(new_id)
-                HandleLogs.write_log(f"TutorComponent.create_tutor - Tutor creado con ID: {new_id}")
+                new_tutor = TutorComponent.get_tutor_by_id(tutor_id)
+                HandleLogs.write_log(f"TutorComponent.create_tutor - Tutor creado con ID: {tutor_id}")
                 return internal_response(True, new_tutor['data'], "Tutor creado exitosamente")
             else:
+                # Si falla el tutor, eliminar la persona creada
+                DataBaseHandle.ExecuteNonQuery("DELETE FROM persona WHERE id = %s", (persona_id,))
                 HandleLogs.write_error("TutorComponent.create_tutor - Error insertando tutor")
                 return internal_response(False, None, "Error creando tutor")
 
@@ -173,52 +197,77 @@ class TutorComponent:
     def update_tutor(tutor_id, data):
         """Actualizar un tutor existente"""
         try:
-            # Verificar si el tutor existe
-            check_query = "SELECT id FROM tutor WHERE id = %s"
+            # Verificar si el tutor existe y obtener id_persona
+            check_query = "SELECT id, id_persona FROM tutor WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (tutor_id,), size=1)
 
             if not existing:
                 return internal_response(False, None, "Tutor no encontrado")
 
-            # Construir query de actualización dinámicamente
-            update_fields = []
-            params = []
+            persona_id = existing['id_persona']
 
-            allowed_fields = ['nombre', 'apellido', 'telefono', 'email', 'direccion', 
-                              'parentesco', 'ocupacion', 'direccion_empresa', 
-                              'telefono_empresa', 'nombre_empresa', 'estado',
-                              'usuario_modificacion']
+            # Separar campos de persona y tutor
+            persona_fields = []
+            persona_params = []
+            tutor_fields = []
+            tutor_params = []
 
-            for field in allowed_fields:
+            # Campos que van en persona
+            persona_allowed = ['nombre', 'apellido', 'telefono', 'email', 'direccion']
+            for field in persona_allowed:
                 if field in data and data[field] is not None:
-                    update_fields.append(f"{field} = %s")
-                    params.append(data[field])
+                    db_field = 'correo' if field == 'email' else field
+                    persona_fields.append(f"{db_field} = %s")
+                    persona_params.append(data[field])
 
-            if not update_fields:
+            # Campos que van en tutor
+            tutor_allowed = ['parentesco', 'ocupacion', 'direccion_empresa', 
+                             'telefono_empresa', 'nombre_empresa', 'estado',
+                             'usuario_modificacion']
+            for field in tutor_allowed:
+                if field in data and data[field] is not None:
+                    tutor_fields.append(f"{field} = %s")
+                    tutor_params.append(data[field])
+
+            # Actualizar persona si hay campos
+            if persona_fields:
+                persona_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+                persona_params.append(persona_id)
+                
+                persona_query = f"""
+                    UPDATE persona 
+                    SET {', '.join(persona_fields)}
+                    WHERE id = %s
+                    """
+                
+                persona_success = DataBaseHandle.ExecuteNonQuery(persona_query, persona_params)
+                if not persona_success:
+                    HandleLogs.write_error(f"TutorComponent.update_tutor - Error actualizando persona {persona_id}")
+                    return internal_response(False, None, "Error actualizando datos de persona")
+
+            # Actualizar tutor si hay campos
+            if tutor_fields:
+                tutor_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+                tutor_params.append(tutor_id)
+                
+                tutor_query = f"""
+                    UPDATE tutor 
+                    SET {', '.join(tutor_fields)}
+                    WHERE id = %s
+                    """
+                
+                tutor_success = DataBaseHandle.ExecuteNonQuery(tutor_query, tutor_params)
+                if not tutor_success:
+                    HandleLogs.write_error(f"TutorComponent.update_tutor - Error actualizando tutor {tutor_id}")
+                    return internal_response(False, None, "Error actualizando datos de tutor")
+
+            if not persona_fields and not tutor_fields:
                 return internal_response(False, None, "No hay campos para actualizar")
 
-            # Agregar fecha de modificación
-            update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
-
-            # Agregar ID del tutor al final
-            params.append(tutor_id)
-
-            update_query = f"""
-                UPDATE tutor 
-                SET {', '.join(update_fields)}
-                WHERE id = %s
-                """
-
-            success = DataBaseHandle.ExecuteNonQuery(update_query, params)
-
-            if success:
-                # Obtener datos actualizados
-                updated_tutor = TutorComponent.get_tutor_by_id(tutor_id)
-                HandleLogs.write_log(f"TutorComponent.update_tutor - Tutor {tutor_id} actualizado")
-                return internal_response(True, updated_tutor['data'], "Tutor actualizado exitosamente")
-            else:
-                HandleLogs.write_error(f"TutorComponent.update_tutor - Error actualizando tutor {tutor_id}")
-                return internal_response(False, None, "Error actualizando tutor")
+            # Obtener datos actualizados
+            updated_tutor = TutorComponent.get_tutor_by_id(tutor_id)
+            HandleLogs.write_log(f"TutorComponent.update_tutor - Tutor {tutor_id} actualizado")
+            return internal_response(True, updated_tutor['data'], "Tutor actualizado exitosamente")
 
         except Exception as e:
             HandleLogs.write_error(f"TutorComponent.update_tutor - Error: {str(e)}")

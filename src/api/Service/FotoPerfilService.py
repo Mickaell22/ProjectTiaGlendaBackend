@@ -5,10 +5,9 @@ Centro Tía Glenda - Sistema de Gestión de Fotos de Perfil
 """
 
 from src.api.Components.FotoPerfilComponent import FotoPerfilComponent
-from src.utils.general.logger import Logger
+from src.utils.general.logs import HandleLogs
 import os
 
-logger = Logger()
 
 class FotoPerfilService:
     
@@ -32,7 +31,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en subir_foto_perfil: {str(e)}")
+            HandleLogs.write_error(f"Error en subir_foto_perfil: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -42,7 +41,7 @@ class FotoPerfilService:
         """
         try:
             # Solo administradores pueden cambiar fotos de otros usuarios
-            if usuario_admin.get('rol') != 'administrador':
+            if usuario_admin.get('rol', '').lower() != 'administrador':
                 return {'success': False, 'message': 'Solo administradores pueden realizar esta acción'}
             
             # Validar que el usuario objetivo existe y está en el mismo centro
@@ -59,7 +58,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en subir_foto_perfil_admin: {str(e)}")
+            HandleLogs.write_error(f"Error en subir_foto_perfil_admin: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -77,7 +76,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en obtener_foto_perfil: {str(e)}")
+            HandleLogs.write_error(f"Error en obtener_foto_perfil: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -90,7 +89,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en obtener_mi_foto_perfil: {str(e)}")
+            HandleLogs.write_error(f"Error en obtener_mi_foto_perfil: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -107,7 +106,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en eliminar_foto_perfil: {str(e)}")
+            HandleLogs.write_error(f"Error en eliminar_foto_perfil: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -117,7 +116,7 @@ class FotoPerfilService:
         """
         try:
             # Solo administradores pueden eliminar fotos de otros usuarios
-            if usuario_admin.get('rol') != 'administrador':
+            if usuario_admin.get('rol', '').lower() != 'administrador':
                 return {'success': False, 'message': 'Solo administradores pueden realizar esta acción'}
             
             # Validar que el usuario objetivo existe y está en el mismo centro
@@ -132,7 +131,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en eliminar_foto_perfil_admin: {str(e)}")
+            HandleLogs.write_error(f"Error en eliminar_foto_perfil_admin: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -165,7 +164,7 @@ class FotoPerfilService:
             }
             
         except Exception as e:
-            logger.log_error(f"Error en obtener_archivo_foto: {str(e)}")
+            HandleLogs.write_error(f"Error en obtener_archivo_foto: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -175,7 +174,7 @@ class FotoPerfilService:
         """
         try:
             # Solo administradores pueden ver estadísticas
-            if usuario_admin.get('rol') != 'administrador':
+            if usuario_admin.get('rol', '').lower() != 'administrador':
                 return {'success': False, 'message': 'Solo administradores pueden ver estadísticas'}
             
             resultado = FotoPerfilComponent.obtener_estadisticas_fotos()
@@ -183,7 +182,7 @@ class FotoPerfilService:
             return resultado
             
         except Exception as e:
-            logger.log_error(f"Error en obtener_estadisticas_fotos: {str(e)}")
+            HandleLogs.write_error(f"Error en obtener_estadisticas_fotos: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
@@ -234,7 +233,7 @@ class FotoPerfilService:
             return False
             
         except Exception as e:
-            logger.log_error(f"Error en _validar_usuario_mismo_centro: {str(e)}")
+            HandleLogs.write_error(f"Error en _validar_usuario_mismo_centro: {str(e)}")
             return False
     
     @staticmethod

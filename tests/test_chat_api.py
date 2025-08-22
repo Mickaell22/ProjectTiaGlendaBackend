@@ -12,7 +12,8 @@ import os
 from datetime import datetime
 
 # Configuración base
-BASE_URL = "http://localhost:5000"
+import os
+BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:5000')  # TODO: Make configurable via environment variable
 HEADERS = {"Content-Type": "application/json"}
 
 class ChatAPITest:
@@ -349,7 +350,7 @@ class ChatAPITest:
         
         # Test mensajes de conversación (si hay conversaciones)
         if conversations and len(conversations) > 0:
-            self.test_obtener_mensajes_conversacion(conversations[0]['id_conversacion'])
+            self.test_obtener_mensajes_conversacion(conversations[0]['id_contacto'])
         
         # Marcar mensaje como leído (si se envió exitosamente)
         if message_id:

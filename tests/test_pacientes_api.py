@@ -182,7 +182,7 @@ def test_pacientes_crud():
     new_paciente_data = {
         "persona_id": created_persona_id,
         "tutor_id": created_tutor_id,
-        "especialidad_id": 37,  # Terapia Ocupacional (especialidad existente)
+        "especialidad_id": 2,  # Terapia Ocupacional (especialidad existente)
         "fecha_ingreso": fecha_ingreso,
         "fecha_inicio_tratamiento": fecha_ingreso,
         "estado_tratamiento": "activo",

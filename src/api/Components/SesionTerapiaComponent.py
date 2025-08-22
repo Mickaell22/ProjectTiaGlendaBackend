@@ -17,10 +17,10 @@ class SesionTerapiaComponent:
                 SELECT 
                     st.id,
                     st.codigo_sesion,
-                    st.titulo,
-                    st.terapeuta_id,
+                    st.objetivo_general as titulo,
+                    st.id_terapeuta as terapeuta_id,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
-                    st.especialidad_id,
+                    st.id_especialidad as especialidad_id,
                     e.nombre as especialidad_nombre,
                     e.area as especialidad_area,
                     st.fecha_inicio,
@@ -28,24 +28,24 @@ class SesionTerapiaComponent:
                     st.dias_semana,
                     st.hora_inicio,
                     st.duracion_minutos,
-                    st.numero_sesiones_contratadas,
-                    st.costo_total,
-                    st.costo_por_sesion,
-                    st.meses_contrato,
+                    20 as numero_sesion_semanales_contratadas,
+                    st.costo_sesion * 20 as costo_total,
+                    st.costo_sesion as costo_por_sesion,
+                    3 as meses_contrato,
                     st.estado,
                     st.observaciones,
                     st.fecha_creacion,
                     st.fecha_modificacion,
-                    COUNT(DISTINCT sp.paciente_id) as total_pacientes,
+                    COUNT(DISTINCT sp.id_paciente) as total_pacientes,
                     COUNT(DISTINCT cs.id) as sesiones_programadas,
-                    COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.cronograma_sesion_id END) as sesiones_realizadas
+                    COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.id_cronograma END) as sesiones_realizadas
                 FROM sesion_terapia st
-                JOIN personal per ON st.terapeuta_id = per.id
+                JOIN personal per ON st.id_terapeuta = per.id
                 JOIN persona p_ter ON per.id_persona = p_ter.id
-                JOIN especialidad e ON st.especialidad_id = e.id
-                LEFT JOIN sesion_paciente sp ON st.id = sp.sesion_terapia_id AND sp.estado = 'activo'
-                LEFT JOIN cronograma_sesiones cs ON st.id = cs.sesion_terapia_id
-                LEFT JOIN asistencia_sesiones ass ON cs.id = ass.cronograma_sesion_id
+                JOIN especialidad e ON st.id_especialidad = e.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
+                LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
                 GROUP BY st.id, p_ter.nombre, p_ter.apellido, e.nombre, e.area
                 ORDER BY st.fecha_creacion DESC
             """
@@ -63,14 +63,32 @@ class SesionTerapiaComponent:
         try:
             query = """
                 SELECT 
-                    st.*,
+                    st.id,
+                    st.codigo_sesion,
+                    st.objetivo_general as titulo,
+                    st.id_terapeuta as terapeuta_id,
+                    st.id_especialidad as especialidad_id,
+                    st.fecha_inicio,
+                    st.fecha_fin,
+                    st.dias_semana,
+                    st.hora_inicio,
+                    st.duracion_minutos,
+                    st.costo_sesion,
+                    20 as numero_sesion_semanales_contratadas,
+                    st.costo_sesion * 20 as costo_total,
+                    st.costo_sesion as costo_por_sesion,
+                    3 as meses_contrato,
+                    st.estado,
+                    st.observaciones,
+                    st.fecha_creacion,
+                    st.fecha_modificacion,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
                     e.nombre as especialidad_nombre,
                     e.area as especialidad_area
                 FROM sesion_terapia st
-                JOIN personal per ON st.terapeuta_id = per.id
+                JOIN personal per ON st.id_terapeuta = per.id
                 JOIN persona p_ter ON per.id_persona = p_ter.id
-                JOIN especialidad e ON st.especialidad_id = e.id
+                JOIN especialidad e ON st.id_especialidad = e.id
                 WHERE st.id = %s
             """
 
@@ -95,27 +113,24 @@ class SesionTerapiaComponent:
             # Insertar con codigo_sesion NULL para que el trigger lo genere automáticamente
             query = """
                 INSERT INTO sesion_terapia (
-                    codigo_sesion, titulo, terapeuta_id, especialidad_id, fecha_inicio, fecha_fin,
-                    dias_semana, hora_inicio, duracion_minutos, numero_sesiones_contratadas,
-                    costo_total, meses_contrato, estado, observaciones, usuario_creacion
-                ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    codigo_sesion, objetivo_general, id_terapeuta, id_especialidad, fecha_inicio, fecha_fin,
+                    dias_semana, hora_inicio, duracion_minutos, costo_sesion, estado, id_centro, usuario_creacion
+                ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, codigo_sesion
             """
 
             params = (
-                sesion_data['titulo'],
-                sesion_data['terapeuta_id'],
-                sesion_data['especialidad_id'],
+                sesion_data['titulo'],  # Maps to objetivo_general
+                sesion_data['terapeuta_id'],  # Maps to id_terapeuta
+                sesion_data['especialidad_id'],  # Maps to id_especialidad
                 sesion_data['fecha_inicio'],
                 sesion_data['fecha_fin'],
                 sesion_data['dias_semana'],
                 sesion_data['hora_inicio'],
                 sesion_data.get('duracion_minutos', 45),
-                sesion_data['numero_sesiones_contratadas'],
-                sesion_data['costo_total'],
-                sesion_data.get('meses_contrato'),
-                sesion_data.get('estado', 'activo'),
-                sesion_data.get('observaciones'),
+                sesion_data.get('costo_sesion', 20000.0),
+                sesion_data.get('estado', 'planificada'),  # Use proper enum value
+                sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
             )
 
@@ -126,11 +141,11 @@ class SesionTerapiaComponent:
             result = DataBaseHandle.ExecuteNonQuery(insert_query, params)
             
             if result:
-                # Buscar la sesión recién creada por titulo y terapeuta_id (campos únicos para buscar)
+                # Buscar la sesión recién creada por objetivo_general y id_terapeuta
                 select_query = """
                     SELECT id, codigo_sesion 
                     FROM sesion_terapia 
-                    WHERE titulo = %s AND terapeuta_id = %s 
+                    WHERE objetivo_general = %s AND id_terapeuta = %s 
                     ORDER BY fecha_creacion DESC 
                     LIMIT 1
                 """
@@ -170,11 +185,10 @@ class SesionTerapiaComponent:
         try:
             query = """
                 UPDATE sesion_terapia SET
-                    titulo = %s, terapeuta_id = %s, especialidad_id = %s,
+                    objetivo_general = %s, id_terapeuta = %s, id_especialidad = %s,
                     fecha_inicio = %s, fecha_fin = %s, dias_semana = %s,
-                    hora_inicio = %s, duracion_minutos = %s, numero_sesiones_contratadas = %s,
-                    costo_total = %s, meses_contrato = %s, estado = %s,
-                    observaciones = %s, usuario_modificacion = %s
+                    hora_inicio = %s, duracion_minutos = %s, estado = %s,
+                    usuario_modificacion = %s
                 WHERE id = %s
             """
 
@@ -187,11 +201,7 @@ class SesionTerapiaComponent:
                 sesion_data['dias_semana'],
                 sesion_data['hora_inicio'],
                 sesion_data.get('duracion_minutos', 45),
-                sesion_data['numero_sesiones_contratadas'],
-                sesion_data['costo_total'],
-                sesion_data.get('meses_contrato'),
-                sesion_data.get('estado', 'activo'),
-                sesion_data.get('observaciones'),
+                sesion_data.get('estado', 'planificada'),
                 sesion_data['usuario_modificacion'],
                 sesion_id
             )
@@ -225,7 +235,7 @@ class SesionTerapiaComponent:
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
-                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, numero_sesiones_contratadas, usuario_creacion
+                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, duracion_minutos, 20 as numero_sesion_semanales_contratadas, usuario_creacion
                 FROM sesion_terapia 
                 WHERE id = %s
             """
@@ -239,11 +249,11 @@ class SesionTerapiaComponent:
                 raise Exception("La fecha de inicio es requerida")
             if not sesion_data['dias_semana']:
                 raise Exception("Los días de la semana son requeridos")
-            if not sesion_data['numero_sesiones_contratadas'] or sesion_data['numero_sesiones_contratadas'] <= 0:
+            if not sesion_data['numero_sesion_semanales_contratadas'] or sesion_data['numero_sesion_semanales_contratadas'] <= 0:
                 raise Exception("El número de sesiones contratadas debe ser mayor a 0")
             
             # Limpiar cronograma existente
-            delete_query = "DELETE FROM cronograma_sesiones WHERE sesion_terapia_id = %s"
+            delete_query = "DELETE FROM cronograma_sesiones WHERE id_sesion = %s"
             DataBaseHandle.ExecuteNonQuery(delete_query, (sesion_id,))
             
             # Generar cronograma programáticamente
@@ -251,9 +261,20 @@ class SesionTerapiaComponent:
             
             fecha_inicio = sesion_data['fecha_inicio']
             fecha_fin = sesion_data['fecha_fin']
-            dias_semana_str = sesion_data['dias_semana'].strip()
+            
+            # Handle dias_semana - could be string or array from database
+            dias_semana_raw = sesion_data['dias_semana']
+            if isinstance(dias_semana_raw, str):
+                # Remove array brackets if present and clean
+                dias_semana_str = dias_semana_raw.strip('{}').strip()
+            elif isinstance(dias_semana_raw, list):
+                # Join list elements
+                dias_semana_str = ','.join(dias_semana_raw)
+            else:
+                dias_semana_str = str(dias_semana_raw).strip('{}').strip()
+                
             hora_inicio = sesion_data['hora_inicio']
-            max_sesiones = sesion_data['numero_sesiones_contratadas']
+            max_sesiones = sesion_data['numero_sesion_semanales_contratadas']
             
             # Mapeo de días (asegurar consistencia)
             dias_map = {
@@ -287,7 +308,7 @@ class SesionTerapiaComponent:
             
             # Generar cronograma de manera eficiente
             fecha_actual = fecha_inicio
-            numero_sesion = 1
+            numero_sesion_semanal = 1
             sesiones_creadas = 0
             intentos_max = 1000  # Evitar bucles infinitos
             intentos = 0
@@ -300,14 +321,17 @@ class SesionTerapiaComponent:
                     # Insertar sesión en cronograma
                     insert_query = """
                         INSERT INTO cronograma_sesiones (
-                            sesion_terapia_id, numero_sesion, fecha_programada, 
-                            hora_programada, estado, usuario_creacion
-                        ) VALUES (%s, %s, %s, %s, 'programada', %s)
+                            id_sesion, numero_sesion_semanal, fecha_programada, 
+                            hora_inicio, hora_fin, estado, usuario_creacion
+                        ) VALUES (%s, %s, %s, %s, %s, 'programada', %s)
                     """
-                    params = (sesion_id, numero_sesion, fecha_actual, hora_inicio, sesion_data['usuario_creacion'])
+                    # Calculate hora_fin based on duration
+                    from datetime import timedelta
+                    hora_fin = (datetime.combine(fecha_actual, hora_inicio) + timedelta(minutes=sesion_data.get('duracion_minutos', 45))).time()
+                    params = (sesion_id, numero_sesion_semanal, fecha_actual, hora_inicio, hora_fin, sesion_data['usuario_creacion'])
                     DataBaseHandle.ExecuteNonQuery(insert_query, params)
                     
-                    numero_sesion += 1
+                    numero_sesion_semanal += 1
                     sesiones_creadas += 1
                     
                     # Log progreso cada 10 sesiones
@@ -343,22 +367,22 @@ class SesionTerapiaComponent:
             query = """
                 SELECT
                     sp.id,
-                    sp.paciente_id,
+                    sp.id_paciente,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
-                    sp.fecha_incorporacion,
-                    sp.costo_paciente,
-                    sp.observaciones_paciente,
+                    sp.fecha_inscripcion,
+                    sp.observaciones,
+                    -- observaciones already included above
                     sp.estado,
                     CONCAT(p_tutor.nombre, ' ', p_tutor.apellido) as tutor_nombre,
                     p_tutor.telefono as tutor_telefono
                 FROM sesion_paciente sp
-                JOIN paciente pac ON sp.paciente_id = pac.id
+                JOIN paciente pac ON sp.id_paciente = pac.id
                 JOIN persona p ON pac.id_persona = p.id
                 JOIN tutor t ON pac.tutor_id = t.id
                 JOIN persona p_tutor ON t.id_persona = p_tutor.id
-                WHERE sp.sesion_terapia_id = %s
-                ORDER BY sp.fecha_incorporacion
+                WHERE sp.id_sesion = %s
+                ORDER BY sp.fecha_inscripcion
             """
 
             params = (sesion_id,)
@@ -378,17 +402,16 @@ class SesionTerapiaComponent:
             # Insertar usando ExecuteNonQuery
             insert_query = """
                 INSERT INTO sesion_paciente (
-                    sesion_terapia_id, paciente_id, fecha_incorporacion,
-                    costo_paciente, observaciones_paciente, estado, usuario_creacion
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    id_sesion, id_paciente, fecha_inscripcion, observaciones, estado, usuario_creacion
+                ) VALUES (%s, %s, %s, %s, %s, %s)
             """
 
             params = (
                 sesion_id,
                 paciente_data['paciente_id'],
-                paciente_data.get('fecha_incorporacion', datetime.now().date()),
-                paciente_data.get('costo_paciente'),
-                paciente_data.get('observaciones_paciente'),
+                paciente_data.get('fecha_inscripcion', datetime.now().date()),
+                paciente_data.get('observaciones'),
+                paciente_data.get('estado', 'activo'),
                 paciente_data.get('estado', 'activo'),
                 paciente_data['usuario_creacion']
             )
@@ -401,7 +424,7 @@ class SesionTerapiaComponent:
             # Obtener el registro insertado
             select_query = """
                 SELECT id FROM sesion_paciente 
-                WHERE sesion_terapia_id = %s AND paciente_id = %s 
+                WHERE id_sesion = %s AND id_paciente = %s 
                 ORDER BY fecha_creacion DESC LIMIT 1
             """
             select_params = (sesion_id, paciente_data['paciente_id'])
@@ -424,7 +447,7 @@ class SesionTerapiaComponent:
             query = """
                 UPDATE sesion_paciente 
                 SET estado = 'retirado' 
-                WHERE sesion_terapia_id = %s AND paciente_id = %s
+                WHERE id_sesion = %s AND id_paciente = %s
             """
             params = (sesion_id, paciente_id)
 
@@ -455,13 +478,13 @@ class SesionTerapiaComponent:
                     END as estado_actual,
                     COUNT(DISTINCT a.id) as total_asistencias,
                     COUNT(DISTINCT CASE WHEN a.asistio = true THEN a.id END) as asistencias_confirmadas,
-                    STRING_AGG(DISTINCT a.observaciones_asistencia, ' | ') as observaciones_asistencias,
-                    STRING_AGG(DISTINCT a.notas_progreso, ' | ') as notas_progreso_sesion
+                    STRING_AGG(DISTINCT a.observaciones_terapeuta, ' | ') as observaciones_asistencias,
+                    STRING_AGG(DISTINCT a.progreso_observado, ' | ') as notas_progreso_sesion
                 FROM cronograma_sesiones cs
-                LEFT JOIN asistencia_sesiones a ON cs.id = a.cronograma_sesion_id
-                WHERE cs.sesion_terapia_id = %s
+                LEFT JOIN asistencia_sesiones a ON cs.id = a.id_cronograma
+                WHERE cs.id_sesion = %s
                 GROUP BY cs.id
-                ORDER BY cs.numero_sesion
+                ORDER BY cs.numero_sesion_semanal
             """
 
             params = (sesion_id,)
@@ -504,7 +527,7 @@ class SesionTerapiaComponent:
             
             # Paso 1: Obtener información de la sesión original
             query_original = """
-                SELECT sesion_terapia_id, numero_sesion, fecha_programada, hora_programada, observaciones_cronograma
+                SELECT id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, observaciones
                 FROM cronograma_sesiones 
                 WHERE id = %s
             """
@@ -514,8 +537,8 @@ class SesionTerapiaComponent:
                 raise Exception(f"No se encontró la sesión con ID {cronograma_id}")
             
             sesion_data = sesion_original[0]
-            sesion_terapia_id = sesion_data['sesion_terapia_id']
-            numero_sesion_original = sesion_data['numero_sesion']
+            id_sesion = sesion_data['id_sesion']
+            numero_sesion_semanal_original = sesion_data['numero_sesion_semanal']
             
             HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Sesión original encontrada: {sesion_data}")
             
@@ -538,20 +561,20 @@ class SesionTerapiaComponent:
             
             # Paso 3: Obtener el siguiente número de sesión disponible
             query_max_numero = """
-                SELECT COALESCE(MAX(numero_sesion), 0) + 1 as siguiente_numero
+                SELECT COALESCE(MAX(numero_sesion_semanal), 0) + 1 as siguiente_numero
                 FROM cronograma_sesiones 
-                WHERE sesion_terapia_id = %s
+                WHERE id_sesion = %s
             """
-            max_result = DataBaseHandle.getRecords(query_max_numero, (sesion_terapia_id,))
-            siguiente_numero = max_result[0]['siguiente_numero'] if max_result else numero_sesion_original + 1
+            max_result = DataBaseHandle.getRecords(query_max_numero, (id_sesion,))
+            siguiente_numero = max_result[0]['siguiente_numero'] if max_result else numero_sesion_semanal_original + 1
             
             HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Siguiente número de sesión: {siguiente_numero}")
             
             # Paso 4: Crear nueva sesión en la nueva fecha con nuevo número
             query_nueva_sesion = """
                 INSERT INTO cronograma_sesiones (
-                    sesion_terapia_id, 
-                    numero_sesion, 
+                    id_sesion, 
+                    numero_sesion_semanal, 
                     fecha_programada, 
                     hora_programada, 
                     estado, 
@@ -562,9 +585,9 @@ class SesionTerapiaComponent:
                 RETURNING id
             """
             
-            observaciones_nueva = f"Reprogramada desde #{numero_sesion_original}"
+            observaciones_nueva = f"Reprogramada desde #{numero_sesion_semanal_original}"
             params_nueva = (
-                sesion_terapia_id, 
+                id_sesion, 
                 siguiente_numero, 
                 nueva_fecha, 
                 nueva_hora, 
@@ -583,11 +606,11 @@ class SesionTerapiaComponent:
             # Paso 5: Verificar si la sesión original tenía pacientes asignados y copiarlos a la nueva
             try:
                 query_pacientes = """
-                    SELECT DISTINCT sp.paciente_id, sp.fecha_incorporacion, sp.costo_paciente, sp.observaciones_paciente
+                    SELECT DISTINCT sp.id_paciente, sp.fecha_inscripcion, sp.observaciones
                     FROM sesion_paciente sp
-                    WHERE sp.sesion_terapia_id = %s
+                    WHERE sp.id_sesion = %s
                 """
-                pacientes_sesion = DataBaseHandle.getRecords(query_pacientes, (sesion_terapia_id,))
+                pacientes_sesion = DataBaseHandle.getRecords(query_pacientes, (id_sesion,))
                 
                 if pacientes_sesion and len(pacientes_sesion) > 0:
                     HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Copiando {len(pacientes_sesion)} pacientes a la nueva sesión")
@@ -641,21 +664,21 @@ class SesionTerapiaComponent:
             query = """
                 SELECT 
                     a.id,
-                    a.cronograma_sesion_id,
-                    a.paciente_id,
+                    a.id_cronograma,
+                    a.id_paciente,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
                     a.asistio,
-                    a.llegada_tardanza_minutos,
-                    a.observaciones_asistencia,
-                    a.notas_progreso,
+                    a.hora_llegada,
+                    a.observaciones_terapeuta,
+                    a.progreso_observado,
                     a.tareas_asignadas,
-                    a.proximos_objetivos,
+                    a.objetivos_trabajados,
                     a.fecha_creacion as fecha_registro
                 FROM asistencia_sesiones a
-                JOIN paciente pac ON a.paciente_id = pac.id
+                JOIN paciente pac ON a.id_paciente = pac.id
                 JOIN persona p ON pac.id_persona = p.id
-                WHERE a.cronograma_sesion_id = %s
+                WHERE a.id_cronograma = %s
                 ORDER BY p.nombre, p.apellido
             """
             
@@ -674,23 +697,23 @@ class SesionTerapiaComponent:
             query = """
                 UPDATE asistencia_sesiones 
                 SET asistio = %s,
-                    llegada_tardanza_minutos = %s,
-                    observaciones_asistencia = %s,
-                    notas_progreso = %s,
+                    hora_llegada = %s,
+                    observaciones_terapeuta = %s,
+                    progreso_observado = %s,
                     tareas_asignadas = %s,
-                    proximos_objetivos = %s,
+                    objetivos_trabajados = %s,
                     usuario_modificacion = %s,
                     fecha_modificacion = CURRENT_TIMESTAMP
-                WHERE cronograma_sesion_id = %s AND paciente_id = %s
+                WHERE id_cronograma = %s AND id_paciente = %s
             """
             
             params = (
                 data.get('asistio', False),
-                data.get('llegada_tardanza_minutos', 0),
-                data.get('observaciones_asistencia', ''),
-                data.get('notas_progreso', ''),
+                data.get('hora_llegada'),
+                data.get('observaciones_terapeuta', ''),
+                data.get('progreso_observado', ''),
                 data.get('tareas_asignadas', ''),
-                data.get('proximos_objetivos', ''),
+                data.get('objetivos_trabajados', ''),
                 usuario_modificacion,
                 cronograma_id,
                 paciente_id
@@ -718,18 +741,18 @@ class SesionTerapiaComponent:
             # Ejecutar UPSERT usando ExecuteNonQuery
             upsert_query = """
                 INSERT INTO asistencia_sesiones (
-                    cronograma_sesion_id, paciente_id, asistio, llegada_tardanza_minutos,
-                    observaciones_asistencia, notas_progreso, tareas_asignadas,
-                    proximos_objetivos, usuario_creacion
+                    id_cronograma, id_paciente, asistio, hora_llegada,
+                    observaciones_terapeuta, progreso_observado, tareas_asignadas,
+                    objetivos_trabajados, usuario_creacion
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (cronograma_sesion_id, paciente_id) 
+                ON CONFLICT (id_cronograma, id_paciente) 
                 DO UPDATE SET
                     asistio = EXCLUDED.asistio,
-                    llegada_tardanza_minutos = EXCLUDED.llegada_tardanza_minutos,
-                    observaciones_asistencia = EXCLUDED.observaciones_asistencia,
-                    notas_progreso = EXCLUDED.notas_progreso,
+                    hora_llegada = EXCLUDED.hora_llegada,
+                    observaciones_terapeuta = EXCLUDED.observaciones_terapeuta,
+                    progreso_observado = EXCLUDED.progreso_observado,
                     tareas_asignadas = EXCLUDED.tareas_asignadas,
-                    proximos_objetivos = EXCLUDED.proximos_objetivos,
+                    objetivos_trabajados = EXCLUDED.objetivos_trabajados,
                     usuario_modificacion = EXCLUDED.usuario_creacion
             """
 
@@ -737,11 +760,11 @@ class SesionTerapiaComponent:
                 cronograma_id,
                 paciente_id,
                 asistencia_data.get('asistio', False),
-                asistencia_data.get('llegada_tardanza_minutos', 0),
-                asistencia_data.get('observaciones_asistencia'),
-                asistencia_data.get('notas_progreso'),
+                asistencia_data.get('hora_llegada'),
+                asistencia_data.get('observaciones_terapeuta'),
+                asistencia_data.get('progreso_observado'),
                 asistencia_data.get('tareas_asignadas'),
-                asistencia_data.get('proximos_objetivos'),
+                asistencia_data.get('objetivos_trabajados'),
                 asistencia_data['usuario_creacion']
             )
 
@@ -753,14 +776,14 @@ class SesionTerapiaComponent:
             # Actualizar estado del cronograma si el paciente asistió
             if asistencia_data.get('asistio', False):
                 # Marcar sesión como realizada si al menos un paciente asistió
-                observaciones_cronograma = asistencia_data.get('observaciones_asistencia') or asistencia_data.get('notas_progreso')
+                observaciones_cronograma = asistencia_data.get('observaciones_terapeuta') or asistencia_data.get('progreso_observado')
                 SesionTerapiaComponent.marcar_sesion_realizada(cronograma_id, observaciones_cronograma)
                 HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - Cronograma {cronograma_id} marcado como realizada")
                 
             # Obtener el registro actualizado/insertado
             select_query = """
                 SELECT id FROM asistencia_sesiones 
-                WHERE cronograma_sesion_id = %s AND paciente_id = %s
+                WHERE id_cronograma = %s AND id_paciente = %s
             """
             result = DataBaseHandle.getRecords(select_query, (cronograma_id, paciente_id), size=1)
             HandleLogs.write_log(
@@ -781,9 +804,9 @@ class SesionTerapiaComponent:
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula
                 FROM asistencia_sesiones a
-                JOIN paciente pac ON a.paciente_id = pac.id
+                JOIN paciente pac ON a.id_paciente = pac.id
                 JOIN persona p ON pac.id_persona = p.id
-                WHERE a.cronograma_sesion_id = %s
+                WHERE a.id_cronograma = %s
                 ORDER BY p.nombre, p.apellido
             """
 
@@ -808,12 +831,13 @@ class SesionTerapiaComponent:
             query = """
                 SELECT 
                     st.*,
+                    st.objetivo_general AS titulo,
                     e.nombre as especialidad_nombre,
-                    COUNT(sp.paciente_id) as total_pacientes
+                    COUNT(sp.id_paciente) as total_pacientes
                 FROM sesion_terapia st
-                JOIN especialidad e ON st.especialidad_id = e.id
-                LEFT JOIN sesion_paciente sp ON st.id = sp.sesion_terapia_id AND sp.estado = 'activo'
-                WHERE st.terapeuta_id = %s AND st.estado != 'cancelado'
+                JOIN especialidad e ON st.id_especialidad = e.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                WHERE st.id_terapeuta = %s AND st.estado != 'cancelada'
                 GROUP BY st.id, e.nombre
                 ORDER BY st.fecha_inicio DESC
             """
@@ -835,25 +859,25 @@ class SesionTerapiaComponent:
             query = """
                 SELECT 
                     cs.id as cronograma_id,
-                    cs.numero_sesion,
-                    cs.hora_programada,
-                    st.titulo,
+                    cs.numero_sesion_semanal,
+                    cs.hora_inicio,
+                    st.objetivo_general as titulo,
                     st.codigo_sesion,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
                     e.nombre as especialidad_nombre,
-                    COUNT(sp.paciente_id) as total_pacientes,
+                    COUNT(sp.id_paciente) as total_pacientes,
                     cs.estado
                 FROM cronograma_sesiones cs
-                JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
-                JOIN personal per ON st.terapeuta_id = per.id
+                JOIN sesion_terapia st ON cs.id_sesion = st.id
+                JOIN personal per ON st.id_terapeuta = per.id
                 JOIN persona p_ter ON per.id_persona = p_ter.id
-                JOIN especialidad e ON st.especialidad_id = e.id
-                LEFT JOIN sesion_paciente sp ON st.id = sp.sesion_terapia_id AND sp.estado = 'activo'
+                JOIN especialidad e ON st.id_especialidad = e.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
                 WHERE cs.fecha_programada = CURRENT_DATE 
                     AND st.estado = 'activo'
                     AND cs.estado IN ('programada', 'realizada')
                 GROUP BY cs.id, st.id, p_ter.nombre, p_ter.apellido, e.nombre
-                ORDER BY cs.hora_programada
+                ORDER BY cs.hora_inicio
             """
 
             result = DataBaseHandle.getRecords(query)
@@ -876,8 +900,8 @@ class SesionTerapiaComponent:
                     COUNT(CASE WHEN estado = 'completado' THEN 1 END) as sesiones_completadas,
                     COUNT(CASE WHEN estado = 'suspendido' THEN 1 END) as sesiones_suspendidas,
                     COUNT(CASE WHEN estado = 'cancelado' THEN 1 END) as sesiones_canceladas,
-                    COALESCE(SUM(numero_sesiones_contratadas), 0) as total_sesiones_contratadas,
-                    COALESCE(SUM(costo_total), 0) as ingresos_totales,
+                    COALESCE(COUNT(*) * 20, 0) as total_sesiones_contratadas,
+                    COALESCE(SUM(costo_sesion * 20), 0) as ingresos_totales,
                     COALESCE(AVG(duracion_minutos), 0) as duracion_promedio
                 FROM sesion_terapia
             """
@@ -1000,28 +1024,28 @@ class SesionTerapiaComponent:
             query = """
                 SELECT 
                     a.id,
-                    a.cronograma_sesion_id,
-                    a.paciente_id,
+                    a.id_cronograma,
+                    a.id_paciente,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
                     a.asistio,
-                    a.llegada_tardanza_minutos,
-                    a.observaciones_asistencia,
-                    a.notas_progreso,
+                    a.hora_llegada,
+                    a.observaciones_terapeuta,
+                    a.progreso_observado,
                     a.tareas_asignadas,
-                    a.proximos_objetivos,
+                    a.objetivos_trabajados,
                     a.fecha_creacion as fecha_registro,
                     cs.fecha_programada::DATE as fecha_programada,
-                    CAST(cs.hora_programada AS TEXT) as hora_programada,
-                    cs.numero_sesion,
+                    CAST(cs.hora_inicio AS TEXT) as hora_inicio,
+                    cs.numero_sesion_semanal,
                     cs.estado as estado_sesion
                 FROM asistencia_sesiones a
-                JOIN cronograma_sesiones cs ON a.cronograma_sesion_id = cs.id
-                JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
-                JOIN paciente pac ON a.paciente_id = pac.id
+                JOIN cronograma_sesiones cs ON a.id_cronograma = cs.id
+                JOIN sesion_terapia st ON cs.id_sesion = st.id
+                JOIN paciente pac ON a.id_paciente = pac.id
                 JOIN persona p ON pac.id_persona = p.id
                 WHERE st.id = %s
-                ORDER BY cs.fecha_programada, cs.hora_programada, p.apellido, p.nombre
+                ORDER BY cs.fecha_programada, cs.hora_inicio, p.apellido, p.nombre
             """
 
             params = (sesion_id,)
@@ -1041,30 +1065,30 @@ class SesionTerapiaComponent:
             query = """
                 SELECT 
                     a.id,
-                    a.cronograma_sesion_id,
-                    a.paciente_id,
+                    a.id_cronograma,
+                    a.id_paciente,
                     a.asistio,
-                    a.llegada_tardanza_minutos,
-                    a.observaciones_asistencia,
-                    a.notas_progreso,
+                    a.hora_llegada,
+                    a.observaciones_terapeuta,
+                    a.progreso_observado,
                     a.tareas_asignadas,
-                    a.proximos_objetivos,
+                    a.objetivos_trabajados,
                     a.fecha_creacion as fecha_registro,
                     cs.fecha_programada,
-                    cs.hora_programada,
-                    cs.numero_sesion,
-                    st.titulo as sesion_titulo,
+                    cs.hora_inicio,
+                    cs.numero_sesion_semanal,
+                    st.objetivo_general as sesion_titulo,
                     st.codigo_sesion,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
                     e.nombre as especialidad_nombre
                 FROM asistencia_sesiones a
-                JOIN cronograma_sesiones cs ON a.cronograma_sesion_id = cs.id
-                JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
-                JOIN personal per ON st.terapeuta_id = per.id
+                JOIN cronograma_sesiones cs ON a.id_cronograma = cs.id
+                JOIN sesion_terapia st ON cs.id_sesion = st.id
+                JOIN personal per ON st.id_terapeuta = per.id
                 JOIN persona p_ter ON per.id_persona = p_ter.id
-                JOIN especialidad e ON st.especialidad_id = e.id
-                WHERE a.paciente_id = %s
-                ORDER BY cs.fecha_programada DESC, cs.hora_programada DESC
+                JOIN especialidad e ON st.id_especialidad = e.id
+                WHERE a.id_paciente = %s
+                ORDER BY cs.fecha_programada DESC, cs.hora_inicio DESC
             """
 
             params = (paciente_id,)
@@ -1088,11 +1112,11 @@ class SesionTerapiaComponent:
                     COUNT(CASE WHEN a.asistio = false THEN 1 END) as inasistencias,
                     ROUND(AVG(CASE WHEN a.asistio = true THEN a.llegada_tardanza_minutos ELSE NULL END), 2) as promedio_tardanza_minutos,
                     COUNT(CASE WHEN a.llegada_tardanza_minutos > 0 AND a.asistio = true THEN 1 END) as asistencias_con_tardanza,
-                    COUNT(DISTINCT a.paciente_id) as pacientes_unicos_registrados,
+                    COUNT(DISTINCT a.id_paciente) as pacientes_unicos_registrados,
                     COUNT(DISTINCT cs.id) as sesiones_con_asistencia_registrada
                 FROM cronograma_sesiones cs
-                LEFT JOIN asistencia_sesiones a ON cs.id = a.cronograma_sesion_id
-                WHERE cs.sesion_terapia_id = %s
+                LEFT JOIN asistencia_sesiones a ON cs.id = a.id_cronograma
+                WHERE cs.id_sesion = %s
             """
 
             params = (sesion_id,)
@@ -1181,7 +1205,7 @@ class SesionTerapiaComponent:
     def _cronograma_tiene_asistencias(cronograma_id):
         """Verificar si una sesión del cronograma tiene asistencias registradas"""
         try:
-            query = "SELECT COUNT(*) as count FROM asistencia_sesiones WHERE cronograma_sesion_id = %s"
+            query = "SELECT COUNT(*) as count FROM asistencia_sesiones WHERE id_cronograma = %s"
             result = DataBaseHandle.getRecords(query, params=(cronograma_id,), size=1)
             return result and result.get('count', 0) > 0
         except Exception:
@@ -1218,37 +1242,53 @@ class SesionTerapiaComponent:
             if isinstance(fecha_fin, str):
                 fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
             
-            numero_sesion = SesionTerapiaComponent._get_ultimo_numero_sesion(sesion_id) + 1
+            numero_sesion_semanal = SesionTerapiaComponent._get_ultimo_numero_sesion_semanal(sesion_id) + 1
             
             while fecha_actual <= fecha_fin:
                 if fecha_actual.weekday() in dias_sesion:
                     # Crear sesión en el cronograma
                     cronograma_data = {
-                        'sesion_terapia_id': sesion_id,
-                        'numero_sesion': numero_sesion,
+                        'id_sesion': sesion_id,
+                        'numero_sesion_semanal': numero_sesion_semanal,
                         'fecha_programada': fecha_actual,
-                        'hora_programada': sesion_data['hora_inicio'],
+                        'hora_inicio': sesion_data['hora_inicio'],
                         'estado': 'programada',
                         'usuario_creacion': sesion_data.get('usuario_modificacion', 1)
                     }
                     
                     insert_query = """
                         INSERT INTO cronograma_sesiones 
-                        (sesion_terapia_id, numero_sesion, fecha_programada, hora_programada, estado, usuario_creacion)
-                        VALUES (%s, %s, %s, %s, %s, %s)
+                        (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """
                     
+                    # Calculate hora_fin based on hora_inicio + duracion
+                    from datetime import datetime, timedelta
+                    hora_inicio = cronograma_data['hora_inicio']
+                    duracion_minutos = sesion_data.get('duracion_minutos', 45)
+                    
+                    if isinstance(hora_inicio, str):
+                        hora_inicio_dt = datetime.strptime(hora_inicio, '%H:%M:%S').time()
+                    else:
+                        hora_inicio_dt = hora_inicio
+                        
+                    # Convert to datetime to add minutes
+                    dt_inicio = datetime.combine(datetime.today(), hora_inicio_dt)
+                    dt_fin = dt_inicio + timedelta(minutes=duracion_minutos)
+                    hora_fin = dt_fin.time()
+                    
                     params = (
-                        cronograma_data['sesion_terapia_id'],
-                        cronograma_data['numero_sesion'],
+                        cronograma_data['id_sesion'],
+                        cronograma_data['numero_sesion_semanal'],
                         cronograma_data['fecha_programada'],
-                        cronograma_data['hora_programada'],
+                        cronograma_data['hora_inicio'],
+                        hora_fin,
                         cronograma_data['estado'],
                         cronograma_data['usuario_creacion']
                     )
                     
                     DataBaseHandle.ExecuteNonQuery(insert_query, params)
-                    numero_sesion += 1
+                    numero_sesion_semanal += 1
                 
                 fecha_actual += timedelta(days=1)
             
@@ -1257,10 +1297,10 @@ class SesionTerapiaComponent:
             raise e
     
     @staticmethod
-    def _get_ultimo_numero_sesion(sesion_id):
+    def _get_ultimo_numero_sesion_semanal(sesion_id):
         """Obtener el último número de sesión en el cronograma"""
         try:
-            query = "SELECT COALESCE(MAX(numero_sesion), 0) as max_numero FROM cronograma_sesiones WHERE sesion_terapia_id = %s"
+            query = "SELECT COALESCE(MAX(numero_sesion_semanal), 0) as max_numero FROM cronograma_sesiones WHERE id_sesion = %s"
             result = DataBaseHandle.getRecords(query, params=(sesion_id,), size=1)
             return result.get('max_numero', 0) if result else 0
         except Exception:

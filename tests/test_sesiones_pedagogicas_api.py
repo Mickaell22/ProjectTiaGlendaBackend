@@ -75,7 +75,7 @@ def test_authentication():
         response = requests.post(
             f"{BASE_URL}/api/login",
             json={
-                "usuario": "admin",
+                "usuario": "admin.norte",
                 "contrasenia": "admin123"
             }
         )
@@ -105,17 +105,16 @@ def test_setup_data():
         headers = {'Authorization': f"Bearer {token}"}
         
         # Buscar especialidad pedagógica
-        response = requests.get(f"{BASE_URL}/api/especialidades/pedagogico", headers=headers)
+        response = requests.get(f"{BASE_URL}/api/especialidades", headers=headers)
         
         if response.status_code == 200:
-            especialidades = response.json()['data']
-            if len(especialidades) > 0:
-                especialidad_id = especialidades[0]['id']
-            else:
-                # Buscar cualquier especialidad
-                response = requests.get(f"{BASE_URL}/api/especialidades", headers=headers)
-                especialidades = response.json()['data']
-                especialidad_id = especialidades[0]['id']
+            todas_especialidades = response.json()['data']
+            # Filtrar especialidades pedagógicas
+            especialidades_pedagogicas = [e for e in todas_especialidades if e.get('area') == 'Especialidad pedagógica']
+            if len(especialidades_pedagogicas) > 0:
+                especialidad_id = especialidades_pedagogicas[0]['id']
+            elif len(todas_especialidades) > 0:
+                especialidad_id = todas_especialidades[0]['id']
         
         # Buscar personal disponible
         response = requests.get(f"{BASE_URL}/api/personal", headers=headers)

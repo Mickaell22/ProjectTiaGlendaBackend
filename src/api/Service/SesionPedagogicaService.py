@@ -26,7 +26,7 @@ class SesionPedagogicaService:
                     sesion_data = {
                         'id': sesion['id'],
                         'codigo_sesion': sesion['codigo_sesion'],
-                        'titulo': sesion['titulo'],
+                        'titulo': sesion.get('titulo', sesion.get('nombre_clase', '')),
                         'pedagogo': {
                             'id': sesion['pedagogo_id'],
                             'nombre': sesion['pedagogo_nombre']
@@ -90,7 +90,7 @@ class SesionPedagogicaService:
                 sesion_data = {
                     'id': sesion['id'],
                     'codigo_sesion': sesion['codigo_sesion'],
-                    'titulo': sesion['titulo'],
+                    'titulo': sesion.get('titulo', sesion.get('nombre_clase', '')),
                     'pedagogo': {
                         'id': sesion['pedagogo_id'],
                         'nombre': sesion['pedagogo_nombre']
@@ -139,7 +139,7 @@ class SesionPedagogicaService:
 
             # Validaciones requeridas
             required_fields = ['titulo', 'pedagogo_id', 'especialidad_id', 'fecha_inicio', 
-                             'dias_semana', 'hora_inicio', 'numero_clases_programadas', 'costo_total']
+                             'dias_semana', 'hora_inicio']
             
             for field in required_fields:
                 if field not in data or not data[field]:
@@ -157,16 +157,11 @@ class SesionPedagogicaService:
             except ValueError as e:
                 return response_error(f"Formato de fecha/hora inválido: {str(e)}", 400)
 
-            # Validar números
-            if data['numero_clases_programadas'] <= 0:
-                return response_error("El número de clases programadas debe ser mayor a 0", 400)
-            
-            if data['costo_total'] < 0:
-                return response_error("El costo total no puede ser negativo", 400)
+            # Validar números (removed non-existent fields)
 
             # Validar días de la semana
             dias_validos = ['lunes', 'martes', 'miercoles', 'miércoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo']
-            dias_sesion = [dia.strip().lower() for dia in data['dias_semana'].split(',')]
+            dias_sesion = [dia.strip().lower() for dia in data['dias_semana']] if isinstance(data['dias_semana'], list) else [dia.strip().lower() for dia in data['dias_semana'].split(',')]
             
             for dia in dias_sesion:
                 if dia not in dias_validos:
@@ -174,6 +169,14 @@ class SesionPedagogicaService:
 
             # Agregar usuario actual
             data['usuario_creacion'] = request.current_user['id']
+            data['id_centro'] = request.current_user.get('centro', {}).get('id', 1)
+            
+            # Convert dias_semana to array format for database
+            if isinstance(data['dias_semana'], list):
+                data['dias_semana'] = '{' + ','.join(data['dias_semana']) + '}'
+            elif isinstance(data['dias_semana'], str):
+                dias_list = [dia.strip().lower() for dia in data['dias_semana'].split(',')]
+                data['dias_semana'] = '{' + ','.join(dias_list) + '}'
 
             # Crear sesión
             result = SesionPedagogicaComponent.create_sesion(data)
@@ -239,7 +242,7 @@ class SesionPedagogicaService:
             # Validar días de la semana si se proporcionan
             if 'dias_semana' in data:
                 dias_validos = ['lunes', 'martes', 'miercoles', 'miércoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo']
-                dias_sesion = [dia.strip().lower() for dia in data['dias_semana'].split(',')]
+                dias_sesion = [dia.strip().lower() for dia in data['dias_semana']] if isinstance(data['dias_semana'], list) else [dia.strip().lower() for dia in data['dias_semana'].split(',')]
                 
                 for dia in dias_sesion:
                     if dia not in dias_validos:
@@ -250,7 +253,7 @@ class SesionPedagogicaService:
 
             # Merge partial data with existing session data
             update_data = {
-                'titulo': data.get('titulo', sesion_existente['titulo']),
+                'titulo': data.get('titulo', sesion_existente.get('titulo', sesion_existente.get('nombre_clase', ''))),
                 'pedagogo_id': data.get('pedagogo_id', sesion_existente['pedagogo_id']),
                 'especialidad_id': data.get('especialidad_id', sesion_existente['especialidad_id']),
                 'fecha_inicio': data.get('fecha_inicio', sesion_existente['fecha_inicio']),

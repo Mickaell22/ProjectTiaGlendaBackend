@@ -129,7 +129,7 @@ class UsuarioComponent:
                 data['contrasenia'],
                 data['id_persona'],
                 data['id_rol'],
-                data.get('id_centro', 13),  # Default to Centro Norte (id=13)
+                data.get('id_centro', 1),  # Default to Centro Norte (id=1)
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
             )

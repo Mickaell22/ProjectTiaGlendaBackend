@@ -1804,7 +1804,7 @@ def register_routes(app):
         
         @app.route('/api/perfil/foto', methods=['POST'])
         @token_required
-        def subir_foto_perfil(current_user):
+        def subir_foto_perfil():
             """Subir foto de perfil del usuario autenticado"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
@@ -1817,7 +1817,7 @@ def register_routes(app):
                 
                 archivo = request.files['foto']
                 
-                resultado = FotoPerfilService.subir_foto_perfil(archivo, current_user)
+                resultado = FotoPerfilService.subir_foto_perfil(archivo, request.current_user)
                 
                 if resultado['success']:
                     return response_success({
@@ -1832,13 +1832,14 @@ def register_routes(app):
 
         @app.route('/api/perfil/foto', methods=['GET'])
         @token_required
-        def obtener_mi_foto_perfil(current_user):
+        def obtener_mi_foto_perfil():
             """Obtener información de foto de perfil del usuario autenticado"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
                 from src.utils.general.response import response_success, response_error
+                from flask import request
                 
-                resultado = FotoPerfilService.obtener_mi_foto_perfil(current_user)
+                resultado = FotoPerfilService.obtener_mi_foto_perfil(request.current_user)
                 
                 if resultado['success']:
                     return response_success(resultado['foto_perfil'], "Información de foto obtenida")
@@ -1851,13 +1852,14 @@ def register_routes(app):
 
         @app.route('/api/perfil/foto', methods=['DELETE'])
         @token_required
-        def eliminar_mi_foto_perfil(current_user):
+        def eliminar_mi_foto_perfil():
             """Eliminar foto de perfil del usuario autenticado"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
                 from src.utils.general.response import response_success, response_error
+                from flask import request
                 
-                resultado = FotoPerfilService.eliminar_foto_perfil(current_user)
+                resultado = FotoPerfilService.eliminar_foto_perfil(request.current_user)
                 
                 if resultado['success']:
                     return response_success({}, resultado['message'])
@@ -1870,13 +1872,14 @@ def register_routes(app):
 
         @app.route('/api/usuarios/<int:usuario_id>/foto', methods=['GET'])
         @token_required
-        def obtener_foto_perfil_usuario(current_user, usuario_id):
+        def obtener_foto_perfil_usuario(usuario_id):
             """Obtener información de foto de perfil de un usuario específico"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
                 from src.utils.general.response import response_success, response_error
+                from flask import request
                 
-                resultado = FotoPerfilService.obtener_foto_perfil(usuario_id, current_user)
+                resultado = FotoPerfilService.obtener_foto_perfil(usuario_id, request.current_user)
                 
                 if resultado['success']:
                     return response_success(resultado['foto_perfil'], "Información de foto obtenida")
@@ -1889,7 +1892,7 @@ def register_routes(app):
 
         @app.route('/api/usuarios/<int:usuario_id>/foto', methods=['POST'])
         @token_required
-        def subir_foto_perfil_admin(current_user, usuario_id):
+        def subir_foto_perfil_admin(usuario_id):
             """Subir foto de perfil para otro usuario (solo admin)"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
@@ -1902,7 +1905,7 @@ def register_routes(app):
                 
                 archivo = request.files['foto']
                 
-                resultado = FotoPerfilService.subir_foto_perfil_admin(archivo, usuario_id, current_user)
+                resultado = FotoPerfilService.subir_foto_perfil_admin(archivo, usuario_id, request.current_user)
                 
                 if resultado['success']:
                     return response_success({
@@ -1917,13 +1920,14 @@ def register_routes(app):
 
         @app.route('/api/usuarios/<int:usuario_id>/foto', methods=['DELETE'])
         @token_required
-        def eliminar_foto_perfil_admin(current_user, usuario_id):
+        def eliminar_foto_perfil_admin(usuario_id):
             """Eliminar foto de perfil de otro usuario (solo admin)"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
                 from src.utils.general.response import response_success, response_error
+                from flask import request
                 
-                resultado = FotoPerfilService.eliminar_foto_perfil_admin(usuario_id, current_user)
+                resultado = FotoPerfilService.eliminar_foto_perfil_admin(usuario_id, request.current_user)
                 
                 if resultado['success']:
                     return response_success({}, resultado['message'])
@@ -1936,14 +1940,14 @@ def register_routes(app):
 
         @app.route('/api/fotos-perfil/archivo/<path:ruta_foto>', methods=['GET'])
         @token_required
-        def obtener_archivo_foto_perfil(current_user, ruta_foto):
+        def obtener_archivo_foto_perfil(ruta_foto):
             """Obtener archivo físico de foto de perfil"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
                 from src.utils.general.response import response_error
-                from flask import send_file
+                from flask import send_file, request
                 
-                resultado = FotoPerfilService.obtener_archivo_foto(ruta_foto, current_user)
+                resultado = FotoPerfilService.obtener_archivo_foto(ruta_foto, request.current_user)
                 
                 if resultado['success']:
                     return send_file(
@@ -1961,13 +1965,14 @@ def register_routes(app):
 
         @app.route('/api/fotos-perfil/estadisticas', methods=['GET'])
         @token_required
-        def obtener_estadisticas_fotos_perfil(current_user):
+        def obtener_estadisticas_fotos_perfil():
             """Obtener estadísticas de fotos de perfil (solo admin)"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
                 from src.utils.general.response import response_success, response_error
+                from flask import request
                 
-                resultado = FotoPerfilService.obtener_estadisticas_fotos(current_user)
+                resultado = FotoPerfilService.obtener_estadisticas_fotos(request.current_user)
                 
                 if resultado['success']:
                     return response_success(resultado['estadisticas'], "Estadísticas obtenidas")
@@ -1980,7 +1985,7 @@ def register_routes(app):
 
         @app.route('/api/fotos-perfil/formatos', methods=['GET'])
         @token_required
-        def obtener_formatos_soportados_fotos(current_user):
+        def obtener_formatos_soportados_fotos():
             """Obtener información sobre formatos soportados"""
             try:
                 from src.api.Service.FotoPerfilService import FotoPerfilService
