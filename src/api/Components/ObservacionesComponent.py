@@ -230,9 +230,9 @@ class ObservacionesComponent:
                     CONCAT(p_seguimiento.nombre, ' ', p_seguimiento.apellido) as usuario_seguimiento_nombre
                 FROM observaciones_sesiones obs
                 JOIN usuario u_autor ON obs.id_usuario = u_autor.id
-                JOIN persona p_autor ON u_autor.persona_id = p_autor.id
+                JOIN persona p_autor ON u_autor.id_persona = p_autor.id
                 LEFT JOIN usuario u_seguimiento ON obs.id_usuario_seguimiento = u_seguimiento.id
-                LEFT JOIN persona p_seguimiento ON u_seguimiento.persona_id = p_seguimiento.id
+                LEFT JOIN persona p_seguimiento ON u_seguimiento.id_persona = p_seguimiento.id
                 WHERE obs.id = %s
                 AND (
                     NOT obs.es_privada 
@@ -337,9 +337,9 @@ class ObservacionesComponent:
                     END as titulo_sesion
                 FROM observaciones_sesiones obs
                 JOIN usuario u_autor ON obs.id_usuario = u_autor.id
-                JOIN persona p_autor ON u_autor.persona_id = p_autor.id
+                JOIN persona p_autor ON u_autor.id_persona = p_autor.id
                 LEFT JOIN usuario u_seguimiento ON obs.id_usuario_seguimiento = u_seguimiento.id
-                LEFT JOIN persona p_seguimiento ON u_seguimiento.persona_id = p_seguimiento.id
+                LEFT JOIN persona p_seguimiento ON u_seguimiento.id_persona = p_seguimiento.id
                 LEFT JOIN sesion_terapia st ON (obs.tipo_sesion = 'terapeutica' AND obs.id_sesion = st.id)
                 LEFT JOIN sesion_pedagogica sp ON (obs.tipo_sesion = 'pedagogica' AND obs.id_sesion = sp.id)
                 WHERE obs.requiere_seguimiento = TRUE
@@ -457,7 +457,7 @@ class ObservacionesComponent:
                     END as titulo_sesion
                 FROM observaciones_sesiones obs
                 JOIN usuario u_autor ON obs.id_usuario = u_autor.id
-                JOIN persona p_autor ON u_autor.persona_id = p_autor.id
+                JOIN persona p_autor ON u_autor.id_persona = p_autor.id
                 LEFT JOIN sesion_terapia st ON (obs.tipo_sesion = 'terapeutica' AND obs.id_sesion = st.id)
                 LEFT JOIN sesion_pedagogica sp ON (obs.tipo_sesion = 'pedagogica' AND obs.id_sesion = sp.id)
                 WHERE {where_clause}

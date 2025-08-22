@@ -41,7 +41,7 @@ class SesionTerapiaComponent:
                     COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.cronograma_sesion_id END) as sesiones_realizadas
                 FROM sesion_terapia st
                 JOIN personal per ON st.terapeuta_id = per.id
-                JOIN persona p_ter ON per.persona_id = p_ter.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
                 JOIN especialidad e ON st.especialidad_id = e.id
                 LEFT JOIN sesion_paciente sp ON st.id = sp.sesion_terapia_id AND sp.estado = 'activo'
                 LEFT JOIN cronograma_sesiones cs ON st.id = cs.sesion_terapia_id
@@ -69,7 +69,7 @@ class SesionTerapiaComponent:
                     e.area as especialidad_area
                 FROM sesion_terapia st
                 JOIN personal per ON st.terapeuta_id = per.id
-                JOIN persona p_ter ON per.persona_id = p_ter.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
                 JOIN especialidad e ON st.especialidad_id = e.id
                 WHERE st.id = %s
             """
@@ -354,9 +354,9 @@ class SesionTerapiaComponent:
                     p_tutor.telefono as tutor_telefono
                 FROM sesion_paciente sp
                 JOIN paciente pac ON sp.paciente_id = pac.id
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 JOIN tutor t ON pac.tutor_id = t.id
-                JOIN persona p_tutor ON t.persona_id = p_tutor.id
+                JOIN persona p_tutor ON t.id_persona = p_tutor.id
                 WHERE sp.sesion_terapia_id = %s
                 ORDER BY sp.fecha_incorporacion
             """
@@ -654,7 +654,7 @@ class SesionTerapiaComponent:
                     a.fecha_creacion as fecha_registro
                 FROM asistencia_sesiones a
                 JOIN paciente pac ON a.paciente_id = pac.id
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 WHERE a.cronograma_sesion_id = %s
                 ORDER BY p.nombre, p.apellido
             """
@@ -782,7 +782,7 @@ class SesionTerapiaComponent:
                     p.cedula as paciente_cedula
                 FROM asistencia_sesiones a
                 JOIN paciente pac ON a.paciente_id = pac.id
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 WHERE a.cronograma_sesion_id = %s
                 ORDER BY p.nombre, p.apellido
             """
@@ -846,7 +846,7 @@ class SesionTerapiaComponent:
                 FROM cronograma_sesiones cs
                 JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
                 JOIN personal per ON st.terapeuta_id = per.id
-                JOIN persona p_ter ON per.persona_id = p_ter.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
                 JOIN especialidad e ON st.especialidad_id = e.id
                 LEFT JOIN sesion_paciente sp ON st.id = sp.sesion_terapia_id AND sp.estado = 'activo'
                 WHERE cs.fecha_programada = CURRENT_DATE 
@@ -948,9 +948,9 @@ class SesionTerapiaComponent:
                     p_tutor.telefono as tutor_telefono,
                     pac.estado
                 FROM paciente pac
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 JOIN tutor t ON pac.tutor_id = t.id
-                JOIN persona p_tutor ON t.persona_id = p_tutor.id
+                JOIN persona p_tutor ON t.id_persona = p_tutor.id
                 WHERE pac.estado = 'activo' AND p.estado = 'activo'
                 ORDER BY p.nombre, p.apellido
             """
@@ -976,7 +976,7 @@ class SesionTerapiaComponent:
                     COUNT(pe.especialidad_id) as total_especialidades,
                     STRING_AGG(e.nombre, ', ') as especialidades
                 FROM personal per
-                JOIN persona p ON per.persona_id = p.id
+                JOIN persona p ON per.id_persona = p.id
                 LEFT JOIN personal_especialidad pe ON per.id = pe.personal_id
                 LEFT JOIN especialidad e ON pe.especialidad_id = e.id
                 WHERE per.estado = 'activo' AND p.estado = 'activo'
@@ -1019,7 +1019,7 @@ class SesionTerapiaComponent:
                 JOIN cronograma_sesiones cs ON a.cronograma_sesion_id = cs.id
                 JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
                 JOIN paciente pac ON a.paciente_id = pac.id
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 WHERE st.id = %s
                 ORDER BY cs.fecha_programada, cs.hora_programada, p.apellido, p.nombre
             """
@@ -1061,7 +1061,7 @@ class SesionTerapiaComponent:
                 JOIN cronograma_sesiones cs ON a.cronograma_sesion_id = cs.id
                 JOIN sesion_terapia st ON cs.sesion_terapia_id = st.id
                 JOIN personal per ON st.terapeuta_id = per.id
-                JOIN persona p_ter ON per.persona_id = p_ter.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
                 JOIN especialidad e ON st.especialidad_id = e.id
                 WHERE a.paciente_id = %s
                 ORDER BY cs.fecha_programada DESC, cs.hora_programada DESC

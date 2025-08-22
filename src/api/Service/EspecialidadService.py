@@ -33,7 +33,7 @@ class EspecialidadService:
             HandleLogs.write_log(f"EspecialidadService.get_especialidades_by_area - Área: {area}")
 
             # Validar área
-            valid_areas = ['terapeutico', 'pedagogico']
+            valid_areas = ['Especialidad terapéutica', 'Especialidad pedagógica']
             if area not in valid_areas:
                 return response_error(f"Área invalida. Debe ser una de: {', '.join(valid_areas)}", 400)
 

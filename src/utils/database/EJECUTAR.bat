@@ -40,7 +40,7 @@ echo 🚀 INICIANDO CREACIÓN DE ESTRUCTURA...
 echo ============================================
 echo.
 
-python ejecutar_estructura_directo.py
+python 01_ejecutar_estructura.py
 
 echo.
 echo ============================================

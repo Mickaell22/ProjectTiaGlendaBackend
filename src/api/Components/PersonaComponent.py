@@ -41,15 +41,16 @@ class PersonaComponent:
                         ELSE 'Otro'
                     END as tipo_relacion_centro
                 FROM persona p
-                LEFT JOIN usuario u ON p.id = u.persona_id AND u.id_centro = %s
-                LEFT JOIN rol r ON u.rol_id = r.id
+                LEFT JOIN usuario u ON p.id = u.id_persona AND u.id_centro = %s
+                LEFT JOIN rol r ON u.id_rol = r.id
                 LEFT JOIN centros c ON u.id_centro = c.id
-                LEFT JOIN personal per ON p.id = per.persona_id AND per.id_centro = %s
-                LEFT JOIN paciente pac ON p.id = pac.persona_id AND pac.id_centro = %s
+                LEFT JOIN personal per ON p.id = per.id_persona AND per.id_centro = %s
+                LEFT JOIN paciente pac ON p.id = pac.id_persona AND pac.id_centro = %s
                 -- Incluir personas que son tutores de pacientes del centro
                 LEFT JOIN (
-                    SELECT DISTINCT t.nombre as tutor_nombre, t.apellido as tutor_apellido, t.cedula as tutor_cedula, t.id
+                    SELECT DISTINCT pt.nombre as tutor_nombre, pt.apellido as tutor_apellido, pt.cedula as tutor_cedula, t.id
                     FROM tutor t
+                    INNER JOIN persona pt ON t.id_persona = pt.id
                     INNER JOIN paciente pac_t ON t.id = pac_t.id_tutor
                     WHERE pac_t.id_centro = %s
                 ) tut ON p.cedula = tut.tutor_cedula
@@ -87,8 +88,8 @@ class PersonaComponent:
                     c.nombre as centro_nombre,
                     c.codigo as centro_codigo
                 FROM persona p
-                LEFT JOIN usuario u ON p.id = u.persona_id
-                LEFT JOIN rol r ON u.rol_id = r.id
+                LEFT JOIN usuario u ON p.id = u.id_persona
+                LEFT JOIN rol r ON u.id_rol = r.id
                 LEFT JOIN centros c ON u.id_centro = c.id
                 ORDER BY p.id
                 """
@@ -108,7 +109,7 @@ class PersonaComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def get_persona_by_id(persona_id):
+    def get_persona_by_id(id_persona):
         """Obtener una persona por ID"""
         try:
             query = """
@@ -138,13 +139,13 @@ class PersonaComponent:
             WHERE p.id = %s
             """
 
-            persona = DataBaseHandle.getRecords(query, (persona_id,), size=1)
+            persona = DataBaseHandle.getRecords(query, (id_persona,), size=1)
 
             if persona is not None:
-                HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {persona_id} encontrada")
+                HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} encontrada")
                 return internal_response(True, persona, "Persona encontrada")
             else:
-                HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {persona_id} no encontrada")
+                HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} no encontrada")
                 return internal_response(True, None, "Persona no encontrada")
 
         except Exception as e:
@@ -204,25 +205,25 @@ class PersonaComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def update_persona(persona_id, data):
+    def update_persona(id_persona, data):
         """Actualizar una persona existente"""
         try:
             # Verificar si la persona existe
             check_query = "SELECT id FROM persona WHERE id = %s"
-            existing = DataBaseHandle.getRecords(check_query, (persona_id,), size=1)
+            existing = DataBaseHandle.getRecords(check_query, (id_persona,), size=1)
 
             if not existing:
                 return internal_response(False, None, "Persona no encontrada")
 
             # Verificar cedula duplicada (excluyendo la persona actual)
             if 'cedula' in data and data['cedula']:
-                cedula_check = PersonaComponent.check_cedula_exists(data['cedula'], exclude_id=persona_id)
+                cedula_check = PersonaComponent.check_cedula_exists(data['cedula'], exclude_id=id_persona)
                 if cedula_check['success'] and cedula_check['data']:
                     return internal_response(False, None, "La cedula ya existe")
 
             # Verificar email duplicado (excluyendo la persona actual)
             if 'correo' in data and data['correo']:
-                email_check = PersonaComponent.check_email_exists(data['correo'], exclude_id=persona_id)
+                email_check = PersonaComponent.check_email_exists(data['correo'], exclude_id=id_persona)
                 if email_check['success'] and email_check['data']:
                     return internal_response(False, None, "El correo electronico ya existe")
 
@@ -253,7 +254,7 @@ class PersonaComponent:
             update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
 
             # Agregar ID de la persona al final
-            params.append(persona_id)
+            params.append(id_persona)
 
             update_query = f"""
                 UPDATE persona 
@@ -265,11 +266,11 @@ class PersonaComponent:
 
             if success:
                 # Obtener datos actualizados
-                updated_persona = PersonaComponent.get_persona_by_id(persona_id)
-                HandleLogs.write_log(f"PersonaComponent.update_persona - Persona {persona_id} actualizada")
+                updated_persona = PersonaComponent.get_persona_by_id(id_persona)
+                HandleLogs.write_log(f"PersonaComponent.update_persona - Persona {id_persona} actualizada")
                 return internal_response(True, updated_persona['data'], "Persona actualizada exitosamente")
             else:
-                HandleLogs.write_error(f"PersonaComponent.update_persona - Error actualizando persona {persona_id}")
+                HandleLogs.write_error(f"PersonaComponent.update_persona - Error actualizando persona {id_persona}")
                 return internal_response(False, None, "Error actualizando persona")
 
         except Exception as e:
@@ -277,12 +278,12 @@ class PersonaComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def deactivate_persona(persona_id):
+    def deactivate_persona(id_persona):
         """Desactivar persona (eliminación lógica)"""
         try:
             # Verificar si la persona existe
             check_query = "SELECT id, estado FROM persona WHERE id = %s"
-            existing = DataBaseHandle.getRecords(check_query, (persona_id,), size=1)
+            existing = DataBaseHandle.getRecords(check_query, (id_persona,), size=1)
 
             if not existing:
                 return internal_response(False, None, "Persona no encontrada")
@@ -291,8 +292,8 @@ class PersonaComponent:
                 return internal_response(False, None, "Persona ya esta inactiva")
 
             # Verificar si la persona tiene un usuario asociado
-            user_check = "SELECT id, estado FROM usuario WHERE persona_id = %s"
-            user_exists = DataBaseHandle.getRecords(user_check, (persona_id,), size=1)
+            user_check = "SELECT id, estado FROM usuario WHERE id_persona = %s"
+            user_exists = DataBaseHandle.getRecords(user_check, (id_persona,), size=1)
 
             if user_exists and user_exists['estado'] == 'activo':
                 return internal_response(False, None,
@@ -305,14 +306,14 @@ class PersonaComponent:
                 WHERE id = %s
                 """
 
-            success = DataBaseHandle.ExecuteNonQuery(update_query, (persona_id,))
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (id_persona,))
 
             if success:
-                HandleLogs.write_log(f"PersonaComponent.deactivate_persona - Persona {persona_id} desactivada")
-                return internal_response(True, {"id": persona_id, "estado": "inactivo"},
+                HandleLogs.write_log(f"PersonaComponent.deactivate_persona - Persona {id_persona} desactivada")
+                return internal_response(True, {"id": id_persona, "estado": "inactivo"},
                                          "Persona desactivada exitosamente")
             else:
-                HandleLogs.write_error(f"PersonaComponent.deactivate_persona - Error desactivando persona {persona_id}")
+                HandleLogs.write_error(f"PersonaComponent.deactivate_persona - Error desactivando persona {id_persona}")
                 return internal_response(False, None, "Error desactivando persona")
 
         except Exception as e:

@@ -335,7 +335,7 @@ class Validators:
     @staticmethod
     def validate_area(area):
         """Validar área de especialidad"""
-        valid_areas = ['terapeutico', 'pedagogico']
+        valid_areas = ['Especialidad terapéutica', 'Especialidad pedagógica']
 
         if area not in valid_areas:
             return {

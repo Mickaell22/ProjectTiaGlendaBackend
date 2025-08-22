@@ -94,7 +94,7 @@ class FotoPerfilComponent:
                     u.fecha_modificacion,
                     CONCAT(p.nombre, ' ', p.apellido) as nombre_completo
                 FROM usuario u
-                JOIN persona p ON u.persona_id = p.id
+                JOIN persona p ON u.id_persona = p.id
                 WHERE u.id = %s
             """
             

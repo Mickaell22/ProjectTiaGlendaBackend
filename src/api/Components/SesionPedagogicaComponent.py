@@ -46,7 +46,7 @@ class SesionPedagogicaComponent:
                     ROUND(AVG(se.asistencia_porcentaje), 2) as promedio_asistencia
                 FROM sesion_pedagogica sp
                 JOIN personal per ON sp.pedagogo_id = per.id
-                JOIN persona p_ped ON per.persona_id = p_ped.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
                 JOIN especialidad e ON sp.especialidad_id = e.id
                 LEFT JOIN sesion_estudiante se ON sp.id = se.sesion_pedagogica_id AND se.estado = 'activo'
                 LEFT JOIN cronograma_clases cc ON sp.id = cc.sesion_pedagogica_id
@@ -73,7 +73,7 @@ class SesionPedagogicaComponent:
                     e.area as especialidad_area
                 FROM sesion_pedagogica sp
                 JOIN personal per ON sp.pedagogo_id = per.id
-                JOIN persona p_ped ON per.persona_id = p_ped.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
                 JOIN especialidad e ON sp.especialidad_id = e.id
                 WHERE sp.id = %s
             """
@@ -361,9 +361,9 @@ class SesionPedagogicaComponent:
                     p_tutor.telefono as tutor_telefono
                 FROM sesion_estudiante se
                 LEFT JOIN paciente pac ON se.paciente_id = pac.id
-                LEFT JOIN persona p ON pac.persona_id = p.id
+                LEFT JOIN persona p ON pac.id_persona = p.id
                 LEFT JOIN tutor t ON pac.tutor_id = t.id
-                LEFT JOIN persona p_tutor ON t.persona_id = p_tutor.id
+                LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
                 WHERE se.sesion_pedagogica_id = %s AND se.estado != 'retirado'
                 ORDER BY se.fecha_incorporacion
             """
@@ -510,7 +510,7 @@ class SesionPedagogicaComponent:
                     sp.fecha_modificacion
                 FROM sesion_pedagogica sp
                 JOIN personal per ON sp.pedagogo_id = per.id
-                JOIN persona p_ped ON per.persona_id = p_ped.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
                 JOIN especialidad e ON sp.especialidad_id = e.id
                 WHERE sp.pedagogo_id = %s
                 ORDER BY sp.fecha_creacion DESC

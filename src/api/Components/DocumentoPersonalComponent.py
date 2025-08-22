@@ -222,7 +222,7 @@ class DocumentoPersonalComponent:
                     END as estado_vencimiento
                 FROM documentos_personal dp
                 INNER JOIN personal p ON dp.id_personal = p.id
-                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
                 WHERE dp.tipo_documento = %s AND p.id_centro = %s                ORDER BY pe.nombre, pe.apellido
                 """
@@ -250,7 +250,7 @@ class DocumentoPersonalComponent:
                     END as estado_vencimiento
                 FROM documentos_personal dp
                 INNER JOIN personal p ON dp.id_personal = p.id
-                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
                 WHERE dp.tipo_documento = %s                ORDER BY c.nombre, pe.nombre, pe.apellido
                 """
@@ -287,7 +287,7 @@ class DocumentoPersonalComponent:
                     dp.fecha_vencimiento - CURRENT_DATE as dias_hasta_vencimiento
                 FROM documentos_personal dp
                 INNER JOIN personal p ON dp.id_personal = p.id
-                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
                 WHERE dp.fecha_vencimiento IS NOT NULL 
                 AND dp.fecha_vencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '%s days'
@@ -309,7 +309,7 @@ class DocumentoPersonalComponent:
                     dp.fecha_vencimiento - CURRENT_DATE as dias_hasta_vencimiento
                 FROM documentos_personal dp
                 INNER JOIN personal p ON dp.id_personal = p.id
-                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
                 WHERE dp.fecha_vencimiento IS NOT NULL 
                 AND dp.fecha_vencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '%s days'
@@ -354,7 +354,7 @@ class DocumentoPersonalComponent:
             SELECT dp.*, p.nombre, p.apellido, p.cedula
             FROM documentos_personal dp
             JOIN personal per ON dp.id_personal = per.id
-            JOIN persona p ON per.persona_id = p.id
+            JOIN persona p ON per.id_persona = p.id
             WHERE dp.fecha_vencimiento IS NOT NULL 
             AND dp.fecha_vencimiento <= CURRENT_DATE + INTERVAL '%s days'
             ORDER BY dp.fecha_vencimiento ASC
@@ -380,7 +380,7 @@ class DocumentoPersonalComponent:
             SELECT dp.*, p.nombre, p.apellido, p.cedula
             FROM documentos_personal dp
             JOIN personal per ON dp.id_personal = per.id
-            JOIN persona p ON per.persona_id = p.id
+            JOIN persona p ON per.id_persona = p.id
             WHERE (dp.estado_validacion IS NULL OR dp.estado_validacion = 'pendiente')
             ORDER BY dp.fecha_creacion ASC
             """
@@ -435,7 +435,7 @@ class DocumentoPersonalComponent:
             SELECT dp.*, p.nombre, p.apellido, p.cedula
             FROM documentos_personal dp
             JOIN personal per ON dp.id_personal = per.id
-            JOIN persona p ON per.persona_id = p.id
+            JOIN persona p ON per.id_persona = p.id
             WHERE TRUE
             """
             params = []

@@ -7,7 +7,7 @@ class UsuarioComponent:
 
     @staticmethod
     def get_all_usuarios():
-        """Obtener todos los usuarios con información completa"""
+        """Obtener todos los usuarios con información completa incluyendo centro"""
         try:
             query = """
             SELECT 
@@ -24,15 +24,26 @@ class UsuarioComponent:
                 r.id as rol_id,
                 r.nombre as rol,
                 r.nombre as rol_nombre,
-                u.persona_id,
+                u.id_persona,
                 u.estado,
                 u.fecha_creacion,
                 u.fecha_modificacion,
-                u.fecha_ultimo_acceso
+                u.fecha_ultimo_acceso,
+                -- Información del centro
+                c.id as centro_id,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno,
+                CASE 
+                    WHEN c.codigo = 'NORTE' THEN '🌅 Centro Norte'
+                    WHEN c.codigo = 'SUR' THEN '🌆 Centro Sur'
+                    ELSE c.nombre
+                END as centro_display
             FROM usuario u
-            INNER JOIN persona p ON u.persona_id = p.id
-            INNER JOIN rol r ON u.rol_id = r.id
-            ORDER BY u.id
+            INNER JOIN persona p ON u.id_persona = p.id
+            INNER JOIN rol r ON u.id_rol = r.id
+            INNER JOIN centros c ON u.id_centro = c.id
+            ORDER BY c.codigo, u.id
             """
 
             usuarios = DataBaseHandle.getRecords(query)
@@ -50,7 +61,7 @@ class UsuarioComponent:
 
     @staticmethod
     def get_usuario_by_id(usuario_id):
-        """Obtener un usuario por ID"""
+        """Obtener un usuario por ID con información del centro"""
         try:
             query = """
             SELECT 
@@ -67,10 +78,21 @@ class UsuarioComponent:
                 r.id as rol_id,
                 u.estado,
                 u.fecha_creacion,
-                u.fecha_modificacion
+                u.fecha_modificacion,
+                -- Información del centro
+                c.id as centro_id,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno,
+                CASE 
+                    WHEN c.codigo = 'NORTE' THEN '🌅 Centro Norte'
+                    WHEN c.codigo = 'SUR' THEN '🌆 Centro Sur'
+                    ELSE c.nombre
+                END as centro_display
             FROM usuario u
-            INNER JOIN persona p ON u.persona_id = p.id
-            INNER JOIN rol r ON u.rol_id = r.id
+            INNER JOIN persona p ON u.id_persona = p.id
+            INNER JOIN rol r ON u.id_rol = r.id
+            INNER JOIN centros c ON u.id_centro = c.id
             WHERE u.id = %s
             """
 
@@ -98,15 +120,15 @@ class UsuarioComponent:
 
             # Insertar nuevo usuario
             insert_query = """
-                INSERT INTO usuario (usuario, contrasenia, persona_id, rol_id, id_centro, estado, usuario_creacion)
+                INSERT INTO usuario (usuario, contrasenia, id_persona, id_rol, id_centro, estado, usuario_creacion)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
 
             params = (
                 data['usuario'],
                 data['contrasenia'],
-                data['persona_id'],
-                data['rol_id'],
+                data['id_persona'],
+                data['id_rol'],
                 data.get('id_centro', 13),  # Default to Centro Norte (id=13)
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
@@ -151,7 +173,7 @@ class UsuarioComponent:
             update_fields = []
             params = []
 
-            allowed_fields = ['usuario', 'contrasenia', 'persona_id', 'rol_id', 'estado', 'usuario_modificacion']
+            allowed_fields = ['usuario', 'contrasenia', 'id_persona', 'id_rol', 'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:

@@ -12,13 +12,13 @@ class TutorComponent:
             query = """
             SELECT 
                 t.id,
-                t.nombre,
-                t.apellido,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_completo,
-                t.cedula,
-                t.telefono,
-                t.email,
-                t.direccion,
+                p.nombre,
+                p.apellido,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.cedula,
+                p.telefono,
+                p.correo as email,
+                p.direccion,
                 t.parentesco,
                 t.ocupacion,
                 t.direccion_empresa,
@@ -30,12 +30,13 @@ class TutorComponent:
                 COUNT(pac.id) as total_pacientes,
                 COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
             FROM tutor t
+            INNER JOIN persona p ON t.id_persona = p.id
             LEFT JOIN paciente pac ON t.id = pac.id_tutor
-            GROUP BY t.id, t.nombre, t.apellido, t.cedula, t.telefono, t.email, 
-                     t.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
+            GROUP BY t.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo, 
+                     p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
                      t.telefono_empresa, t.nombre_empresa, t.estado, 
                      t.fecha_creacion, t.fecha_modificacion
-            ORDER BY t.nombre, t.apellido
+            ORDER BY p.nombre, p.apellido
             """
 
             tutores = DataBaseHandle.getRecords(query)
@@ -59,13 +60,13 @@ class TutorComponent:
             query_tutor = """
             SELECT 
                 t.id,
-                t.nombre,
-                t.apellido,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_completo,
-                t.cedula,
-                t.telefono,
-                t.email,
-                t.direccion,
+                p.nombre,
+                p.apellido,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.cedula,
+                p.telefono,
+                p.correo as email,
+                p.direccion,
                 t.parentesco,
                 t.ocupacion,
                 t.direccion_empresa,
@@ -75,6 +76,7 @@ class TutorComponent:
                 t.fecha_creacion,
                 t.fecha_modificacion
             FROM tutor t
+            INNER JOIN persona p ON t.id_persona = p.id
             WHERE t.id = %s
             """
 
@@ -95,7 +97,7 @@ class TutorComponent:
                     pp.cedula,
                     pp.fecha_nacimiento
                 FROM paciente pac
-                INNER JOIN persona pp ON pac.persona_id = pp.id
+                INNER JOIN persona pp ON pac.id_persona = pp.id
                 WHERE pac.id_tutor = %s
                 ORDER BY pp.nombre, pp.apellido
                 """
@@ -294,15 +296,16 @@ class TutorComponent:
             query = """
             SELECT 
                 t.id,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_completo,
-                t.nombre,
-                t.apellido,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
                 t.parentesco,
-                t.telefono,
-                t.email
+                p.telefono,
+                p.correo as email
             FROM tutor t
+            INNER JOIN persona p ON t.id_persona = p.id
             WHERE t.estado = 'activo'
-            ORDER BY t.nombre, t.apellido
+            ORDER BY p.nombre, p.apellido
             """
 
             tutores = DataBaseHandle.getRecords(query)
@@ -381,7 +384,7 @@ class TutorComponent:
                 p.telefono,
                 p.correo
             FROM persona p
-            LEFT JOIN tutor t ON p.cedula = t.cedula
+            LEFT JOIN tutor t ON p.id = t.id_persona
             WHERE t.id IS NULL AND p.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """

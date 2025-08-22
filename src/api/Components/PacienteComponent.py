@@ -32,13 +32,14 @@ class PacienteComponent:
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_tutor,
-                t.telefono as telefono_tutor,
-                t.email as correo_tutor
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades)
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
             WHERE pac.estado != 'eliminado'
             ORDER BY p.nombre, p.apellido
             """
@@ -102,13 +103,14 @@ class PacienteComponent:
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_tutor,
-                t.telefono as telefono_tutor,
-                t.email as correo_tutor
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades)
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
             WHERE pac.id = %s
             """
 
@@ -135,14 +137,14 @@ class PacienteComponent:
         """Crear un nuevo paciente"""
         try:
             # Verificar si la persona ya está registrada como paciente
-            persona_check = PacienteComponent.check_persona_is_paciente(data['persona_id'])
+            persona_check = PacienteComponent.check_persona_is_paciente(data['id_persona'])
             if persona_check['success'] and persona_check['data']:
                 return internal_response(False, None, "Esta persona ya está registrada como paciente")
 
             # Verificar que la persona existe y está activa
             persona_exists = DataBaseHandle.getRecords(
                 "SELECT id, estado FROM persona WHERE id = %s",
-                (data['persona_id'],), size=1
+                (data['id_persona'],), size=1
             )
 
             if not persona_exists:
@@ -179,7 +181,7 @@ class PacienteComponent:
             # Insertar nuevo paciente (sin especialidad - se maneja en tabla separada)
             insert_query = """
                 INSERT INTO paciente (
-                    persona_id, id_tutor, fecha_ingreso, motivo_consulta,
+                    id_persona, id_tutor, fecha_ingreso, motivo_consulta,
                     estado_tratamiento, observaciones, estado, id_centro, usuario_creacion
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -190,7 +192,7 @@ class PacienteComponent:
             id_centro = CentroMiddleware.get_current_user_centro() or 13
 
             params = (
-                data['persona_id'],
+                data['id_persona'],
                 data['id_tutor'],
                 data['fecha_ingreso'],
                 data.get('observaciones_tratamiento'),  # usar como motivo_consulta temporalmente
@@ -361,15 +363,15 @@ class PacienteComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def check_persona_is_paciente(persona_id, exclude_id=None):
+    def check_persona_is_paciente(id_persona, exclude_id=None):
         """Verificar si una persona ya está registrada como paciente"""
         try:
             if exclude_id:
-                query = "SELECT id FROM paciente WHERE persona_id = %s AND id != %s"
-                params = (persona_id, exclude_id)
+                query = "SELECT id FROM paciente WHERE id_persona = %s AND id != %s"
+                params = (id_persona, exclude_id)
             else:
-                query = "SELECT id FROM paciente WHERE persona_id = %s"
-                params = (persona_id,)
+                query = "SELECT id FROM paciente WHERE id_persona = %s"
+                params = (id_persona,)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
             return internal_response(True, existing is not None, "Consulta ejecutada")
@@ -403,13 +405,14 @@ class PacienteComponent:
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_tutor,
-                t.telefono as telefono_tutor,
-                t.email as correo_tutor,
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor,
                 pac.observaciones
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
             WHERE pac.id_tutor = %s AND pac.estado != 'eliminado'
             ORDER BY p.nombre, p.apellido
             """
@@ -449,7 +452,7 @@ class PacienteComponent:
                 COUNT(CASE WHEN pac.estado = 'derivado' THEN 1 END) as pacientes_derivados,
                 AVG(EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.fecha_nacimiento))) as edad_promedio
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             """
 
             estadisticas_generales = DataBaseHandle.getRecords(query, size=1)
@@ -478,7 +481,7 @@ class PacienteComponent:
                 END as rango_edad,
                 COUNT(*) as total
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             GROUP BY rango_edad
             ORDER BY rango_edad
             """
@@ -517,7 +520,7 @@ class PacienteComponent:
                 p.correo,
                 p.fecha_nacimiento
             FROM persona p
-            LEFT JOIN paciente pac ON p.id = pac.persona_id
+            LEFT JOIN paciente pac ON p.id = pac.id_persona
             WHERE pac.id IS NULL AND p.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """
@@ -594,16 +597,17 @@ class PacienteComponent:
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_tutor,
-                t.telefono as telefono_tutor,
-                t.email as correo_tutor
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades),
                 -- Información del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
             LEFT JOIN centros c ON pac.id_centro = c.id
             WHERE pac.estado != 'eliminado' AND pac.id_centro = %s
             ORDER BY p.nombre, p.apellido
@@ -666,16 +670,17 @@ class PacienteComponent:
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
-                CONCAT(t.nombre, ' ', t.apellido) as nombre_tutor,
-                t.telefono as telefono_tutor,
-                t.email as correo_tutor
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades),
                 -- Información del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
             FROM paciente pac
-            INNER JOIN persona p ON pac.persona_id = p.id
+            INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
             LEFT JOIN centros c ON pac.id_centro = c.id
             WHERE pac.id = %s AND pac.id_centro = %s AND pac.estado != 'eliminado'
             """

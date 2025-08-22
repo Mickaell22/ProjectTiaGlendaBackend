@@ -9,14 +9,23 @@ class PersonalService:
 
     @staticmethod
     def get_personal():
-        """Obtener lista de todo el personal"""
+        """Obtener lista de todo el personal (filtrado por centro del usuario logueado)"""
         try:
             HandleLogs.write_log("PersonalService.get_personal - Iniciando")
-
-            result = PersonalComponent.get_all_personal()
+            
+            # Obtener centro del usuario actual
+            current_user = getattr(request, 'current_user', {})
+            centro_id = current_user.get('id_centro')
+            
+            # Solo filtrar por centro si el usuario no es administrador de sistema
+            # o si tiene un centro asignado específico
+            filter_centro = centro_id if centro_id else None
+            
+            result = PersonalComponent.get_all_personal(filter_centro)
 
             if result['success']:
-                HandleLogs.write_log("PersonalService.get_personal - Personal obtenido exitosamente")
+                filter_msg = f" (filtrado por centro {centro_id})" if filter_centro else ""
+                HandleLogs.write_log(f"PersonalService.get_personal - Personal obtenido exitosamente{filter_msg}")
                 return response_success(result['data'], "Lista del personal obtenida correctamente")
             else:
                 HandleLogs.write_error(f"PersonalService.get_personal - Error: {result['message']}")
@@ -64,11 +73,13 @@ class PersonalService:
                 return response_error(validation_result['message'], 400)
 
             # Preparar datos para inserción
+            current_user = getattr(request, 'current_user', {})
             personal_data = {
-                'persona_id': int(data['persona_id']),
+                'id_persona': int(data['id_persona']),
                 'titulo_profesional': data.get('titulo_profesional', '').strip() if data.get('titulo_profesional') else None,
                 'estado': data.get('estado', 'activo'),
-                'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
+                'id_centro': current_user.get('id_centro'),  # Usar centro del usuario actual
+                'usuario_creacion': current_user.get('id', 1)
             }
 
             result = PersonalComponent.create_personal(personal_data)

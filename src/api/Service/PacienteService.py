@@ -70,7 +70,7 @@ class PacienteService:
 
             # Preparar datos para inserción usando DataUtils
             base_data = {
-                'persona_id': int(data['persona_id']),
+                'id_persona': int(data['id_persona']),
                 'id_tutor': int(data['tutor_id']),  # Map tutor_id to id_tutor for database
                 'especialidad_id': data.get('especialidad_id'),
                 'fecha_ingreso': data['fecha_ingreso'],

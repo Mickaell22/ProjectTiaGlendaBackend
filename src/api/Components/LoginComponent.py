@@ -25,8 +25,8 @@ class LoginComponent:
                 c.codigo as centro_codigo,
                 c.turno_principal as centro_turno
             FROM usuario u
-            INNER JOIN persona p ON u.persona_id = p.id
-            INNER JOIN rol r ON u.rol_id = r.id
+            INNER JOIN persona p ON u.id_persona = p.id
+            INNER JOIN rol r ON u.id_rol = r.id
             LEFT JOIN centros c ON u.id_centro = c.id
             WHERE u.usuario = %s
             """
@@ -81,8 +81,8 @@ class LoginComponent:
                 c.codigo as centro_codigo,
                 c.turno_principal as centro_turno
             FROM usuario u
-            INNER JOIN persona p ON u.persona_id = p.id
-            INNER JOIN rol r ON u.rol_id = r.id
+            INNER JOIN persona p ON u.id_persona = p.id
+            INNER JOIN rol r ON u.id_rol = r.id
             LEFT JOIN centros c ON u.id_centro = c.id
             WHERE u.id = %s AND u.estado = 'activo'
             """

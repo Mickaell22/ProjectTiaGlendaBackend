@@ -66,9 +66,9 @@ class ChatComponent:
                     COUNT(CASE WHEN mc.id_destinatario = %s AND mc.leido = false THEN 1 END) as mensajes_no_leidos
                 FROM mensajes_chat mc
                 LEFT JOIN usuario u_rem ON mc.id_remitente = u_rem.id
-                LEFT JOIN persona p_rem ON u_rem.persona_id = p_rem.id
+                LEFT JOIN persona p_rem ON u_rem.id_persona = p_rem.id
                 LEFT JOIN usuario u_dest ON mc.id_destinatario = u_dest.id
-                LEFT JOIN persona p_dest ON u_dest.persona_id = p_dest.id
+                LEFT JOIN persona p_dest ON u_dest.id_persona = p_dest.id
                 WHERE (mc.id_remitente = %s OR mc.id_destinatario = %s)
                   AND mc.id_centro = %s
                 GROUP BY id_contacto, nombre_contacto
@@ -126,9 +126,9 @@ class ChatComponent:
                     mc.id_remitente = %s as es_remitente
                 FROM mensajes_chat mc
                 JOIN usuario ur ON mc.id_remitente = ur.id
-                JOIN persona pr ON ur.persona_id = pr.id
+                JOIN persona pr ON ur.id_persona = pr.id
                 JOIN usuario ud ON mc.id_destinatario = ud.id
-                JOIN persona pd ON ud.persona_id = pd.id
+                JOIN persona pd ON ud.id_persona = pd.id
                 WHERE ((mc.id_remitente = %s AND mc.id_destinatario = %s)
                     OR (mc.id_remitente = %s AND mc.id_destinatario = %s))
                 AND mc.id_centro = %s
@@ -246,8 +246,8 @@ class ChatComponent:
                     r.nombre as rol,
                     u.estado
                 FROM usuario u
-                JOIN persona p ON u.persona_id = p.id
-                JOIN rol r ON u.rol_id = r.id
+                JOIN persona p ON u.id_persona = p.id
+                JOIN rol r ON u.id_rol = r.id
                 WHERE u.id != %s
                 AND u.id_centro = %s
                 {estado_filter}
@@ -366,9 +366,9 @@ class ChatComponent:
                     mc.id_remitente = %s as es_remitente
                 FROM mensajes_chat mc
                 JOIN usuario ur ON mc.id_remitente = ur.id
-                JOIN persona pr ON ur.persona_id = pr.id
+                JOIN persona pr ON ur.id_persona = pr.id
                 JOIN usuario ud ON mc.id_destinatario = ud.id
-                JOIN persona pd ON ud.persona_id = pd.id
+                JOIN persona pd ON ud.id_persona = pd.id
                 WHERE (mc.id_remitente = %s OR mc.id_destinatario = %s)
                 AND mc.id_centro = %s
                 AND mc.mensaje ILIKE %s

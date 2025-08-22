@@ -73,8 +73,8 @@ class UsuarioService:
             user_data = {
                 'usuario': data['usuario'].strip(),
                 'contrasenia': hashed_password,
-                'persona_id': int(data['persona_id']),
-                'rol_id': int(data['rol_id']),
+                'id_persona': int(data['id_persona']),
+                'id_rol': int(data['id_rol']),
                 'estado': data.get('estado', 'activo'),
                 'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
             }

@@ -1,6 +1,6 @@
 # Roadmap de Cambios - Sistema Centro Tía Glenda
 
-# Falta fase 3 y fase 5 INCOMPETENTE 
+# Falta fase 4 INCOMPETENTE 
 
 ## Resumen Ejecutivo
 Este documento consolida y organiza los cambios planificados para el sistema de gestión del Centro Tía Glenda, incluyendo la implementación de un sistema multi-centro (Norte y Sur), mejoras en los módulos existentes y nuevas funcionalidades.

@@ -7,11 +7,11 @@ from src.utils.general.centro_middleware import CentroMiddleware
 class PersonalComponent:
 
     @staticmethod
-    def get_all_personal():
-        """Obtener todo el personal con información completa incluyendo especialidades"""
+    def get_all_personal(centro_id=None):
+        """Obtener todo el personal con información completa incluyendo especialidades (filtrado por centro si se especifica)"""
         try:
-            # Obtener información básica del personal con información del centro
-            query = """
+            # Construir query con filtro opcional por centro
+            base_query = """
             SELECT 
                 p.id,
                 p.cargo as titulo_profesional,
@@ -34,15 +34,18 @@ class PersonalComponent:
                 c.codigo as centro_codigo,
                 c.turno_principal as centro_turno
             FROM personal p
-            INNER JOIN persona pe ON p.persona_id = pe.id
-            LEFT JOIN usuario u ON pe.id = u.persona_id
-            LEFT JOIN rol r ON u.rol_id = r.id
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
             LEFT JOIN centros c ON p.id_centro = c.id
-            WHERE p.estado != 'eliminado'
-            ORDER BY c.nombre, pe.nombre, pe.apellido
-            """
-
-            personal = DataBaseHandle.getRecords(query)
+            WHERE p.estado != 'eliminado'"""
+            
+            if centro_id:
+                query = base_query + " AND p.id_centro = %s ORDER BY c.nombre, pe.nombre, pe.apellido"
+                personal = DataBaseHandle.getRecords(query, (centro_id,))
+            else:
+                query = base_query + " ORDER BY c.nombre, pe.nombre, pe.apellido"
+                personal = DataBaseHandle.getRecords(query)
 
             if personal is not None:
                 # Para cada miembro del personal, obtener sus especialidades
@@ -51,18 +54,19 @@ class PersonalComponent:
                     SELECT 
                         e.id,
                         e.nombre,
-                        e.descripcion as area,
+                        e.area,
                         ps.fecha_creacion as fecha_asignacion
                     FROM personal_especialidades ps
                     INNER JOIN especialidad e ON ps.id_especialidad = e.id
                     WHERE ps.id_personal = %s AND e.estado = 'activo'
-                    ORDER BY e.descripcion as area, e.nombre
+                    ORDER BY e.area, e.nombre
                     """
                     
                     especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
                     personal[i]['especialidades'] = especialidades if especialidades else []
 
-                HandleLogs.write_log(f"PersonalComponent.get_all_personal - {len(personal)} miembros del personal encontrados con especialidades")
+                filter_msg = f" (filtrados por centro {centro_id})" if centro_id else ""
+                HandleLogs.write_log(f"PersonalComponent.get_all_personal - {len(personal)} miembros del personal encontrados con especialidades{filter_msg}")
                 return internal_response(True, personal, "Personal obtenido correctamente")
             else:
                 HandleLogs.write_error("PersonalComponent.get_all_personal - Error en consulta")
@@ -97,9 +101,9 @@ class PersonalComponent:
                 u.usuario as nombre_usuario,
                 r.nombre as rol_usuario
             FROM personal p
-            INNER JOIN persona pe ON p.persona_id = pe.id
-            LEFT JOIN usuario u ON pe.id = u.persona_id
-            LEFT JOIN rol r ON u.rol_id = r.id
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
             WHERE p.id = %s
             """
 
@@ -111,12 +115,12 @@ class PersonalComponent:
                 SELECT 
                     e.id,
                     e.nombre,
-                    e.descripcion as area,
+                    e.area,
                     ps.fecha_creacion as fecha_asignacion
                 FROM personal_especialidades ps
                 INNER JOIN especialidad e ON ps.id_especialidad = e.id
                 WHERE ps.id_personal = %s AND e.estado = 'activo'
-                ORDER BY e.descripcion as area, e.nombre
+                ORDER BY e.area, e.nombre
                 """
 
                 especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_id,))
@@ -137,13 +141,13 @@ class PersonalComponent:
         """Crear un nuevo miembro del personal"""
         try:
             # Verificar si la persona ya está registrada como personal
-            persona_check = PersonalComponent.check_persona_is_personal(data['persona_id'])
+            persona_check = PersonalComponent.check_persona_is_personal(data['id_persona'])
             if persona_check['success'] and persona_check['data']:
                 return internal_response(False, None, "Esta persona ya está registrada como personal")
 
             # Insertar nuevo personal  
             insert_query = """
-                INSERT INTO personal (persona_id, id_especialidad, id_centro, fecha_ingreso, cargo, estado, usuario_creacion)
+                INSERT INTO personal (id_persona, id_especialidad, id_centro, fecha_ingreso, cargo, estado, usuario_creacion)
                 VALUES (%s, %s, %s, CURRENT_DATE, %s, %s, %s)
                 """
 
@@ -156,9 +160,9 @@ class PersonalComponent:
                 default_especialidad_id = especialidad_result['id'] if especialidad_result else 1
 
             params = (
-                data['persona_id'],
+                data['id_persona'],
                 default_especialidad_id,
-                data.get('id_centro', 13),  # Default to Centro Norte (id=13)
+                data.get('id_centro'),  # Centro del usuario actual
                 data.get('titulo_profesional', '').strip() if data.get('titulo_profesional') else None,
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
@@ -168,8 +172,8 @@ class PersonalComponent:
 
             if success:
                 # Obtener el ID del personal recién creado
-                id_query = "SELECT id FROM personal WHERE persona_id = %s ORDER BY id DESC LIMIT 1"
-                new_personal_data = DataBaseHandle.getRecords(id_query, (data['persona_id'],), size=1)
+                id_query = "SELECT id FROM personal WHERE id_persona = %s ORDER BY id DESC LIMIT 1"
+                new_personal_data = DataBaseHandle.getRecords(id_query, (data['id_persona'],), size=1)
                 
                 if new_personal_data and new_personal_data.get('id'):
                     new_id = new_personal_data['id']
@@ -284,15 +288,15 @@ class PersonalComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def check_persona_is_personal(persona_id, exclude_id=None):
+    def check_persona_is_personal(id_persona, exclude_id=None):
         """Verificar si una persona ya está registrada como personal"""
         try:
             if exclude_id:
-                query = "SELECT id FROM personal WHERE persona_id = %s AND id != %s"
-                params = (persona_id, exclude_id)
+                query = "SELECT id FROM personal WHERE id_persona = %s AND id != %s"
+                params = (id_persona, exclude_id)
             else:
-                query = "SELECT id FROM personal WHERE persona_id = %s"
-                params = (persona_id,)
+                query = "SELECT id FROM personal WHERE id_persona = %s"
+                params = (id_persona,)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
             return internal_response(True, existing is not None, "Consulta ejecutada")
@@ -427,7 +431,7 @@ class PersonalComponent:
             # Verificar que la asignación existe
             assignment_check = """
                 SELECT id FROM personal_especialidades 
-                WHERE personal_id = %s AND especialidad_id = %s
+                WHERE id_personal = %s AND id_especialidad = %s
             """
             existing = DataBaseHandle.getRecords(assignment_check, (personal_id, especialidad_id), size=1)
 
@@ -437,7 +441,7 @@ class PersonalComponent:
             # Quitar asignación
             delete_query = """
                 DELETE FROM personal_especialidades 
-                WHERE personal_id = %s AND especialidad_id = %s
+                WHERE id_personal = %s AND id_especialidad = %s
             """
 
             success = DataBaseHandle.ExecuteNonQuery(delete_query, (personal_id, especialidad_id))
@@ -469,7 +473,7 @@ class PersonalComponent:
                 pe.correo,
                 COUNT(ps.id_especialidad) as especialidades_en_area
             FROM personal p
-            INNER JOIN persona pe ON p.persona_id = pe.id
+            INNER JOIN persona pe ON p.id_persona = pe.id
             INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
             INNER JOIN especialidad e ON ps.id_especialidad = e.id
             WHERE e.descripcion LIKE %s AND p.estado = 'activo' AND e.estado = 'activo'
@@ -509,8 +513,8 @@ class PersonalComponent:
                 COUNT(CASE WHEN u.id IS NOT NULL THEN 1 END) as con_usuario,
                 COUNT(CASE WHEN u.id IS NULL THEN 1 END) as sin_usuario
             FROM personal p
-            INNER JOIN persona pe ON p.persona_id = pe.id
-            LEFT JOIN usuario u ON pe.id = u.persona_id
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
             """
 
             estadisticas_generales = DataBaseHandle.getRecords(query, size=1)
@@ -518,14 +522,14 @@ class PersonalComponent:
             # Estadísticas por área
             query_areas = """
             SELECT 
-                e.descripcion as area,
+                e.area,
                 COUNT(DISTINCT p.id) as personal_por_area
             FROM personal p
             INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
             INNER JOIN especialidad e ON ps.id_especialidad = e.id
             WHERE p.estado = 'activo' AND e.estado = 'activo'
-            GROUP BY e.descripcion as area
-            ORDER BY e.descripcion as area
+            GROUP BY e.area
+            ORDER BY e.area
             """
 
             estadisticas_areas = DataBaseHandle.getRecords(query_areas)
@@ -573,9 +577,9 @@ class PersonalComponent:
                 c.codigo as centro_codigo,
                 c.turno_principal as centro_turno
             FROM personal p
-            INNER JOIN persona pe ON p.persona_id = pe.id
-            LEFT JOIN usuario u ON pe.id = u.persona_id
-            LEFT JOIN rol r ON u.rol_id = r.id
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
             INNER JOIN centros c ON p.id_centro = c.id
             WHERE p.estado != 'eliminado' AND p.id_centro = %s
             ORDER BY pe.nombre, pe.apellido
@@ -590,12 +594,12 @@ class PersonalComponent:
                     SELECT 
                         e.id,
                         e.nombre,
-                        e.descripcion as area,
+                        e.area,
                         ps.fecha_creacion as fecha_asignacion
                     FROM personal_especialidades ps
                     INNER JOIN especialidad e ON ps.id_especialidad = e.id
                     WHERE ps.id_personal = %s AND e.estado = 'activo'
-                    ORDER BY e.descripcion as area, e.nombre
+                    ORDER BY e.area, e.nombre
                     """
                     
                     especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
@@ -619,7 +623,7 @@ class PersonalComponent:
             # Verificar que no exista ya la asociación
             query_check = """
             SELECT id FROM personal_especialidades 
-            WHERE personal_id = %s AND especialidad_id = %s
+            WHERE id_personal = %s AND id_especialidad = %s
             """
             
             existing = DataBaseHandle.getRecords(query_check, (personal_id, especialidad_id), size=1)
@@ -630,7 +634,7 @@ class PersonalComponent:
             
             # Insertar nueva especialidad
             query_insert = """
-            INSERT INTO personal_especialidades (personal_id, especialidad_id, usuario_creacion)
+            INSERT INTO personal_especialidades (id_personal, id_especialidad, usuario_creacion)
             VALUES (%s, %s, %s)
             """
             
@@ -653,7 +657,7 @@ class PersonalComponent:
         try:
             query_delete = """
             DELETE FROM personal_especialidades 
-            WHERE personal_id = %s AND especialidad_id = %s
+            WHERE id_personal = %s AND id_especialidad = %s
             """
             
             success = DataBaseHandle.ExecuteNonQuery(query_delete, (personal_id, especialidad_id))
@@ -686,9 +690,9 @@ class PersonalComponent:
                     c.nombre as centro_nombre,
                     c.codigo as centro_codigo,
                     e.nombre as especialidad_nombre,
-                    e.descripcion as area as especialidad_area
+                    e.area as especialidad_area
                 FROM personal p
-                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
                 INNER JOIN especialidad e ON ps.id_especialidad = e.id
                 INNER JOIN centros c ON p.id_centro = c.id
@@ -709,9 +713,9 @@ class PersonalComponent:
                     c.nombre as centro_nombre,
                     c.codigo as centro_codigo,
                     e.nombre as especialidad_nombre,
-                    e.descripcion as area as especialidad_area
+                    e.area as especialidad_area
                 FROM personal p
-                INNER JOIN persona pe ON p.persona_id = pe.id
+                INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
                 INNER JOIN especialidad e ON ps.id_especialidad = e.id
                 INNER JOIN centros c ON p.id_centro = c.id
@@ -741,8 +745,7 @@ class PersonalComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.descripcion as area,
-                e.descripcion
+                e.area
             FROM especialidad e
             WHERE e.estado = 'activo' 
             AND e.id NOT IN (
@@ -750,7 +753,7 @@ class PersonalComponent:
                 FROM personal_especialidades ps 
                 WHERE ps.id_personal = %s
             )
-            ORDER BY e.descripcion as area, e.nombre
+            ORDER BY e.area, e.nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query, (personal_id,))

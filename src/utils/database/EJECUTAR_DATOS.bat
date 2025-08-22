@@ -70,7 +70,7 @@ echo 🚀 INICIANDO CARGA DE DATOS INICIALES...
 echo ============================================
 echo.
 
-python cargar_datos_iniciales.py
+python 02_cargar_datos.py
 
 echo.
 echo ============================================
@@ -131,7 +131,7 @@ echo 🗑️  INICIANDO BORRADO DE DATOS...
 echo ============================================
 echo.
 
-python borrar_datos_iniciales.py
+python 04_limpiar_datos.py
 
 echo.
 echo ============================================
@@ -181,7 +181,7 @@ echo 📊 VERIFICANDO ESTADO DE LA BASE DE DATOS...
 echo ============================================
 echo.
 
-python verificar_datos.py
+python 03_verificar_sistema.py
 
 echo.
 echo ============================================

@@ -13,15 +13,15 @@ class EspecialidadComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.descripcion as area,
+                e.area,
                 e.estado,
                 e.fecha_creacion,
                 e.fecha_modificacion,
                 COUNT(pe.id) as personal_asignado
             FROM especialidad e
             LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
-            GROUP BY e.id, e.nombre, e.descripcion, e.estado, e.fecha_creacion, e.fecha_modificacion
-            ORDER BY e.descripcion, e.nombre
+            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
+            ORDER BY e.area, e.nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query)
@@ -45,15 +45,15 @@ class EspecialidadComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.descripcion as area,
+                e.area,
                 e.estado,
                 e.fecha_creacion,
                 e.fecha_modificacion,
                 COUNT(pe.id) as personal_asignado
             FROM especialidad e
             LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
-            WHERE e.descripcion = %s AND e.estado = 'activo'
-            GROUP BY e.id, e.nombre, e.descripcion, e.estado, e.fecha_creacion, e.fecha_modificacion
+            WHERE e.area = %s AND e.estado = 'activo'
+            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
             ORDER BY e.nombre
             """
 
@@ -78,7 +78,7 @@ class EspecialidadComponent:
             SELECT 
                 e.id,
                 e.nombre,
-                e.descripcion as area,
+                e.area,
                 e.estado,
                 e.fecha_creacion,
                 e.fecha_modificacion,
@@ -86,7 +86,7 @@ class EspecialidadComponent:
             FROM especialidad e
             LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
             WHERE e.id = %s
-            GROUP BY e.id, e.nombre, e.descripcion, e.estado, e.fecha_creacion, e.fecha_modificacion
+            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
             """
 
             especialidad = DataBaseHandle.getRecords(query, (especialidad_id,), size=1)
@@ -113,7 +113,7 @@ class EspecialidadComponent:
 
             # Insertar nueva especialidad
             insert_query = """
-                INSERT INTO especialidad (nombre, descripcion, estado, usuario_creacion)
+                INSERT INTO especialidad (nombre, area, estado, usuario_creacion)
                 VALUES (%s, %s, %s, %s)
                 RETURNING id
                 """
@@ -164,19 +164,15 @@ class EspecialidadComponent:
             params = []
 
             allowed_fields = ['nombre', 'area', 'estado', 'usuario_modificacion']
-            # Mapear 'area' a 'descripcion' para la base de datos
-            field_mapping = {'area': 'descripcion'}
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
-                    # Usar el mapeo de campos para la base de datos
-                    db_field = field_mapping.get(field, field)
                     if field in ['nombre']:
                         if data[field].strip():
-                            update_fields.append(f"{db_field} = %s")
+                            update_fields.append(f"{field} = %s")
                             params.append(data[field].strip())
                     else:
-                        update_fields.append(f"{db_field} = %s")
+                        update_fields.append(f"{field} = %s")
                         params.append(data[field])
 
             if not update_fields:
@@ -261,10 +257,10 @@ class EspecialidadComponent:
         """Verificar si un nombre de especialidad ya existe en la misma área"""
         try:
             if exclude_id:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND descripcion = %s AND id != %s"
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id != %s"
                 params = (nombre, area, exclude_id)
             else:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND descripcion = %s"
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s"
                 params = (nombre, area)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
@@ -280,13 +276,13 @@ class EspecialidadComponent:
         try:
             query = """
             SELECT 
-                descripcion as area,
+                area,
                 COUNT(*) as total_especialidades,
                 COUNT(CASE WHEN estado = 'activo' THEN 1 END) as activas,
                 COUNT(CASE WHEN estado = 'inactivo' THEN 1 END) as inactivas
             FROM especialidad
-            GROUP BY descripcion
-            ORDER BY descripcion
+            GROUP BY area
+            ORDER BY area
             """
 
             estadisticas = DataBaseHandle.getRecords(query)
@@ -395,7 +391,7 @@ class EspecialidadComponent:
             query_mas_asignadas = """
             SELECT 
                 e.nombre,
-                e.descripcion,
+                e.area,
                 COUNT(DISTINCT pe.id_personal) as personal_asignado,
                 COUNT(DISTINCT pac.id_paciente) as pacientes_asignados,
                 (COUNT(DISTINCT pe.id_personal) + COUNT(DISTINCT pac.id_paciente)) as total_asignaciones
@@ -403,7 +399,7 @@ class EspecialidadComponent:
             LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad AND pe.estado = 'activo'
             LEFT JOIN paciente_especialidades pac ON e.id = pac.id_especialidad AND pac.estado = 'activo'
             WHERE e.estado = 'activo'
-            GROUP BY e.id, e.nombre, e.descripcion
+            GROUP BY e.id, e.nombre, e.area
             ORDER BY total_asignaciones DESC
             LIMIT 5
             """
@@ -442,10 +438,10 @@ class EspecialidadComponent:
             SELECT 
                 id,
                 nombre,
-                descripcion as area
+                area
             FROM especialidad
             WHERE estado = 'activo'
-            ORDER BY descripcion, nombre
+            ORDER BY area, nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query)
