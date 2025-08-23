@@ -38,7 +38,11 @@
       "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\tutor/**)",
       "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\persona/**)",
       "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\persona/**)",
-      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\config/**)"
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\config/**)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(/dev/null)",
+      "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\fotos_perfil\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

@@ -163,7 +163,7 @@ class Validators:
         # Campos requeridos para crear usuario
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['usuario', 'contrasenia', 'id_persona', 'id_rol']
+                data, ['usuario', 'contrasenia', 'id_persona', 'id_rol', 'id_centro']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])

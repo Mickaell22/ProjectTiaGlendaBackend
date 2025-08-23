@@ -76,11 +76,15 @@ class UsuarioService:
                     'contrasenia': hashed_password,
                     'id_persona': int(data['id_persona']),
                     'id_rol': int(data['id_rol']),
+                    'id_centro': int(data['id_centro']) if data.get('id_centro') else 1,
                     'estado': data.get('estado', 'activo'),
                     'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
                 }
             except KeyError as e:
-                return response_error(f"Campo requerido faltante: {str(e)}", 400)
+                missing_field = str(e).replace("'", "")
+                if missing_field in ['id_persona', 'id_rol']:
+                    return response_error(f"Campos requeridos faltantes: {missing_field}", 400)
+                return response_error(f"Campo requerido faltante: {missing_field}", 400)
             except ValueError as e:
                 return response_error(f"Valor inválido en campo numérico: {str(e)}", 400)
 
@@ -119,10 +123,27 @@ class UsuarioService:
                     return response_error("Error procesando contrasena", 500)
                 data['contrasenia'] = hashed_password
 
+            # Preparar datos para actualización
+            update_data = {}
+            
+            # Solo agregar campos que están presentes en el request
+            if 'usuario' in data and data['usuario']:
+                update_data['usuario'] = data['usuario'].strip()
+            if 'contrasenia' in data and data['contrasenia']:
+                update_data['contrasenia'] = data['contrasenia']  # Ya hasheada arriba
+            if 'id_persona' in data:
+                update_data['id_persona'] = int(data['id_persona'])
+            if 'id_rol' in data:
+                update_data['id_rol'] = int(data['id_rol'])
+            if 'id_centro' in data:
+                update_data['id_centro'] = int(data['id_centro'])
+            if 'estado' in data:
+                update_data['estado'] = data['estado']
+                
             # Agregar usuario que modifica
-            data['usuario_modificacion'] = getattr(request, 'current_user', {}).get('id', 1)
+            update_data['usuario_modificacion'] = getattr(request, 'current_user', {}).get('id', 1)
 
-            result = UsuarioComponent.update_usuario(usuario_id, data)
+            result = UsuarioComponent.update_usuario(usuario_id, update_data)
 
             if result['success']:
                 HandleLogs.write_log(f"UsuarioService.update_usuario - Usuario {usuario_id} actualizado")

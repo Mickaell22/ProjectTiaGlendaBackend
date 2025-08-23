@@ -1947,7 +1947,7 @@ def register_routes(app):
                         resultado['ruta_archivo'],
                         mimetype='image/jpeg',
                         as_attachment=False,
-                        download_name=f"perfil_{current_user['id']}.jpg"
+                        download_name=f"perfil_{request.current_user['id']}.jpg"
                     )
                 else:
                     return response_error(resultado['message'], 404)

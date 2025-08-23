@@ -151,7 +151,9 @@ class FotoPerfilService:
                 return {'success': False, 'message': 'Archivo de foto no encontrado'}
             
             # Validar que la ruta está dentro del directorio permitido
-            if not ruta_foto.startswith('fotos_perfil/'):
+            # Normalizar separadores de ruta para compatibilidad Windows/Linux
+            ruta_normalizada = ruta_foto.replace('\\', '/')
+            if not ruta_normalizada.startswith('fotos_perfil/'):
                 return {'success': False, 'message': 'Acceso a archivo no autorizado'}
             
             # TODO: Implementar validación de que el usuario tiene permisos para ver esta foto específica

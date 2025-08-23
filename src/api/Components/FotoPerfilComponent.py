@@ -34,13 +34,21 @@ class FotoPerfilComponent:
             if not os.path.exists(FotoPerfilComponent.UPLOAD_FOLDER):
                 os.makedirs(FotoPerfilComponent.UPLOAD_FOLDER)
             
-            # Generar nombre único para el archivo
+            # PASO 1: Obtener foto anterior para eliminarla después
             db = DataBaseHandle()
+            query_foto_anterior = """
+                SELECT foto_perfil FROM usuario WHERE id = %s
+            """
+            foto_anterior_result = db.getRecords(query_foto_anterior, (usuario_id,))
+            foto_anterior = None
+            if foto_anterior_result and foto_anterior_result[0]['foto_perfil']:
+                foto_anterior = foto_anterior_result[0]['foto_perfil']
+                HandleLogs.write_log(f"Foto anterior encontrada para usuario {usuario_id}: {foto_anterior}")
             
+            # PASO 2: Generar nombre único para el archivo nuevo
             # Obtener extensión del archivo
             extension = archivo.filename.rsplit('.', 1)[1].lower()
             
-            # Generar ruta usando función de base de datos
             # Generar ruta de archivo
             import uuid
             nombre_archivo = f"perfil_{usuario_id}_{uuid.uuid4().hex[:8]}.{extension}"
@@ -50,19 +58,56 @@ class FotoPerfilComponent:
             # Crear directorio padre si no existe
             os.makedirs(os.path.dirname(ruta_completa), exist_ok=True)
             
-            # Procesar y guardar imagen
+            # PASO 3: Procesar y guardar imagen nueva
             resultado_procesado = FotoPerfilComponent._procesar_imagen(archivo, ruta_completa)
             if not resultado_procesado['success']:
                 return resultado_procesado
             
-            # Actualizar base de datos
-            # Para esta implementación simplificada, no usamos base de datos específica para fotos
-            # En el futuro se podría agregar tabla: fotos_perfil(id, usuario_id, ruta, fecha_creacion)
-            return {
-                'success': True,
-                'ruta_foto': ruta_relativa,
-                'mensaje': 'Foto de perfil actualizada exitosamente'
-            }
+            # PASO 4: Actualizar base de datos con la nueva foto
+            try:
+                db = DataBaseHandle()
+                update_query = """
+                    UPDATE usuario 
+                    SET foto_perfil = %s, fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                """
+                
+                success = db.ExecuteNonQuery(update_query, (ruta_relativa, usuario_id))
+                
+                if success:
+                    # PASO 5: Eliminar foto anterior solo SI la actualización fue exitosa
+                    if foto_anterior:
+                        ruta_foto_anterior = os.path.join(os.getcwd(), foto_anterior)
+                        if os.path.exists(ruta_foto_anterior):
+                            try:
+                                os.remove(ruta_foto_anterior)
+                                HandleLogs.write_log(f"Foto anterior eliminada: {ruta_foto_anterior}")
+                            except Exception as e:
+                                HandleLogs.write_error(f"Error eliminando foto anterior {ruta_foto_anterior}: {str(e)}")
+                                # No fallar la operación por esto, la nueva foto ya está guardada
+                    
+                    return {
+                        'success': True,
+                        'ruta_foto': ruta_relativa,
+                        'mensaje': 'Foto de perfil actualizada exitosamente'
+                    }
+                else:
+                    # Si falla la actualización de BD, eliminar archivo nuevo
+                    if os.path.exists(ruta_completa):
+                        os.remove(ruta_completa)
+                    return {
+                        'success': False,
+                        'message': 'Error actualizando base de datos'
+                    }
+            except Exception as db_error:
+                # Si falla la actualización de BD, eliminar archivo nuevo
+                if os.path.exists(ruta_completa):
+                    os.remove(ruta_completa)
+                HandleLogs.write_error(f"Error actualizando foto en BD: {str(db_error)}")
+                return {
+                    'success': False,
+                    'message': f'Error de base de datos: {str(db_error)}'
+                }
                 
         except Exception as e:
             HandleLogs.write_error(f"Error en subir_foto_perfil: {str(e)}")
@@ -134,17 +179,38 @@ class FotoPerfilComponent:
             
             ruta_archivo = foto_actual['foto_perfil'].get('foto_perfil')
             
-            # Eliminar registro en base de datos
-            # Para esta implementación simplificada, no eliminamos registro específico de fotos
-            # En el futuro se podría usar: DELETE FROM fotos_perfil WHERE usuario_id = %s
-            # Por ahora simulamos éxito y eliminamos archivo físico si existe
-            if ruta_archivo:
-                ruta_completa = os.path.join(os.getcwd(), ruta_archivo)
-                if os.path.exists(ruta_completa):
-                    try:
-                        os.remove(ruta_completa)
-                    except Exception as e:
-                        HandleLogs.write_error(f"Error eliminando archivo físico: {str(e)}")
+            # Eliminar foto de la base de datos
+            try:
+                db = DataBaseHandle()
+                update_query = """
+                    UPDATE usuario 
+                    SET foto_perfil = NULL, fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                """
+                
+                success = db.ExecuteNonQuery(update_query, (usuario_id,))
+                
+                if not success:
+                    return {
+                        'success': False,
+                        'message': 'Error actualizando base de datos'
+                    }
+                
+                # Si la actualización de BD fue exitosa, eliminar archivo físico
+                if ruta_archivo:
+                    ruta_completa = os.path.join(os.getcwd(), ruta_archivo)
+                    if os.path.exists(ruta_completa):
+                        try:
+                            os.remove(ruta_completa)
+                        except Exception as e:
+                            HandleLogs.write_error(f"Error eliminando archivo físico: {str(e)}")
+                
+            except Exception as db_error:
+                HandleLogs.write_error(f"Error eliminando foto en BD: {str(db_error)}")
+                return {
+                    'success': False,
+                    'message': f'Error de base de datos: {str(db_error)}'
+                }
             
             return {
                 'success': True,

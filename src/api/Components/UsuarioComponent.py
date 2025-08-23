@@ -25,6 +25,7 @@ class UsuarioComponent:
                 r.nombre as rol,
                 r.nombre as rol_nombre,
                 u.id_persona,
+                u.foto_perfil,
                 u.estado,
                 u.fecha_creacion,
                 u.fecha_modificacion,
@@ -76,6 +77,7 @@ class UsuarioComponent:
                 p.fecha_nacimiento,
                 r.nombre as rol,
                 r.id as rol_id,
+                u.foto_perfil,
                 u.estado,
                 u.fecha_creacion,
                 u.fecha_modificacion,
@@ -173,7 +175,7 @@ class UsuarioComponent:
             update_fields = []
             params = []
 
-            allowed_fields = ['usuario', 'contrasenia', 'id_persona', 'id_rol', 'estado', 'usuario_modificacion']
+            allowed_fields = ['usuario', 'contrasenia', 'id_persona', 'id_rol', 'id_centro', 'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
