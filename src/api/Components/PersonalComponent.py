@@ -14,7 +14,16 @@ class PersonalComponent:
             base_query = """
             SELECT 
                 p.id,
+                p.id_persona,
+                p.id_especialidad,
+                p.numero_registro,
+                p.fecha_ingreso,
+                p.fecha_salida,
                 p.cargo as titulo_profesional,
+                p.cargo,
+                p.tipo_contrato,
+                p.salario,
+                p.observaciones,
                 p.id_centro,
                 p.estado,
                 p.fecha_creacion,
@@ -207,11 +216,12 @@ class PersonalComponent:
             update_fields = []
             params = []
 
-            allowed_fields = ['titulo_profesional', 'estado', 'usuario_modificacion']
+            allowed_fields = ['id_persona', 'id_especialidad', 'numero_registro', 'fecha_ingreso', 'fecha_salida', 'cargo', 'tipo_contrato', 'salario', 'observaciones', 'id_centro', 'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
-                    if field == 'titulo_profesional':
+                    if field in ['cargo', 'observaciones'] and isinstance(data[field], str):
+                        # Campos de texto que necesitan strip
                         if data[field].strip():
                             update_fields.append(f"{field} = %s")
                             params.append(data[field].strip())
@@ -557,7 +567,16 @@ class PersonalComponent:
             query = """
             SELECT 
                 p.id,
+                p.id_persona,
+                p.id_especialidad,
+                p.numero_registro,
+                p.fecha_ingreso,
+                p.fecha_salida,
                 p.cargo as titulo_profesional,
+                p.cargo,
+                p.tipo_contrato,
+                p.salario,
+                p.observaciones,
                 p.id_centro,
                 p.estado,
                 p.fecha_creacion,

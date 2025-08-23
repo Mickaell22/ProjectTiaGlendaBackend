@@ -75,28 +75,27 @@ class PersonalService:
             # Preparar datos para inserción
             current_user = getattr(request, 'current_user', {})
             personal_data = {
-                'id_persona': int(data['persona_id']),
-                'titulo_profesional': data.get('titulo_profesional', '').strip() if data.get('titulo_profesional') else None,
-                'estado': data.get('estado', 'activo'),
-                'id_centro': current_user.get('id_centro'),  # Usar centro del usuario actual
+                'id_persona': int(data['id_persona']),
+                'id_especialidad': int(data.get('id_especialidad')),
+                'fecha_ingreso': data.get('fecha_ingreso'),
+                'cargo': data.get('cargo', '').strip() if data.get('cargo') else None,
+                'tipo_contrato': data.get('tipo_contrato'),
+                'id_centro': int(data.get('id_centro')),
                 'usuario_creacion': current_user.get('id', 1)
             }
+            
+            # Campos opcionales
+            if data.get('fecha_salida'):
+                personal_data['fecha_salida'] = data.get('fecha_salida')
+            if data.get('observaciones'):
+                personal_data['observaciones'] = data.get('observaciones').strip()
 
             result = PersonalComponent.create_personal(personal_data)
 
             if result['success']:
                 personal_id = result['data']['id']
                 
-                # Asignar especialidades si fueron proporcionadas
-                if 'especialidades' in data and data['especialidades']:
-                    usuario_creacion = getattr(request, 'current_user', {}).get('id', 1)
-                    for especialidad in data['especialidades']:
-                        if isinstance(especialidad, dict) and 'id' in especialidad:
-                            PersonalComponent.assign_especialidad(personal_id, especialidad['id'], usuario_creacion)
-                        elif isinstance(especialidad, int):
-                            PersonalComponent.assign_especialidad(personal_id, especialidad, usuario_creacion)
-                
-                # Obtener el personal creado con especialidades
+                # Obtener el personal creado 
                 updated_result = PersonalComponent.get_personal_by_id(personal_id)
                 HandleLogs.write_log("PersonalService.create_personal - Personal creado exitosamente")
                 return response_inserted(updated_result['data'], "Personal creado exitosamente")

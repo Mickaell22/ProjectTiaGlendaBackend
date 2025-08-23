@@ -353,15 +353,15 @@ class Validators:
         # Campos requeridos para crear personal
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['persona_id']
+                data, ['id_persona']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
 
-        # Validar persona_id si está presente
-        if 'persona_id' in data and data['persona_id']:
+        # Validar id_persona si está presente
+        if 'id_persona' in data and data['id_persona']:
             try:
-                persona_id = int(data['persona_id'])
+                persona_id = int(data['id_persona'])
                 if persona_id <= 0:
                     errors.append("ID de persona debe ser un numero positivo")
             except (ValueError, TypeError):
@@ -372,6 +372,11 @@ class Validators:
             titulo_validation = Validators.validate_titulo_profesional(data['titulo_profesional'])
             if not titulo_validation['valid']:
                 errors.append(titulo_validation['message'])
+        
+        # Validar cargo si está presente
+        if 'cargo' in data and data['cargo']:
+            if len(data['cargo'].strip()) < 3:
+                errors.append("El cargo debe tener al menos 3 caracteres")
 
         # Validar estado si está presente
         if 'estado' in data and data['estado']:
