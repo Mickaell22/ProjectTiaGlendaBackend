@@ -17,7 +17,8 @@ class SesionTerapiaComponent:
                 SELECT 
                     st.id,
                     st.codigo_sesion,
-                    st.objetivo_general as titulo,
+                    st.titulo,
+                    st.objetivo_general,
                     st.id_terapeuta as terapeuta_id,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
                     st.id_especialidad as especialidad_id,
@@ -27,13 +28,14 @@ class SesionTerapiaComponent:
                     st.fecha_fin,
                     st.dias_semana,
                     st.hora_inicio,
+                    st.hora_fin,
                     st.duracion_minutos,
-                    20 as numero_sesion_semanales_contratadas,
-                    st.costo_sesion * 20 as costo_total,
+                    st.numero_sesiones_contratadas,
+                    st.costo_total,
                     st.costo_sesion as costo_por_sesion,
-                    3 as meses_contrato,
+                    st.meses_contrato,
+                    st.tipo_sesion,
                     st.estado,
-                    st.observaciones,
                     st.fecha_creacion,
                     st.fecha_modificacion,
                     COUNT(DISTINCT sp.id_paciente) as total_pacientes,
@@ -65,21 +67,23 @@ class SesionTerapiaComponent:
                 SELECT 
                     st.id,
                     st.codigo_sesion,
-                    st.objetivo_general as titulo,
+                    st.titulo,
+                    st.objetivo_general,
                     st.id_terapeuta as terapeuta_id,
                     st.id_especialidad as especialidad_id,
                     st.fecha_inicio,
                     st.fecha_fin,
                     st.dias_semana,
                     st.hora_inicio,
+                    st.hora_fin,
                     st.duracion_minutos,
                     st.costo_sesion,
-                    20 as numero_sesion_semanales_contratadas,
-                    st.costo_sesion * 20 as costo_total,
+                    st.numero_sesiones_contratadas,
+                    st.costo_total,
                     st.costo_sesion as costo_por_sesion,
-                    3 as meses_contrato,
+                    st.meses_contrato,
+                    st.tipo_sesion,
                     st.estado,
-                    st.observaciones,
                     st.fecha_creacion,
                     st.fecha_modificacion,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
@@ -113,23 +117,30 @@ class SesionTerapiaComponent:
             # Insertar con codigo_sesion NULL para que el trigger lo genere automáticamente
             query = """
                 INSERT INTO sesion_terapia (
-                    codigo_sesion, objetivo_general, id_terapeuta, id_especialidad, fecha_inicio, fecha_fin,
-                    dias_semana, hora_inicio, duracion_minutos, costo_sesion, estado, id_centro, usuario_creacion
-                ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad, 
+                    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos, 
+                    numero_sesiones_contratadas, meses_contrato, costo_sesion, 
+                    tipo_sesion, estado, id_centro, usuario_creacion
+                ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, codigo_sesion
             """
 
             params = (
-                sesion_data['titulo'],  # Maps to objetivo_general
-                sesion_data['terapeuta_id'],  # Maps to id_terapeuta
-                sesion_data['especialidad_id'],  # Maps to id_especialidad
+                sesion_data['titulo'],
+                sesion_data.get('objetivo_general', ''),
+                sesion_data['terapeuta_id'],
+                sesion_data['especialidad_id'],
                 sesion_data['fecha_inicio'],
                 sesion_data['fecha_fin'],
                 sesion_data['dias_semana'],
                 sesion_data['hora_inicio'],
+                sesion_data.get('hora_fin'),
                 sesion_data.get('duracion_minutos', 45),
-                sesion_data.get('costo_sesion', 20000.0),
-                sesion_data.get('estado', 'planificada'),  # Use proper enum value
+                sesion_data.get('numero_sesiones_contratadas', 20),
+                sesion_data.get('meses_contrato', 3),
+                sesion_data.get('costo_sesion', 25000.0),
+                sesion_data.get('tipo_sesion', 'individual'),
+                sesion_data.get('estado', 'planificada'),
                 sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
             )
@@ -141,11 +152,11 @@ class SesionTerapiaComponent:
             result = DataBaseHandle.ExecuteNonQuery(insert_query, params)
             
             if result:
-                # Buscar la sesión recién creada por objetivo_general y id_terapeuta
+                # Buscar la sesión recién creada por titulo y id_terapeuta
                 select_query = """
                     SELECT id, codigo_sesion 
                     FROM sesion_terapia 
-                    WHERE objetivo_general = %s AND id_terapeuta = %s 
+                    WHERE titulo = %s AND id_terapeuta = %s 
                     ORDER BY fecha_creacion DESC 
                     LIMIT 1
                 """
@@ -185,22 +196,30 @@ class SesionTerapiaComponent:
         try:
             query = """
                 UPDATE sesion_terapia SET
-                    objetivo_general = %s, id_terapeuta = %s, id_especialidad = %s,
+                    titulo = %s, objetivo_general = %s, id_terapeuta = %s, id_especialidad = %s,
                     fecha_inicio = %s, fecha_fin = %s, dias_semana = %s,
-                    hora_inicio = %s, duracion_minutos = %s, estado = %s,
+                    hora_inicio = %s, hora_fin = %s, duracion_minutos = %s, 
+                    numero_sesiones_contratadas = %s, meses_contrato = %s, costo_sesion = %s,
+                    tipo_sesion = %s, estado = %s,
                     usuario_modificacion = %s
                 WHERE id = %s
             """
 
             params = (
                 sesion_data['titulo'],
+                sesion_data.get('objetivo_general', ''),
                 sesion_data['terapeuta_id'],
                 sesion_data['especialidad_id'],
                 sesion_data['fecha_inicio'],
                 sesion_data['fecha_fin'],
                 sesion_data['dias_semana'],
                 sesion_data['hora_inicio'],
+                sesion_data.get('hora_fin'),
                 sesion_data.get('duracion_minutos', 45),
+                sesion_data.get('numero_sesiones_contratadas', 20),
+                sesion_data.get('meses_contrato', 3),
+                sesion_data.get('costo_sesion', 25000.0),
+                sesion_data.get('tipo_sesion', 'individual'),
                 sesion_data.get('estado', 'planificada'),
                 sesion_data['usuario_modificacion'],
                 sesion_id
@@ -235,7 +254,8 @@ class SesionTerapiaComponent:
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
-                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, duracion_minutos, 20 as numero_sesion_semanales_contratadas, usuario_creacion
+                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, duracion_minutos, 
+                       numero_sesiones_contratadas, usuario_creacion
                 FROM sesion_terapia 
                 WHERE id = %s
             """
@@ -249,7 +269,7 @@ class SesionTerapiaComponent:
                 raise Exception("La fecha de inicio es requerida")
             if not sesion_data['dias_semana']:
                 raise Exception("Los días de la semana son requeridos")
-            if not sesion_data['numero_sesion_semanales_contratadas'] or sesion_data['numero_sesion_semanales_contratadas'] <= 0:
+            if not sesion_data['numero_sesiones_contratadas'] or sesion_data['numero_sesiones_contratadas'] <= 0:
                 raise Exception("El número de sesiones contratadas debe ser mayor a 0")
             
             # Limpiar cronograma existente
@@ -274,7 +294,7 @@ class SesionTerapiaComponent:
                 dias_semana_str = str(dias_semana_raw).strip('{}').strip()
                 
             hora_inicio = sesion_data['hora_inicio']
-            max_sesiones = sesion_data['numero_sesion_semanales_contratadas']
+            max_sesiones = sesion_data['numero_sesiones_contratadas']
             
             # Mapeo de días (asegurar consistencia)
             dias_map = {
@@ -367,20 +387,19 @@ class SesionTerapiaComponent:
             query = """
                 SELECT
                     sp.id,
-                    sp.id_paciente,
+                    sp.id_paciente as paciente_id,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
-                    sp.fecha_inscripcion,
+                    sp.fecha_inscripcion as fecha_asignacion,
                     sp.observaciones,
-                    -- observaciones already included above
                     sp.estado,
                     CONCAT(p_tutor.nombre, ' ', p_tutor.apellido) as tutor_nombre,
                     p_tutor.telefono as tutor_telefono
                 FROM sesion_paciente sp
                 JOIN paciente pac ON sp.id_paciente = pac.id
                 JOIN persona p ON pac.id_persona = p.id
-                JOIN tutor t ON pac.tutor_id = t.id
-                JOIN persona p_tutor ON t.id_persona = p_tutor.id
+                LEFT JOIN tutor t ON pac.id_tutor = t.id
+                LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
                 WHERE sp.id_sesion = %s
                 ORDER BY sp.fecha_inscripcion
             """
@@ -830,9 +849,26 @@ class SesionTerapiaComponent:
         try:
             query = """
                 SELECT 
-                    st.*,
-                    st.objetivo_general AS titulo,
+                    st.id,
+                    st.codigo_sesion,
+                    st.titulo,
+                    st.objetivo_general,
+                    st.id_terapeuta as terapeuta_id,
+                    st.id_especialidad as especialidad_id,
                     e.nombre as especialidad_nombre,
+                    st.fecha_inicio,
+                    st.fecha_fin,
+                    st.dias_semana,
+                    st.hora_inicio,
+                    st.hora_fin,
+                    st.duracion_minutos,
+                    st.numero_sesiones_contratadas,
+                    st.costo_total,
+                    st.costo_sesion as costo_por_sesion,
+                    st.meses_contrato,
+                    st.tipo_sesion,
+                    st.estado,
+                    st.fecha_creacion,
                     COUNT(sp.id_paciente) as total_pacientes
                 FROM sesion_terapia st
                 JOIN especialidad e ON st.id_especialidad = e.id
@@ -861,7 +897,7 @@ class SesionTerapiaComponent:
                     cs.id as cronograma_id,
                     cs.numero_sesion_semanal,
                     cs.hora_inicio,
-                    st.objetivo_general as titulo,
+                    st.titulo,
                     st.codigo_sesion,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
                     e.nombre as especialidad_nombre,
@@ -973,8 +1009,8 @@ class SesionTerapiaComponent:
                     pac.estado
                 FROM paciente pac
                 JOIN persona p ON pac.id_persona = p.id
-                JOIN tutor t ON pac.tutor_id = t.id
-                JOIN persona p_tutor ON t.id_persona = p_tutor.id
+                LEFT JOIN tutor t ON pac.id_tutor = t.id
+                LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
                 WHERE pac.estado = 'activo' AND p.estado = 'activo'
                 ORDER BY p.nombre, p.apellido
             """
@@ -997,12 +1033,12 @@ class SesionTerapiaComponent:
                     per.id,
                     CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                     per.titulo_profesional,
-                    COUNT(pe.especialidad_id) as total_especialidades,
+                    COUNT(pe.id_especialidad) as total_especialidades,
                     STRING_AGG(e.nombre, ', ') as especialidades
                 FROM personal per
                 JOIN persona p ON per.id_persona = p.id
-                LEFT JOIN personal_especialidad pe ON per.id = pe.personal_id
-                LEFT JOIN especialidad e ON pe.especialidad_id = e.id
+                LEFT JOIN personal_especialidades pe ON per.id = pe.id_personal
+                LEFT JOIN especialidad e ON pe.id_especialidad = e.id
                 WHERE per.estado = 'activo' AND p.estado = 'activo'
                 GROUP BY per.id, p.nombre, p.apellido, per.titulo_profesional
                 ORDER BY p.nombre, p.apellido

@@ -269,40 +269,42 @@ INSERT INTO paciente_especialidades (id_paciente, id_especialidad, es_principal)
 
 -- Sesión de Terapia del Lenguaje - Centro Norte
 INSERT INTO sesion_terapia (
-    codigo_sesion, id_terapeuta, id_especialidad, fecha_inicio, fecha_fin,
-    tipo_sesion, modalidad, objetivo_general, objetivos_especificos, metodologia,
-    duracion_minutos, frecuencia_semanal, dias_semana, hora_inicio, hora_fin,
-    estado, id_centro
+    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad, 
+    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
+    numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
+    tipo_sesion, estado, id_centro, usuario_creacion
 ) VALUES (
     'ST-2024-0001',
+    'Terapia del Lenguaje - Comunicación Expresiva',
+    'Mejorar la comunicación expresiva y comprensiva del paciente mediante terapia lúdica con actividades interactivas y material visual',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567892')), -- Ana Martínez
     (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
     '2024-02-01', '2024-05-31',
-    'individual', 'presencial',
-    'Mejorar la comunicación expresiva y comprensiva del paciente',
-    'Incrementar vocabulario, mejorar articulación, desarrollar sintaxis básica',
-    'Terapia lúdica con actividades interactivas y material visual',
-    45, 2, ARRAY['lunes', 'miércoles'], '08:00', '08:45',
-    'en_curso', (SELECT id FROM centros WHERE codigo = 'NORTE')
+    ARRAY['lunes', 'miercoles'], '08:00', '08:45', 45,
+    24, 3, 25000.00, 600000.00,
+    'individual', 'planificada', 
+    (SELECT id FROM centros WHERE codigo = 'NORTE'),
+    (SELECT id FROM usuario WHERE usuario = 'admin.norte')
 );
 
 -- Sesión de Fisioterapia - Centro Norte
 INSERT INTO sesion_terapia (
-    codigo_sesion, id_terapeuta, id_especialidad, fecha_inicio, fecha_fin,
-    tipo_sesion, modalidad, objetivo_general, objetivos_especificos, metodologia,
-    duracion_minutos, frecuencia_semanal, dias_semana, hora_inicio, hora_fin,
-    estado, id_centro
+    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad, 
+    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
+    numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
+    tipo_sesion, estado, id_centro, usuario_creacion
 ) VALUES (
     'ST-2024-0002',
+    'Fisioterapia - Motricidad Fina',
+    'Fortalecer la motricidad fina y coordinación mediante ejercicios progresivos con material adaptado y juegos motores',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567893')), -- Luis Pérez
     (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'),
     '2024-02-05', '2024-06-05',
-    'individual', 'presencial',
-    'Fortalecer la motricidad fina y coordinación',
-    'Mejorar pinza digital, coordinación óculo-manual, fuerza en extremidades',
-    'Ejercicios progresivos con material adaptado y juegos motores',
-    45, 2, ARRAY['martes', 'jueves'], '09:00', '09:45',
-    'en_curso', (SELECT id FROM centros WHERE codigo = 'NORTE')
+    ARRAY['martes', 'jueves'], '09:00', '09:45', 45,
+    16, 4, 30000.00, 480000.00,
+    'individual', 'planificada', 
+    (SELECT id FROM centros WHERE codigo = 'NORTE'),
+    (SELECT id FROM usuario WHERE usuario = 'admin.norte')
 );
 
 -- =============================================
@@ -372,33 +374,65 @@ INSERT INTO sesion_estudiante (id_sesion, id_paciente, fecha_inscripcion, nivel_
  '2024-02-05', '3er grado', 'Explicaciones paso a paso, ejercicios graduales', 'activo', 'Estudiante persistente, necesita refuerzo positivo');
 
 -- =============================================
--- 15. GENERAR CRONOGRAMAS AUTOMÁTICAMENTE
+-- 15. CRONOGRAMAS (GENERACIÓN AUTOMÁTICA)
 -- =============================================
 
--- Generar cronograma para sesiones terapéuticas
-SELECT generar_cronograma_sesion_terapia(
-    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0001')
-) AS cronograma_st1;
+-- NOTA: Los cronogramas se generan automáticamente cuando se crean las sesiones
+-- a través del SesionTerapiaComponent.create_sesion() y SesionPedagogicaComponent.create_sesion()
+-- en el código Python. No es necesario generar cronogramas manualmente aquí.
+-- 
+-- Para generar cronogramas manualmente (opcional), usar las APIs:
+-- POST /api/sesiones-terapia/{id}/cronograma/generar
+-- POST /api/sesiones-pedagogicas/{id}/cronograma/generar
 
-SELECT generar_cronograma_sesion_terapia(
-    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0002')
-) AS cronograma_st2;
+-- Cronogramas de ejemplo generados automáticamente:
 
--- Generar cronograma para sesiones pedagógicas
-SELECT generar_cronograma_sesion_pedagogica(
-    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2024-0001')
-) AS cronograma_sp1;
+-- Cronograma para ST-2024-0001 (24 sesiones, lunes y miércoles)
+INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
+SELECT 
+    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0001'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '08:00'::time,
+    '08:45'::time,
+    'programada',
+    (SELECT id FROM usuario WHERE usuario = 'admin.norte')
+FROM (
+    SELECT generate_series(
+        '2024-02-01'::date,
+        '2024-05-31'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (1, 3) -- lunes=1, miércoles=3
+LIMIT 24;
 
-SELECT generar_cronograma_sesion_pedagogica(
-    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2024-0002')
-) AS cronograma_sp2;
+-- Cronograma para ST-2024-0002 (16 sesiones, martes y jueves)  
+INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
+SELECT 
+    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0002'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '09:00'::time,
+    '09:45'::time,
+    'programada',
+    (SELECT id FROM usuario WHERE usuario = 'admin.norte')
+FROM (
+    SELECT generate_series(
+        '2024-02-05'::date,
+        '2024-06-05'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (2, 4) -- martes=2, jueves=4
+LIMIT 16;
 
 -- =============================================
 -- 16. DATOS DE ASISTENCIA DE EJEMPLO
 -- =============================================
 
--- Crear algunas asistencias para demostración
--- (Solo para las primeras 4 sesiones de cada cronograma)
+-- Crear algunas asistencias de ejemplo para demostración
+-- (Solo para las primeras sesiones de cada cronograma)
 
 -- Asistencias Sesión Terapéutica ST-2024-0001 (Sebastián)
 INSERT INTO asistencia_sesiones (
@@ -417,7 +451,27 @@ SELECT
 FROM cronograma_sesiones cs
 JOIN sesion_terapia st ON cs.id_sesion = st.id
 WHERE st.codigo_sesion = 'ST-2024-0001'
-AND cs.fecha_programada <= CURRENT_DATE + INTERVAL '1 week'
+AND cs.fecha_programada <= CURRENT_DATE
+LIMIT 3;
+
+-- Asistencias Sesión Fisioterapia ST-2024-0002 (Valentina)
+INSERT INTO asistencia_sesiones (
+    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    estado_asistencia, observaciones_terapeuta, objetivos_trabajados,
+    progreso_observado, calificacion_sesion
+)
+SELECT 
+    cs.id,
+    (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567901')),
+    true, '09:00', '09:45', 'presente',
+    'Excelente disposición para los ejercicios',
+    'Fortalecimiento de pinza digital y coordinación',
+    'Mejoras en fuerza y precisión',
+    5
+FROM cronograma_sesiones cs
+JOIN sesion_terapia st ON cs.id_sesion = st.id
+WHERE st.codigo_sesion = 'ST-2024-0002'
+AND cs.fecha_programada <= CURRENT_DATE
 LIMIT 2;
 
 -- Asistencias Sesión Pedagógica SP-2024-0001 (Mateo)
@@ -435,7 +489,7 @@ SELECT
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
 WHERE sp.codigo_sesion = 'SP-2024-0001'
-AND cc.fecha_programada <= CURRENT_DATE + INTERVAL '1 week'
+AND cc.fecha_programada <= CURRENT_DATE
 LIMIT 2;
 
 -- =============================================

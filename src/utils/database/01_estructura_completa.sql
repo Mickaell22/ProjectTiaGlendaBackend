@@ -339,21 +339,31 @@ CREATE TABLE sesion_terapia (
     codigo_sesion VARCHAR(20) UNIQUE NOT NULL,
     id_terapeuta INTEGER NOT NULL,
     id_especialidad INTEGER NOT NULL,
+    
+    -- Información básica de la sesión
+    titulo VARCHAR(200) NOT NULL, -- Campo agregado para título de la sesión
+    objetivo_general TEXT,
+
+
+    
+    -- Fechas y programación
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE,
-    tipo_sesion VARCHAR(20) DEFAULT 'individual' CHECK (tipo_sesion IN ('individual', 'grupal', 'familiar')),
-    modalidad VARCHAR(20) DEFAULT 'presencial' CHECK (modalidad IN ('presencial', 'virtual', 'mixta')),
-    objetivo_general TEXT,
-    objetivos_especificos TEXT,
-    metodologia TEXT,
-    duracion_minutos INTEGER DEFAULT 45 CHECK (duracion_minutos > 0),
-    costo_sesion DECIMAL(10,2) CHECK (costo_sesion >= 0),
-    
-    -- Programación
-    frecuencia_semanal INTEGER DEFAULT 1 CHECK (frecuencia_semanal > 0 AND frecuencia_semanal <= 7),
     dias_semana TEXT[] CHECK (array_length(dias_semana, 1) > 0), -- Array: ['lunes', 'miércoles', 'viernes']
     hora_inicio TIME DEFAULT '08:00',
     hora_fin TIME DEFAULT '08:45',
+    duracion_minutos INTEGER DEFAULT 45 CHECK (duracion_minutos > 0),
+
+    
+    -- Configuración del contrato
+    numero_sesiones_contratadas INTEGER DEFAULT 20 CHECK (numero_sesiones_contratadas > 0), -- Campo agregado
+    meses_contrato INTEGER DEFAULT 3 CHECK (meses_contrato > 0), -- Campo agregado
+    costo_sesion DECIMAL(10,2) DEFAULT 0.00 CHECK (costo_sesion >= 0),
+    costo_total DECIMAL(10,2) DEFAULT 0.00 CHECK (costo_total >= 0), -- Campo agregado para costo total calculado
+    
+    -- Configuración de modalidad
+    tipo_sesion VARCHAR(20) DEFAULT 'individual' CHECK (tipo_sesion IN ('individual', 'grupal', 'familiar')),
+
     
     -- Control de estado
     estado VARCHAR(20) DEFAULT 'planificada' CHECK (estado IN 
@@ -361,6 +371,7 @@ CREATE TABLE sesion_terapia (
     motivo_finalizacion TEXT,
     fecha_finalizacion_real DATE,
     
+    -- Control de auditoría
     id_centro INTEGER NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -982,12 +993,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Función para calcular costo total automáticamente
+CREATE OR REPLACE FUNCTION calcular_costo_total_sesion_terapia()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Calcular costo total basado en costo por sesión y número de sesiones contratadas
+    NEW.costo_total := COALESCE(NEW.costo_sesion, 0) * COALESCE(NEW.numero_sesiones_contratadas, 0);
+    
+    -- Si no hay título, usar objetivo_general como título por defecto
+    IF NEW.titulo IS NULL OR NEW.titulo = '' THEN
+        NEW.titulo := COALESCE(NEW.objetivo_general, 'Sesión de Terapia');
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Triggers para generar códigos automáticos de sesiones
 CREATE TRIGGER trigger_generar_codigo_sesion_terapia
     BEFORE INSERT ON sesion_terapia
     FOR EACH ROW
     WHEN (NEW.codigo_sesion IS NULL OR NEW.codigo_sesion = '')
     EXECUTE FUNCTION generar_codigo_sesion_terapia();
+
+-- Trigger para calcular costo total automáticamente
+CREATE TRIGGER trigger_calcular_costo_total_sesion_terapia
+    BEFORE INSERT OR UPDATE ON sesion_terapia
+    FOR EACH ROW
+    EXECUTE FUNCTION calcular_costo_total_sesion_terapia();
 
 CREATE TRIGGER trigger_generar_codigo_sesion_pedagogica
     BEFORE INSERT ON sesion_pedagogica

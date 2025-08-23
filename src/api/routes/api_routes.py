@@ -1083,31 +1083,12 @@ def register_routes(app):
                 from src.utils.general.response import response_error
                 return response_error(f"Error al generar cronograma: {str(e)}", 500)
 
-        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/realizar', methods=['PUT'])
-        @token_required
-        def marcar_sesion_realizada(cronograma_id):
-            """Marcar sesión como realizada"""
-            from src.api.Service.SesionTerapiaService import SesionTerapiaService
-            return SesionTerapiaService.marcar_sesion_realizada(cronograma_id)
 
 
         # ============================================
         # RUTAS DE ASISTENCIA
         # ============================================
 
-        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/asistencias', methods=['GET'])
-        @token_required
-        def get_asistencias_sesion(cronograma_id):
-            """Obtener asistencias de una sesión"""
-            from src.api.Service.SesionTerapiaService import SesionTerapiaService
-            return SesionTerapiaService.get_asistencias_sesion(cronograma_id)
-
-        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/asistencias/<int:paciente_id>', methods=['POST'])
-        @token_required
-        def registrar_asistencia_paciente(cronograma_id, paciente_id):
-            """Registrar asistencia de un paciente"""
-            from src.api.Service.SesionTerapiaService import SesionTerapiaService
-            return SesionTerapiaService.registrar_asistencia(cronograma_id, paciente_id)
 
         # ============================================
         # RUTAS DE CONSULTAS Y REPORTES
@@ -1198,19 +1179,31 @@ def register_routes(app):
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.get_estadisticas_asistencia(sesion_id)
 
-        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/reprogramar', methods=['PUT'])
+        # ============================================
+        # RUTAS PARA GESTIÓN DE CRONOGRAMA
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/realizar', methods=['PUT'])
+        @token_required
+        def marcar_sesion_realizada(cronograma_id):
+            """Marcar sesión como realizada"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.marcar_sesion_realizada(cronograma_id)
+
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/reprogramar', methods=['PUT'])
         @token_required
         def reprogramar_sesion_cronograma(cronograma_id):
             """Reprogramar una sesión específica del cronograma"""
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.reprogramar_sesion_cronograma(cronograma_id)
 
-        @app.route('/api/cronograma-sesiones/<int:cronograma_id>/cancelar', methods=['PUT'])
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/cancelar', methods=['PUT'])
         @token_required
         def cancelar_sesion_cronograma(cronograma_id):
             """Cancelar una sesión específica del cronograma"""
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.cancelar_sesion_cronograma(cronograma_id)
+
 
     # ============================================
     # REGISTRAR RUTAS DE SESIONES DE TERAPIA
