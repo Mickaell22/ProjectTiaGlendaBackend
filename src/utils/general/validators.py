@@ -419,42 +419,20 @@ class Validators:
         # Campos requeridos para crear tutor
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['nombre', 'apellido', 'cedula', 'parentesco']
+                data, ['id_persona', 'parentesco']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
 
-        # Validar nombre si está presente
-        if 'nombre' in data and data['nombre']:
-            if len(data['nombre'].strip()) < 2:
-                errors.append("Nombre debe tener al menos 2 caracteres")
-            if len(data['nombre'].strip()) > 100:
-                errors.append("Nombre no puede tener más de 100 caracteres")
+        # Validar id_persona si está presente
+        if 'id_persona' in data and data['id_persona']:
+            try:
+                persona_id = int(data['id_persona'])
+                if persona_id <= 0:
+                    errors.append("ID de persona debe ser un número positivo")
+            except (ValueError, TypeError):
+                errors.append("ID de persona debe ser un número entero válido")
 
-        # Validar apellido si está presente
-        if 'apellido' in data and data['apellido']:
-            if len(data['apellido'].strip()) < 2:
-                errors.append("Apellido debe tener al menos 2 caracteres")
-            if len(data['apellido'].strip()) > 100:
-                errors.append("Apellido no puede tener más de 100 caracteres")
-
-        # Validar cédula si está presente
-        if 'cedula' in data and data['cedula']:
-            cedula_validation = Validators.validate_cedula(data['cedula'])
-            if not cedula_validation['valid']:
-                errors.append(cedula_validation['message'])
-
-        # Validar email si está presente
-        if 'email' in data and data['email'] and data['email'].strip():
-            email_validation = Validators.validate_email(data['email'])
-            if not email_validation['valid']:
-                errors.append(email_validation['message'])
-
-        # Validar teléfono si está presente
-        if 'telefono' in data and data['telefono'] and data['telefono'].strip():
-            phone_validation = Validators.validate_phone(data['telefono'])
-            if not phone_validation['valid']:
-                errors.append(phone_validation['message'])
 
         # Validar parentesco si está presente
         if 'parentesco' in data and data['parentesco']:
@@ -467,10 +445,21 @@ class Validators:
             if len(data['ocupacion'].strip()) > 100:
                 errors.append("Ocupación no puede tener más de 100 caracteres")
 
-        # Validar dirección si está presente
-        if 'direccion' in data and data['direccion'] and data['direccion'].strip():
-            if len(data['direccion'].strip()) > 255:
-                errors.append("Dirección no puede tener más de 255 caracteres")
+        # Validar direccion_empresa si está presente
+        if 'direccion_empresa' in data and data['direccion_empresa'] and data['direccion_empresa'].strip():
+            if len(data['direccion_empresa'].strip()) > 255:
+                errors.append("Dirección de empresa no puede tener más de 255 caracteres")
+
+        # Validar nombre_empresa si está presente
+        if 'nombre_empresa' in data and data['nombre_empresa'] and data['nombre_empresa'].strip():
+            if len(data['nombre_empresa'].strip()) > 100:
+                errors.append("Nombre de empresa no puede tener más de 100 caracteres")
+
+        # Validar telefono_empresa si está presente
+        if 'telefono_empresa' in data and data['telefono_empresa'] and data['telefono_empresa'].strip():
+            phone_validation = Validators.validate_phone(data['telefono_empresa'])
+            if not phone_validation['valid']:
+                errors.append(f"Teléfono de empresa inválido: {phone_validation['message']}")
 
         # Validar estado si está presente
         if 'estado' in data and data['estado']:

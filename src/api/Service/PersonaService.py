@@ -17,9 +17,9 @@ class PersonaService:
             current_user = getattr(request, 'current_user', {})
             centro_id = current_user.get('id_centro')
             
-            # Solo filtrar por centro si el usuario no es administrador de sistema
-            # o si tiene un centro asignado específico
-            filter_centro = centro_id if centro_id else None
+            # Mostrar todas las personas sin filtrar por centro
+            # Esto permite una gestión completa del registro de personas
+            filter_centro = None
             
             result = PersonaComponent.get_all_personas(filter_centro)
 

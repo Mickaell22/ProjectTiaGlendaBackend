@@ -65,12 +65,7 @@ class TutorService:
 
             # Preparar datos para inserción
             tutor_data = {
-                'nombre': data['nombre'].strip(),
-                'apellido': data['apellido'].strip(),
-                'cedula': data['cedula'].strip(),
-                'telefono': data.get('telefono', '').strip(),
-                'email': data.get('email', '').strip(),
-                'direccion': data.get('direccion', '').strip(),
+                'id_persona': data['id_persona'],
                 'parentesco': data['parentesco'],
                 'ocupacion': data.get('ocupacion', '').strip(),
                 'direccion_empresa': data.get('direccion_empresa', '').strip(),

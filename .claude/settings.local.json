@@ -27,12 +27,24 @@
       "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\"\")",
       "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\documentos_personal\\personal_13\")",
       "Bash(cat:*)",
-      "Bash(dir \"src\\utils\\general\\LOGS\" /O:-D)"
+      "Bash(dir \"src\\utils\\general\\LOGS\" /O:-D)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\layouts\\full\\vertical\\sidebar/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\contexts/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\authentication\\auth1/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\usuario/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\services/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\services/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\tutor/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\persona/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\persona/**)",
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\config/**)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
-      "C:\\Users\\ASUS\\Desktop\\Proyecto\\Project D"
+      "C:\\Users\\ASUS\\Desktop\\Proyecto\\Project D",
+      "C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F"
     ]
   }
 }
