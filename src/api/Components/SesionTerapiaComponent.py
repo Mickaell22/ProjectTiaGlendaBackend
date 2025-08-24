@@ -48,6 +48,8 @@ class SesionTerapiaComponent:
                 LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
                 LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
                 LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
+                WHERE e.area = 'Especialidad terapéutica'
+                    AND st.estado != 'cancelada'
                 GROUP BY st.id, p_ter.nombre, p_ter.apellido, e.nombre, e.area
                 ORDER BY st.fecha_creacion DESC
             """
@@ -94,6 +96,7 @@ class SesionTerapiaComponent:
                 JOIN persona p_ter ON per.id_persona = p_ter.id
                 JOIN especialidad e ON st.id_especialidad = e.id
                 WHERE st.id = %s
+                    AND e.area = 'Especialidad terapéutica'
             """
 
             params = (sesion_id,)
@@ -132,7 +135,7 @@ class SesionTerapiaComponent:
                 sesion_data['especialidad_id'],
                 sesion_data['fecha_inicio'],
                 sesion_data['fecha_fin'],
-                sesion_data['dias_semana'],
+                sesion_data['dias_semana'],  # PostgreSQL array, no JSON
                 sesion_data['hora_inicio'],
                 sesion_data.get('hora_fin'),
                 sesion_data.get('duracion_minutos', 45),
@@ -524,7 +527,7 @@ class SesionTerapiaComponent:
                 UPDATE cronograma_sesiones 
                 SET estado = 'realizada', 
                     fecha_realizacion = CURRENT_TIMESTAMP,
-                    observaciones_cronograma = %s
+                    observaciones = %s
                 WHERE id = %s
             """
             params = (observaciones, cronograma_id)
@@ -544,11 +547,18 @@ class SesionTerapiaComponent:
         try:
             HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Iniciando reprogramación: cronograma_id={cronograma_id}, nueva_fecha={nueva_fecha}, nueva_hora={nueva_hora}, motivo={motivo_reprogramacion}, usuario={usuario_modificacion}")
             
-            # Paso 1: Obtener información de la sesión original
+            # Paso 1: Obtener información de la sesión original y duración de la sesión de terapia
             query_original = """
-                SELECT id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, observaciones
-                FROM cronograma_sesiones 
-                WHERE id = %s
+                SELECT 
+                    cs.id_sesion, 
+                    cs.numero_sesion_semanal, 
+                    cs.fecha_programada, 
+                    cs.hora_inicio, 
+                    cs.observaciones,
+                    st.duracion_minutos
+                FROM cronograma_sesiones cs
+                JOIN sesion_terapia st ON cs.id_sesion = st.id
+                WHERE cs.id = %s
             """
             sesion_original = DataBaseHandle.getRecords(query_original, (cronograma_id,))
             
@@ -595,31 +605,57 @@ class SesionTerapiaComponent:
                     id_sesion, 
                     numero_sesion_semanal, 
                     fecha_programada, 
-                    hora_programada, 
+                    hora_inicio, 
+                    hora_fin,
                     estado, 
-                    observaciones_cronograma,
+                    observaciones,
                     usuario_creacion, 
                     fecha_creacion
-                ) VALUES (%s, %s, %s, %s, 'programada', %s, %s, CURRENT_TIMESTAMP)
-                RETURNING id
+                ) VALUES (%s, %s, %s, %s, %s, 'programada', %s, %s, CURRENT_TIMESTAMP)
             """
             
             observaciones_nueva = f"Reprogramada desde #{numero_sesion_semanal_original}"
+            
+            # Calcular hora_fin basándose en la duración
+            from datetime import datetime, timedelta
+            duracion_minutos = sesion_data.get('duracion_minutos', 45)  # default 45 minutos
+            if isinstance(nueva_hora, str):
+                hora_inicio_dt = datetime.strptime(nueva_hora, '%H:%M').time()
+            else:
+                hora_inicio_dt = nueva_hora
+                
+            # Convertir a datetime para hacer el cálculo
+            dt_temp = datetime.combine(datetime.today(), hora_inicio_dt)
+            dt_fin = dt_temp + timedelta(minutes=duracion_minutos)
+            hora_fin = dt_fin.time()
+            
             params_nueva = (
                 id_sesion, 
                 siguiente_numero, 
                 nueva_fecha, 
                 nueva_hora, 
+                hora_fin,
                 observaciones_nueva,
                 usuario_modificacion
             )
             
-            # Usar getRecords para obtener el ID de la nueva sesión
-            nueva_sesion_result = DataBaseHandle.getRecords(query_nueva_sesion, params_nueva)
-            if not nueva_sesion_result:
+            # Usar ExecuteNonQuery para el INSERT y luego obtener el último ID insertado
+            insert_result = DataBaseHandle.ExecuteNonQuery(query_nueva_sesion, params_nueva)
+            if not insert_result:
                 raise Exception("Error al crear la nueva sesión reprogramada")
             
-            nueva_cronograma_id = nueva_sesion_result[0]['id']
+            # Obtener el ID de la sesión recién creada
+            query_ultimo_id = """
+                SELECT id FROM cronograma_sesiones 
+                WHERE id_sesion = %s AND numero_sesion_semanal = %s 
+                ORDER BY fecha_creacion DESC 
+                LIMIT 1
+            """
+            id_result = DataBaseHandle.getRecords(query_ultimo_id, (id_sesion, siguiente_numero), size=1)
+            if not id_result:
+                raise Exception("Error al obtener ID de la nueva sesión creada")
+            
+            nueva_cronograma_id = id_result['id']
             HandleLogs.write_log(f"SesionTerapiaComponent.reprogramar_sesion - Nueva sesión creada con ID: {nueva_cronograma_id}")
             
             # Paso 5: Verificar si la sesión original tenía pacientes asignados y copiarlos a la nueva
@@ -708,6 +744,120 @@ class SesionTerapiaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.get_asistencias_por_cronograma - Error: {str(e)}")
             raise Exception(f"Error al obtener asistencias: {str(e)}")
+
+    @staticmethod
+    def get_control_asistencia_completo(cronograma_id):
+        """Obtener todos los pacientes de la sesión con su estado de asistencia para un cronograma específico"""
+        try:
+            query = """
+                SELECT 
+                    cs.id as cronograma_id,
+                    cs.numero_sesion_semanal,
+                    cs.fecha_programada,
+                    cs.hora_inicio,
+                    cs.hora_fin,
+                    cs.estado as estado_cronograma,
+                    st.id as sesion_id,
+                    st.titulo as sesion_titulo,
+                    -- Información de pacientes asignados a la sesión
+                    sp.id_paciente,
+                    CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                    p.cedula as paciente_cedula,
+                    -- Información de asistencia (si existe)
+                    COALESCE(a.asistio, false) as asistio,
+                    a.hora_llegada,
+                    a.observaciones_terapeuta,
+                    a.progreso_observado,
+                    a.tareas_asignadas,
+                    a.objetivos_trabajados,
+                    CASE 
+                        WHEN a.id IS NOT NULL THEN 'registrada'
+                        ELSE 'pendiente'
+                    END as estado_asistencia
+                FROM cronograma_sesiones cs
+                JOIN sesion_terapia st ON cs.id_sesion = st.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                LEFT JOIN paciente pac ON sp.id_paciente = pac.id
+                LEFT JOIN persona p ON pac.id_persona = p.id
+                LEFT JOIN asistencia_sesiones a ON cs.id = a.id_cronograma AND sp.id_paciente = a.id_paciente
+                WHERE cs.id = %s
+                ORDER BY p.nombre, p.apellido
+            """
+            
+            result = DataBaseHandle.getRecords(query, (cronograma_id,))
+            
+            if not result:
+                # Si no hay resultados, puede ser que no haya pacientes asignados
+                # Devolver información básica del cronograma
+                query_cronograma = """
+                    SELECT 
+                        cs.id as cronograma_id,
+                        cs.numero_sesion_semanal,
+                        cs.fecha_programada,
+                        cs.hora_inicio,
+                        cs.hora_fin,
+                        cs.estado as estado_cronograma,
+                        st.id as sesion_id,
+                        st.titulo as sesion_titulo
+                    FROM cronograma_sesiones cs
+                    JOIN sesion_terapia st ON cs.id_sesion = st.id
+                    WHERE cs.id = %s
+                """
+                cronograma_info = DataBaseHandle.getRecords(query_cronograma, (cronograma_id,), size=1)
+                
+                if cronograma_info:
+                    HandleLogs.write_log(f"SesionTerapiaComponent.get_control_asistencia_completo - Cronograma encontrado pero sin pacientes asignados")
+                    return {
+                        'cronograma': cronograma_info,
+                        'pacientes': [],
+                        'mensaje': 'No hay pacientes asignados a esta sesión'
+                    }
+                else:
+                    HandleLogs.write_log(f"SesionTerapiaComponent.get_control_asistencia_completo - Cronograma {cronograma_id} no encontrado")
+                    return {
+                        'cronograma': None,
+                        'pacientes': [],
+                        'mensaje': 'Cronograma no encontrado'
+                    }
+            
+            # Organizar los datos
+            cronograma_info = {
+                'cronograma_id': result[0]['cronograma_id'],
+                'numero_sesion_semanal': result[0]['numero_sesion_semanal'],
+                'fecha_programada': result[0]['fecha_programada'].isoformat() if result[0]['fecha_programada'] else None,
+                'hora_inicio': str(result[0]['hora_inicio']) if result[0]['hora_inicio'] else None,
+                'hora_fin': str(result[0]['hora_fin']) if result[0]['hora_fin'] else None,
+                'estado_cronograma': result[0]['estado_cronograma'],
+                'sesion_id': result[0]['sesion_id'],
+                'sesion_titulo': result[0]['sesion_titulo']
+            }
+            
+            pacientes = []
+            for row in result:
+                if row['id_paciente']:  # Solo incluir si hay paciente
+                    pacientes.append({
+                        'paciente_id': row['id_paciente'],
+                        'paciente_nombre': row['paciente_nombre'],
+                        'paciente_cedula': row['paciente_cedula'],
+                        'asistio': row['asistio'],
+                        'hora_llegada': str(row['hora_llegada']) if row['hora_llegada'] else None,
+                        'observaciones_terapeuta': row['observaciones_terapeuta'],
+                        'progreso_observado': row['progreso_observado'],
+                        'tareas_asignadas': row['tareas_asignadas'],
+                        'objetivos_trabajados': row['objetivos_trabajados'],
+                        'estado_asistencia': row['estado_asistencia']
+                    })
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.get_control_asistencia_completo - {len(pacientes)} pacientes encontrados para cronograma {cronograma_id}")
+            return {
+                'cronograma': cronograma_info,
+                'pacientes': pacientes,
+                'mensaje': f'Control de asistencia cargado correctamente - {len(pacientes)} pacientes'
+            }
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_control_asistencia_completo - Error: {str(e)}")
+            raise Exception(f"Error al obtener control de asistencia: {str(e)}")
 
     @staticmethod
     def actualizar_asistencia(cronograma_id, paciente_id, data, usuario_modificacion):
@@ -873,7 +1023,9 @@ class SesionTerapiaComponent:
                 FROM sesion_terapia st
                 JOIN especialidad e ON st.id_especialidad = e.id
                 LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
-                WHERE st.id_terapeuta = %s AND st.estado != 'cancelada'
+                WHERE st.id_terapeuta = %s 
+                    AND st.estado != 'cancelada'
+                    AND e.area = 'Especialidad terapéutica'
                 GROUP BY st.id, e.nombre
                 ORDER BY st.fecha_inicio DESC
             """
@@ -910,8 +1062,9 @@ class SesionTerapiaComponent:
                 JOIN especialidad e ON st.id_especialidad = e.id
                 LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
                 WHERE cs.fecha_programada = CURRENT_DATE 
-                    AND st.estado = 'activo'
+                    AND st.estado IN ('planificada', 'en_curso')
                     AND cs.estado IN ('programada', 'realizada')
+                    AND e.area = 'Especialidad terapéutica'
                 GROUP BY cs.id, st.id, p_ter.nombre, p_ter.apellido, e.nombre
                 ORDER BY cs.hora_inicio
             """
@@ -1026,28 +1179,77 @@ class SesionTerapiaComponent:
 
     @staticmethod
     def get_terapeutas_disponibles():
-        """Obtener terapeutas que pueden ser asignados a sesiones"""
+        """Obtener terapeutas que pueden ser asignados a sesiones terapéuticas"""
         try:
+            HandleLogs.write_log("SesionTerapiaComponent.get_terapeutas_disponibles - Iniciando")
+            
+            # Query optimizada para obtener solo personal con especialidades terapéuticas
             query = """
-                SELECT 
-                    per.id,
-                    CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
-                    per.titulo_profesional,
-                    COUNT(pe.id_especialidad) as total_especialidades,
-                    STRING_AGG(e.nombre, ', ') as especialidades
-                FROM personal per
-                JOIN persona p ON per.id_persona = p.id
-                LEFT JOIN personal_especialidades pe ON per.id = pe.id_personal
-                LEFT JOIN especialidad e ON pe.id_especialidad = e.id
-                WHERE per.estado = 'activo' AND p.estado = 'activo'
-                GROUP BY per.id, p.nombre, p.apellido, per.titulo_profesional
-                ORDER BY p.nombre, p.apellido
+            SELECT DISTINCT
+                p.id,
+                p.id_persona,
+                CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
+                pe.nombre,
+                pe.apellido,
+                pe.cedula,
+                pe.telefono,
+                pe.correo,
+                p.cargo as titulo_profesional,
+                p.cargo,
+                p.estado,
+                p.id_centro,
+                c.nombre as centro_nombre,
+                u.id as usuario_id,
+                r.nombre as rol_usuario,
+                -- Especialidad principal
+                e.id as especialidad_id,
+                e.nombre as especialidad_nombre
+            FROM personal p
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
+            LEFT JOIN centros c ON p.id_centro = c.id
+            INNER JOIN personal_especialidades pes ON p.id = pes.id_personal
+            INNER JOIN especialidad e ON pes.id_especialidad = e.id
+            WHERE p.estado = 'activo' 
+            AND pes.estado = 'activo'
+            AND e.area = 'Especialidad terapéutica'
+            ORDER BY pe.nombre, pe.apellido
             """
-
+            
             result = DataBaseHandle.getRecords(query)
-            HandleLogs.write_log(
-                f"SesionTerapiaComponent.get_terapeutas_disponibles - {len(result) if result else 0} terapeutas disponibles")
-            return result
+            
+            if result:
+                terapeutas = []
+                if isinstance(result, dict):
+                    result = [result]
+                
+                for persona in result:
+                    terapeutas.append({
+                        'id': persona['id'],
+                        'id_persona': persona['id_persona'],
+                        'nombre_completo': persona['nombre_completo'],
+                        'nombre': persona['nombre'],
+                        'apellido': persona['apellido'],
+                        'cedula': persona['cedula'],
+                        'telefono': persona.get('telefono', ''),
+                        'correo': persona.get('correo', ''),
+                        'titulo_profesional': persona.get('titulo_profesional', ''),
+                        'cargo': persona.get('cargo', ''),
+                        'estado': persona['estado'],
+                        'id_centro': persona.get('id_centro'),
+                        'centro_nombre': persona.get('centro_nombre', ''),
+                        'usuario_id': persona.get('usuario_id'),
+                        'rol_usuario': persona.get('rol_usuario', ''),
+                        'especialidad_id': persona.get('especialidad_id'),
+                        'especialidad_nombre': persona.get('especialidad_nombre', '')
+                    })
+                
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_terapeutas_disponibles - Obtenidos {len(terapeutas)} terapeutas con especialidades terapéuticas")
+                return terapeutas
+            else:
+                HandleLogs.write_log("SesionTerapiaComponent.get_terapeutas_disponibles - No se encontraron terapeutas")
+                return []
 
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.get_terapeutas_disponibles - Error: {str(e)}")

@@ -42,7 +42,8 @@
       "Bash(npm run build:*)",
       "Bash(npm run lint)",
       "Bash(/dev/null)",
-      "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\fotos_perfil\")"
+      "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\fotos_perfil\")",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

@@ -123,7 +123,7 @@ class SesionTerapiaService:
                             'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                             'estado': sesion_cronograma['estado'],
                             'fecha_realizacion': sesion_cronograma['fecha_realizacion'].isoformat() if sesion_cronograma.get('fecha_realizacion') else None,
-                            'observaciones_cronograma': sesion_cronograma.get('observaciones_cronograma'),
+                            'observaciones_cronograma': sesion_cronograma.get('observaciones'),
                             'estado_actual': sesion_cronograma.get('estado_actual', sesion_cronograma['estado'])
                         }
                         cronograma.append(cronograma_data)
@@ -190,6 +190,7 @@ class SesionTerapiaService:
             
             sesion_data = {
                 'titulo': data['titulo'].strip(),
+                'objetivo_general': data.get('objetivo_general', ''),
                 'terapeuta_id': data['terapeuta_id'],
                 'especialidad_id': data['especialidad_id'],
                 'fecha_inicio': datetime.strptime(data['fecha_inicio'], '%Y-%m-%d').date(),
@@ -198,8 +199,13 @@ class SesionTerapiaService:
                 'hora_inicio': hora_inicio,
                 'hora_fin': hora_fin,
                 'duracion_minutos': duracion_minutos,
+                'numero_sesiones_contratadas': data.get('numero_sesiones_contratadas', 20),
+                'meses_contrato': data.get('meses_contrato', 3),
+                'costo_total': data.get('costo_total', 500000.0),
+                'costo_sesion': data.get('costo_total', 500000.0) / data.get('numero_sesiones_contratadas', 20),
+                'tipo_sesion': data.get('tipo_sesion', 'individual'),
                 'estado': data.get('estado', 'planificada'),
-                'id_centro': current_user.get('centro', {}).get('id', 1),  # Use user's center
+                'id_centro': current_user.get('centro', {}).get('id', 1),
                 'usuario_creacion': current_user['id']
             }
 
@@ -671,10 +677,10 @@ class SesionTerapiaService:
                         'id': sesion_cronograma['id'],
                         'numero_sesion': sesion_cronograma['numero_sesion_semanal'],
                         'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
-                        'hora_programada': str(sesion_cronograma['hora_programada']) if sesion_cronograma['hora_programada'] else None,
+                        'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                         'estado': sesion_cronograma['estado'],
                         'fecha_realizacion': sesion_cronograma['fecha_realizacion'].isoformat() if sesion_cronograma.get('fecha_realizacion') else None,
-                        'observaciones_cronograma': sesion_cronograma.get('observaciones_cronograma'),
+                        'observaciones_cronograma': sesion_cronograma.get('observaciones'),
                         'estado_actual': sesion_cronograma.get('estado_actual', sesion_cronograma['estado'])
                     }
                     cronograma.append(cronograma_data)
@@ -1050,6 +1056,25 @@ class SesionTerapiaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.get_estadisticas_asistencia - Error: {str(e)}")
             return response_error(f"Error al obtener estadísticas de asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def get_control_asistencia(cronograma_id):
+        """Obtener control de asistencia completo para una sesión del cronograma"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_control_asistencia - Cronograma ID: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            control_asistencia = SesionTerapiaComponent.get_control_asistencia_completo(cronograma_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.get_control_asistencia - Control de asistencia obtenido")
+            return response_success(control_asistencia, "Control de asistencia obtenido exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_control_asistencia - Error: {str(e)}")
+            return response_error(f"Error al obtener control de asistencia: {str(e)}", 500)
 
     @staticmethod
     def get_asistencia_cronograma(cronograma_id):

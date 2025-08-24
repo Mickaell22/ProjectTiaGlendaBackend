@@ -1179,6 +1179,13 @@ def register_routes(app):
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.get_estadisticas_asistencia(sesion_id)
 
+        @app.route('/api/sesiones-terapia/cronograma/<int:cronograma_id>/control-asistencia', methods=['GET'])
+        @token_required
+        def get_control_asistencia(cronograma_id):
+            """Obtener control de asistencia completo para una sesión del cronograma"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_control_asistencia(cronograma_id)
+
         # ============================================
         # RUTAS PARA GESTIÓN DE CRONOGRAMA
         # ============================================

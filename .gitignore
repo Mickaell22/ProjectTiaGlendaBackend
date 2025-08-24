@@ -164,3 +164,6 @@ temp/
 # Documentos de pacientes (archivos sensibles)
 documentos_pacientes/
 documentos_personal/
+
+#Fotos de perfil
+fotos_perfil/
