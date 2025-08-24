@@ -434,7 +434,6 @@ class SesionTerapiaComponent:
                 paciente_data.get('fecha_inscripcion', datetime.now().date()),
                 paciente_data.get('observaciones'),
                 paciente_data.get('estado', 'activo'),
-                paciente_data.get('estado', 'activo'),
                 paciente_data['usuario_creacion']
             )
 
@@ -525,9 +524,9 @@ class SesionTerapiaComponent:
         try:
             query = """
                 UPDATE cronograma_sesiones 
-                SET estado = 'realizada', 
-                    fecha_realizacion = CURRENT_TIMESTAMP,
-                    observaciones = %s
+                SET estado = 'completada', 
+                    observaciones = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id = %s
             """
             params = (observaciones, cronograma_id)
@@ -716,28 +715,37 @@ class SesionTerapiaComponent:
     def get_asistencias_por_cronograma(cronograma_id):
         """Obtener todas las asistencias de una sesión específica del cronograma"""
         try:
+            # Query que incluye TODOS los pacientes asignados a la sesión, 
+            # incluso si no tienen registro de asistencia todavía
             query = """
                 SELECT 
-                    a.id,
-                    a.id_cronograma,
-                    a.id_paciente,
+                    COALESCE(a.id, NULL) as id,
+                    %s as id_cronograma,
+                    sp.id_paciente,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
-                    a.asistio,
-                    a.hora_llegada,
+                    COALESCE(a.asistio, false) as asistio,
+                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
                     a.objetivos_trabajados,
-                    a.fecha_creacion as fecha_registro
-                FROM asistencia_sesiones a
-                JOIN paciente pac ON a.id_paciente = pac.id
+                    a.fecha_creacion as fecha_registro,
+                    cs.fecha_programada,
+                    CAST(cs.hora_inicio AS TEXT) as hora_inicio,
+                    cs.numero_sesion_semanal,
+                    cs.estado as estado_sesion
+                FROM cronograma_sesiones cs
+                JOIN sesion_terapia st ON cs.id_sesion = st.id
+                JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                JOIN paciente pac ON sp.id_paciente = pac.id
                 JOIN persona p ON pac.id_persona = p.id
-                WHERE a.id_cronograma = %s
+                LEFT JOIN asistencia_sesiones a ON cs.id = a.id_cronograma AND sp.id_paciente = a.id_paciente
+                WHERE cs.id = %s
                 ORDER BY p.nombre, p.apellido
             """
             
-            result = DataBaseHandle.getRecords(query, (cronograma_id,))
+            result = DataBaseHandle.getRecords(query, (cronograma_id, cronograma_id))
             HandleLogs.write_log(f"SesionTerapiaComponent.get_asistencias_por_cronograma - {len(result) if result else 0} asistencias encontradas")
             return result
 
@@ -765,7 +773,7 @@ class SesionTerapiaComponent:
                     p.cedula as paciente_cedula,
                     -- Información de asistencia (si existe)
                     COALESCE(a.asistio, false) as asistio,
-                    a.hora_llegada,
+                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
@@ -1267,7 +1275,7 @@ class SesionTerapiaComponent:
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
                     a.asistio,
-                    a.hora_llegada,
+                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
@@ -1306,7 +1314,7 @@ class SesionTerapiaComponent:
                     a.id_cronograma,
                     a.id_paciente,
                     a.asistio,
-                    a.hora_llegada,
+                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,

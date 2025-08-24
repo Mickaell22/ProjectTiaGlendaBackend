@@ -43,7 +43,8 @@
       "Bash(npm run lint)",
       "Bash(/dev/null)",
       "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\fotos_perfil\")",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(dir \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\utils\\general\\LOGS\" /O:-D)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

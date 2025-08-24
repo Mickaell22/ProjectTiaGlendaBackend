@@ -122,7 +122,7 @@ class SesionTerapiaService:
                             'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
                             'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                             'estado': sesion_cronograma['estado'],
-                            'fecha_realizacion': sesion_cronograma['fecha_realizacion'].isoformat() if sesion_cronograma.get('fecha_realizacion') else None,
+                            'fecha_realizacion': None,  # Campo no existe en la BD, usar fecha_modificacion si es necesario
                             'observaciones_cronograma': sesion_cronograma.get('observaciones'),
                             'estado_actual': sesion_cronograma.get('estado_actual', sesion_cronograma['estado'])
                         }
@@ -679,7 +679,7 @@ class SesionTerapiaService:
                         'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
                         'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                         'estado': sesion_cronograma['estado'],
-                        'fecha_realizacion': sesion_cronograma['fecha_realizacion'].isoformat() if sesion_cronograma.get('fecha_realizacion') else None,
+                        'fecha_realizacion': None,  # Campo no existe en la BD, usar fecha_modificacion si es necesario
                         'observaciones_cronograma': sesion_cronograma.get('observaciones'),
                         'estado_actual': sesion_cronograma.get('estado_actual', sesion_cronograma['estado'])
                     }
@@ -766,11 +766,11 @@ class SesionTerapiaService:
             # Preparar datos del paciente
             paciente_data = {
                 'paciente_id': paciente_id,
-                'fecha_incorporacion': datetime.strptime(
+                'fecha_inscripcion': datetime.strptime(
                     data.get('fecha_incorporacion', datetime.now().strftime('%Y-%m-%d')), 
                     '%Y-%m-%d').date() if data.get('fecha_incorporacion') else datetime.now().date(),
                 'costo_paciente': float(data['costo_paciente']) if data.get('costo_paciente') else None,
-                'observaciones_paciente': data.get('observaciones_paciente', '').strip() if data.get('observaciones_paciente') else None,
+                'observaciones': data.get('observaciones_paciente', '').strip() if data.get('observaciones_paciente') else None,
                 'usuario_creacion': current_user['id']
             }
 
@@ -967,17 +967,15 @@ class SesionTerapiaService:
             # Preparar datos de asistencia
             asistencia_data = {
                 'asistio': data.get('asistio', False),
-                'llegada_tardanza_minutos': int(data.get('llegada_tardanza_minutos', 0)),
-                'observaciones_asistencia': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
-                'notas_progreso': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
+                'hora_llegada': data.get('hora_llegada') if data.get('hora_llegada') else None,
+                'observaciones_terapeuta': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
+                'progreso_observado': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
                 'tareas_asignadas': data.get('tareas_asignadas', '').strip() if data.get('tareas_asignadas') else None,
-                'proximos_objetivos': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None,
+                'objetivos_trabajados': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None,
                 'usuario_creacion': current_user['id']
             }
 
-            # Validar datos
-            if asistencia_data['llegada_tardanza_minutos'] < 0:
-                return response_error("Los minutos de tardanza no pueden ser negativos", 400)
+            # Validar datos - todos los campos son opcionales excepto asistio
 
             # Registrar asistencia
             result = SesionTerapiaComponent.registrar_asistencia(cronograma_id, paciente_id, asistencia_data)
