@@ -94,6 +94,83 @@ class SesionPedagogicaComponent:
             raise Exception(f"Error al obtener sesión pedagógica: {str(e)}")
 
     @staticmethod
+    def get_cronograma_sesiones(filtros=None):
+        """Obtener cronograma de sesiones pedagógicas con filtros opcionales"""
+        try:
+            # Query base para obtener sesiones con cronograma
+            query = """
+                SELECT 
+                    sp.id,
+                    sp.codigo_sesion,
+                    sp.nombre_clase as titulo,
+                    sp.id_educador as pedagogo_id,
+                    CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
+                    sp.id_especialidad as especialidad_id,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    sp.dias_semana,
+                    sp.hora_inicio,
+                    sp.duracion_minutos,
+                    ADDTIME(sp.hora_inicio, CONCAT(sp.duracion_minutos, ':00')) as hora_fin,
+                    sp.nivel_academico,
+                    sp.capacidad_maxima,
+                    'presencial' as modalidad,
+                    sp.estado,
+                    sp.fecha_inicio,
+                    sp.fecha_fin,
+                    COUNT(DISTINCT se.paciente_id) as total_estudiantes
+                FROM sesion_pedagogica sp
+                JOIN personal per ON sp.id_educador = per.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
+                JOIN especialidad e ON sp.id_especialidad = e.id
+                LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
+                WHERE sp.estado = 'activa'
+            """
+            
+            params = []
+            
+            # Aplicar filtros si se proporcionan
+            if filtros:
+                if filtros.get('especialidad'):
+                    query += " AND e.nombre LIKE %s"
+                    params.append(f"%{filtros['especialidad']}%")
+                
+                if filtros.get('pedagogo'):
+                    query += " AND CONCAT(p_ped.nombre, ' ', p_ped.apellido) LIKE %s"
+                    params.append(f"%{filtros['pedagogo']}%")
+                
+                if filtros.get('semana'):
+                    # Filtro por semana (se puede expandir según necesidades)
+                    if filtros['semana'] == 'actual':
+                        query += " AND sp.fecha_inicio <= CURDATE() AND (sp.fecha_fin >= CURDATE() OR sp.fecha_fin IS NULL)"
+            
+            query += " GROUP BY sp.id, p_ped.nombre, p_ped.apellido, e.nombre, e.area ORDER BY sp.hora_inicio"
+            
+            result = DataBaseHandle.getRecords(query, tuple(params) if params else None)
+            
+            # Procesar los días de la semana para cada sesión
+            for sesion in result:
+                if sesion.get('dias_semana'):
+                    try:
+                        # Si dias_semana es JSON string, parsearlo
+                        if isinstance(sesion['dias_semana'], str):
+                            sesion['dias_programados'] = json.loads(sesion['dias_semana'])
+                        else:
+                            sesion['dias_programados'] = sesion['dias_semana']
+                    except:
+                        # Si no es JSON válido, asumir formato de string simple
+                        sesion['dias_programados'] = sesion['dias_semana'].split(',') if sesion['dias_semana'] else []
+                else:
+                    sesion['dias_programados'] = []
+            
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesiones - {len(result)} sesiones obtenidas")
+            return result
+            
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.get_cronograma_sesiones - Error: {str(e)}")
+            raise Exception(f"Error al obtener cronograma de sesiones: {str(e)}")
+
+    @staticmethod
     def create_sesion(sesion_data):
         """Crear nueva sesión pedagógica"""
         try:

@@ -1288,6 +1288,22 @@ def register_routes(app):
         # RUTAS DE GESTIÓN DE CRONOGRAMA DE CLASES
         # ============================================
 
+        @app.route('/api/sesiones-pedagogicas/cronograma', methods=['GET'])
+        @token_required
+        def get_cronograma_sesiones_pedagogicas():
+            """Obtener cronograma general de sesiones pedagógicas"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            from flask import request
+            
+            # Obtener filtros de query parameters
+            filtros = {
+                'especialidad': request.args.get('especialidad'),
+                'pedagogo': request.args.get('pedagogo'), 
+                'semana': request.args.get('semana', 'actual')
+            }
+            
+            return SesionPedagogicaService.get_cronograma_sesiones(filtros)
+
         @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/cronograma', methods=['GET'])
         @token_required
         def get_cronograma_sesion_pedagogica(sesion_id):
@@ -2414,5 +2430,155 @@ def register_routes(app):
     # REGISTRAR RUTAS DE FOTOS DE ASISTENCIA
     # ============================================
     register_fotos_asistencia_routes(app)
+
+    # ============================================
+    # RUTAS DEL DASHBOARD
+    # ============================================
+    def register_dashboard_routes(app):
+        """Registrar rutas del dashboard"""
+        
+        @app.route('/api/dashboard/estadisticas', methods=['GET'])
+        @token_required
+        def get_estadisticas_dashboard():
+            """Obtener estadísticas generales del dashboard"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_todas_estadisticas()
+                
+                return response_success(resultado, "Estadísticas del dashboard obtenidas exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_estadisticas_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/usuarios-activos', methods=['GET'])
+        @token_required
+        def get_usuarios_activos_dashboard():
+            """Obtener conteo de usuarios activos"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_usuarios_activos()
+                
+                return response_success(resultado, "Usuarios activos obtenidos exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_usuarios_activos_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/contador-pacientes', methods=['GET'])
+        @token_required
+        def get_contador_pacientes_dashboard():
+            """Obtener conteo total de pacientes"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_contador_pacientes()
+                
+                return response_success(resultado, "Contador de pacientes obtenido exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_contador_pacientes_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/resumen-personal', methods=['GET'])
+        @token_required
+        def get_resumen_personal_dashboard():
+            """Obtener resumen del personal (terapeutas, pedagogos, especialidades)"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_resumen_personal()
+                
+                return response_success(resultado, "Resumen del personal obtenido exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_resumen_personal_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/actividad-reciente', methods=['GET'])
+        @token_required
+        def get_actividad_reciente_dashboard():
+            """Obtener actividad reciente del sistema"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                limite = request.args.get('limite', 10, type=int)
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_actividad_reciente(limite)
+                
+                return response_success(resultado, "Actividad reciente obtenida exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_actividad_reciente_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/alertas', methods=['GET'])
+        @token_required
+        def get_alertas_dashboard():
+            """Obtener alertas del sistema"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_alertas_sistema()
+                
+                return response_success(resultado, "Alertas del sistema obtenidas exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_alertas_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/rendimiento-semanal', methods=['GET'])
+        @token_required
+        def get_rendimiento_semanal_dashboard():
+            """Obtener rendimiento semanal"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_rendimiento_semanal()
+                
+                return response_success(resultado, "Rendimiento semanal obtenido exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_rendimiento_semanal_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/metricas-asistencia', methods=['GET'])
+        @token_required
+        def get_metricas_asistencia_dashboard():
+            """Obtener métricas de asistencia"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_metricas_asistencia()
+                
+                return response_success(resultado, "Métricas de asistencia obtenidas exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_metricas_asistencia_dashboard: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DEL DASHBOARD
+    # ============================================
+    register_dashboard_routes(app)
 
 

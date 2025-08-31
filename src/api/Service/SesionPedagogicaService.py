@@ -74,6 +74,76 @@ class SesionPedagogicaService:
             return response_error(f"Error al obtener sesiones pedagógicas: {str(e)}", 500)
 
     @staticmethod
+    def get_cronograma_sesiones(filtros=None):
+        """Obtener cronograma de sesiones pedagógicas con filtros"""
+        try:
+            HandleLogs.write_log("SesionPedagogicaService.get_cronograma_sesiones - Iniciando")
+
+            # Convertir filtros de query params si es necesario
+            filtros_procesados = {}
+            if filtros:
+                if 'especialidad' in filtros and filtros['especialidad']:
+                    filtros_procesados['especialidad'] = filtros['especialidad']
+                if 'pedagogo' in filtros and filtros['pedagogo']:
+                    filtros_procesados['pedagogo'] = filtros['pedagogo']
+                if 'semana' in filtros and filtros['semana']:
+                    filtros_procesados['semana'] = filtros['semana']
+
+            sesiones = SesionPedagogicaComponent.get_cronograma_sesiones(filtros_procesados)
+
+            if sesiones:
+                # Formatear datos para cronograma
+                sesiones_cronograma = []
+                for sesion in sesiones:
+                    # Formatear hora_fin si no existe
+                    hora_fin = sesion.get('hora_fin')
+                    if not hora_fin and sesion.get('hora_inicio') and sesion.get('duracion_minutos'):
+                        try:
+                            from datetime import datetime, timedelta
+                            hora_inicio_obj = datetime.strptime(str(sesion['hora_inicio']), '%H:%M:%S')
+                            hora_fin_obj = hora_inicio_obj + timedelta(minutes=sesion['duracion_minutos'])
+                            hora_fin = hora_fin_obj.strftime('%H:%M:%S')
+                        except:
+                            hora_fin = None
+
+                    sesion_data = {
+                        'id': sesion['id'],
+                        'codigo_sesion': sesion['codigo_sesion'],
+                        'titulo': sesion.get('titulo', sesion.get('nombre_clase', '')),
+                        'pedagogo': {
+                            'id': sesion['pedagogo_id'],
+                            'nombre': sesion['pedagogo_nombre']
+                        },
+                        'pedagogo_nombre': sesion['pedagogo_nombre'],  # Para compatibilidad
+                        'especialidad': {
+                            'id': sesion['especialidad_id'],
+                            'nombre': sesion['especialidad_nombre'],
+                            'area': sesion['especialidad_area']
+                        },
+                        'dias_programados': sesion.get('dias_programados', []),
+                        'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
+                        'hora_fin': str(hora_fin) if hora_fin else None,
+                        'duracion_minutos': sesion['duracion_minutos'],
+                        'nivel_academico': sesion['nivel_academico'],
+                        'capacidad_maxima': sesion['capacidad_maxima'],
+                        'modalidad': sesion.get('modalidad', 'presencial'),
+                        'estado': sesion['estado'],
+                        'total_estudiantes': sesion['total_estudiantes'],
+                        'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
+                        'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None
+                    }
+                    sesiones_cronograma.append(sesion_data)
+
+                HandleLogs.write_log(f"SesionPedagogicaService.get_cronograma_sesiones - {len(sesiones_cronograma)} sesiones obtenidas")
+                return response_success(sesiones_cronograma, "Cronograma de sesiones obtenido exitosamente")
+            else:
+                return response_success([], "No hay sesiones pedagógicas activas para el cronograma")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.get_cronograma_sesiones - Error: {str(e)}")
+            return response_error(f"Error al obtener cronograma de sesiones: {str(e)}", 500)
+
+    @staticmethod
     def get_sesion(sesion_id):
         """Obtener una sesión pedagógica específica por ID"""
         try:
