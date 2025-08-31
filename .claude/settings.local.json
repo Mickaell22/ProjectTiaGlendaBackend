@@ -7,7 +7,10 @@
       "Bash(python test:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(python:*)",
+      "Bash(timeout 60 python:*)",
+      "Read(C:\\Users\\ASUS\\Desktop\\Proyecto/**)"
     ],
     "deny": [],
     "ask": [],

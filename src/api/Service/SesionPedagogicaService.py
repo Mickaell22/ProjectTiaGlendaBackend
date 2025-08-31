@@ -38,18 +38,18 @@ class SesionPedagogicaService:
                         },
                         'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                         'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
-                        'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
+                        'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
                         'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                         'duracion_minutos': sesion['duracion_minutos'],
-                        'numero_clases_programadas': sesion['numero_clases_programadas'],
+                        'numero_clases_programadas': sesion.get('numero_clases_programadas', 20),
                         'nivel_academico': sesion['nivel_academico'],
                         'capacidad_maxima': sesion['capacidad_maxima'],
-                        'modalidad': sesion['modalidad'],
-                        'costo_total': float(sesion['costo_total']),
-                        'costo_por_clase': float(sesion['costo_por_clase']),
-                        'periodo_academico': sesion['periodo_academico'],
+                        'modalidad': sesion.get('modalidad', 'presencial'),
+                        'costo_total': float(sesion.get('costo_total', 0)),
+                        'costo_por_clase': float(sesion.get('costo_por_clase', 0)),
+                        'periodo_academico': sesion.get('periodo_academico', ''),
                         'estado': sesion['estado'],
-                        'observaciones': sesion['observaciones'],
+                        'observaciones': sesion.get('observaciones', ''),
                         'estadisticas': {
                             'total_estudiantes': sesion['total_estudiantes'],
                             'clases_programadas': sesion['clases_programadas'],
@@ -92,28 +92,28 @@ class SesionPedagogicaService:
                     'codigo_sesion': sesion['codigo_sesion'],
                     'titulo': sesion.get('titulo', sesion.get('nombre_clase', '')),
                     'pedagogo': {
-                        'id': sesion['pedagogo_id'],
+                        'id': sesion.get('pedagogo_id', sesion.get('id_educador')),
                         'nombre': sesion['pedagogo_nombre']
                     },
                     'especialidad': {
-                        'id': sesion['especialidad_id'],
+                        'id': sesion.get('especialidad_id', sesion.get('id_especialidad')),
                         'nombre': sesion['especialidad_nombre'],
                         'area': sesion['especialidad_area']
                     },
                     'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                     'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
-                    'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
+                    'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
                     'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                     'duracion_minutos': sesion['duracion_minutos'],
-                    'numero_clases_programadas': sesion['numero_clases_programadas'],
+                    'numero_clases_programadas': sesion.get('numero_clases_programadas', 20),
                     'nivel_academico': sesion['nivel_academico'],
                     'capacidad_maxima': sesion['capacidad_maxima'],
-                    'modalidad': sesion['modalidad'],
-                    'costo_total': float(sesion['costo_total']),
-                    'costo_por_clase': float(sesion['costo_por_clase']),
-                    'periodo_academico': sesion['periodo_academico'],
+                    'modalidad': sesion.get('modalidad', 'presencial'),
+                    'costo_total': float(sesion.get('costo_total', 0)),
+                    'costo_por_clase': float(sesion.get('costo_por_clase', 0)),
+                    'periodo_academico': sesion.get('periodo_academico', ''),
                     'estado': sesion['estado'],
-                    'observaciones': sesion['observaciones'],
+                    'observaciones': sesion.get('observaciones', ''),
                     'fecha_creacion': sesion['fecha_creacion'].isoformat() if sesion['fecha_creacion'] else None,
                     'fecha_modificacion': sesion['fecha_modificacion'].isoformat() if sesion['fecha_modificacion'] else None
                 }
@@ -157,7 +157,15 @@ class SesionPedagogicaService:
             except ValueError as e:
                 return response_error(f"Formato de fecha/hora inválido: {str(e)}", 400)
 
-            # Validar números (removed non-existent fields)
+            # Validar números
+            if 'numero_clases_programadas' in data and data['numero_clases_programadas'] <= 0:
+                return response_error("El número de clases programadas debe ser mayor a 0", 400)
+            
+            if 'capacidad_maxima' in data and data['capacidad_maxima'] <= 0:
+                return response_error("La capacidad máxima debe ser mayor a 0", 400)
+                
+            if 'costo_total' in data and data['costo_total'] < 0:
+                return response_error("El costo total no puede ser negativo", 400)
 
             # Validar días de la semana
             dias_validos = ['lunes', 'martes', 'miercoles', 'miércoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo']
@@ -233,11 +241,11 @@ class SesionPedagogicaService:
                     return response_error("Formato de hora inválido (HH:MM)", 400)
 
             # Validaciones numéricas
-            if 'numero_clases_programadas' in data and data['numero_clases_programadas'] <= 0:
-                return response_error("El número de clases programadas debe ser mayor a 0", 400)
+            if 'duracion_minutos' in data and data['duracion_minutos'] <= 0:
+                return response_error("La duración en minutos debe ser mayor a 0", 400)
             
-            if 'costo_total' in data and data['costo_total'] < 0:
-                return response_error("El costo total no puede ser negativo", 400)
+            if 'capacidad_maxima' in data and data['capacidad_maxima'] <= 0:
+                return response_error("La capacidad máxima debe ser mayor a 0", 400)
 
             # Validar días de la semana si se proporcionan
             if 'dias_semana' in data:
@@ -254,21 +262,16 @@ class SesionPedagogicaService:
             # Merge partial data with existing session data
             update_data = {
                 'titulo': data.get('titulo', sesion_existente.get('titulo', sesion_existente.get('nombre_clase', ''))),
-                'pedagogo_id': data.get('pedagogo_id', sesion_existente['pedagogo_id']),
-                'especialidad_id': data.get('especialidad_id', sesion_existente['especialidad_id']),
+                'pedagogo_id': data.get('pedagogo_id', sesion_existente.get('pedagogo_id', sesion_existente.get('id_educador'))),
+                'especialidad_id': data.get('especialidad_id', sesion_existente.get('especialidad_id', sesion_existente.get('id_especialidad'))),
                 'fecha_inicio': data.get('fecha_inicio', sesion_existente['fecha_inicio']),
                 'fecha_fin': data.get('fecha_fin', sesion_existente['fecha_fin']),
                 'dias_semana': data.get('dias_semana', sesion_existente['dias_semana']),
                 'hora_inicio': data.get('hora_inicio', sesion_existente['hora_inicio']),
                 'duracion_minutos': data.get('duracion_minutos', sesion_existente['duracion_minutos']),
-                'numero_clases_programadas': data.get('numero_clases_programadas', sesion_existente['numero_clases_programadas']),
                 'nivel_academico': data.get('nivel_academico', sesion_existente['nivel_academico']),
                 'capacidad_maxima': data.get('capacidad_maxima', sesion_existente['capacidad_maxima']),
-                'modalidad': data.get('modalidad', sesion_existente['modalidad']),
-                'costo_total': data.get('costo_total', sesion_existente['costo_total']),
-                'periodo_academico': data.get('periodo_academico', sesion_existente['periodo_academico']),
                 'estado': data.get('estado', sesion_existente['estado']),
-                'observaciones': data.get('observaciones', sesion_existente['observaciones']),
                 'usuario_modificacion': data['usuario_modificacion']
             }
 
@@ -356,6 +359,17 @@ class SesionPedagogicaService:
             data = request.get_json()
             if not data or 'paciente_id' not in data:
                 return response_error("Se requiere paciente_id", 400)
+
+            # Verificar capacidad máxima
+            sesion_info = SesionPedagogicaComponent.get_sesion_by_id(sesion_id)
+            if not sesion_info:
+                return response_error(f"Sesión pedagógica con ID {sesion_id} no encontrada", 404)
+            
+            capacidad_maxima = sesion_info.get('capacidad_maxima', 0)
+            if capacidad_maxima > 0:
+                estudiantes_actuales = SesionPedagogicaComponent.get_estudiantes_sesion(sesion_id)
+                if estudiantes_actuales and len(estudiantes_actuales) >= capacidad_maxima:
+                    return response_error(f"La sesión ha alcanzado su capacidad máxima de {capacidad_maxima} estudiantes", 400)
 
             # Agregar usuario actual
             data['usuario_creacion'] = request.current_user['id']
