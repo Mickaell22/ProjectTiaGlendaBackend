@@ -2237,4 +2237,182 @@ def register_routes(app):
     # ============================================
     register_observaciones_routes(app)
 
+    # ============================================
+    # RUTAS DEL SISTEMA DE FOTOS DE ASISTENCIA
+    # ============================================
+    def register_fotos_asistencia_routes(app):
+        """Registrar rutas del sistema de fotos de asistencia"""
+        
+        @app.route('/api/asistencias/<int:asistencia_id>/fotos', methods=['POST'])
+        @token_required
+        def subir_fotos_asistencia(asistencia_id):
+            """Subir fotos a una asistencia (máximo 3 fotos)"""
+            try:
+                from src.api.Service.FotoAsistenciaService import FotoAsistenciaService
+                from src.api.Components.FotoAsistenciaComponent import FotoAsistenciaComponent
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Verificar que la asistencia existe
+                if not FotoAsistenciaComponent.verificar_asistencia_existe(asistencia_id):
+                    return response_error("Asistencia no encontrada", 404)
+                
+                # Verificar que se recibieron archivos
+                if 'fotos' not in request.files:
+                    return response_error("No se recibieron archivos", 400)
+                
+                archivos = request.files.getlist('fotos')
+                if not archivos or all(not archivo.filename for archivo in archivos):
+                    return response_error("No se seleccionaron archivos válidos", 400)
+                
+                # Procesar fotos
+                resultado = FotoAsistenciaService.agregar_fotos_asistencia(asistencia_id, archivos)
+                
+                if resultado['success']:
+                    return response_success(
+                        resultado.get('fotos', []), 
+                        resultado['message']
+                    )
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en subir_fotos_asistencia: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/asistencias/<int:asistencia_id>/fotos', methods=['GET'])
+        @token_required
+        def obtener_fotos_asistencia(asistencia_id):
+            """Obtener todas las fotos de una asistencia"""
+            try:
+                from src.api.Service.FotoAsistenciaService import FotoAsistenciaService
+                from src.api.Components.FotoAsistenciaComponent import FotoAsistenciaComponent
+                from src.utils.general.response import response_success, response_error
+                
+                # Verificar que la asistencia existe
+                if not FotoAsistenciaComponent.verificar_asistencia_existe(asistencia_id):
+                    return response_error("Asistencia no encontrada", 404)
+                
+                resultado = FotoAsistenciaService.obtener_fotos_asistencia(asistencia_id)
+                
+                if resultado['success']:
+                    return response_success(
+                        {
+                            'fotos': resultado['data'],
+                            'total': resultado['total_fotos']
+                        },
+                        "Fotos obtenidas exitosamente"
+                    )
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_fotos_asistencia: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/asistencias/<int:asistencia_id>/fotos/<int:indice_foto>', methods=['DELETE'])
+        @token_required
+        def eliminar_foto_asistencia(asistencia_id, indice_foto):
+            """Eliminar una foto específica de una asistencia"""
+            try:
+                from src.api.Service.FotoAsistenciaService import FotoAsistenciaService
+                from src.api.Components.FotoAsistenciaComponent import FotoAsistenciaComponent
+                from src.utils.general.response import response_success, response_error
+                
+                # Verificar que la asistencia existe
+                if not FotoAsistenciaComponent.verificar_asistencia_existe(asistencia_id):
+                    return response_error("Asistencia no encontrada", 404)
+                
+                resultado = FotoAsistenciaService.eliminar_foto_asistencia(asistencia_id, indice_foto)
+                
+                if resultado['success']:
+                    return response_success(None, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en eliminar_foto_asistencia: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/asistencias/fotos/estadisticas', methods=['GET'])
+        @token_required
+        def obtener_estadisticas_fotos_asistencia():
+            """Obtener estadísticas generales de fotos de asistencia"""
+            try:
+                from src.api.Service.FotoAsistenciaService import FotoAsistenciaService
+                from src.utils.general.response import response_success, response_error
+                
+                resultado = FotoAsistenciaService.obtener_estadisticas_fotos()
+                
+                if resultado['success']:
+                    return response_success(resultado['data'], "Estadísticas obtenidas exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_estadisticas_fotos_asistencia: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/asistencias/con-fotos', methods=['GET'])
+        @token_required
+        def obtener_asistencias_con_fotos():
+            """Obtener asistencias que tienen fotos adjuntas"""
+            try:
+                from src.api.Components.FotoAsistenciaComponent import FotoAsistenciaComponent
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Obtener filtros opcionales
+                sesion_id = request.args.get('sesion_id', type=int)
+                paciente_id = request.args.get('paciente_id', type=int)
+                fecha_desde = request.args.get('fecha_desde')
+                fecha_hasta = request.args.get('fecha_hasta')
+                
+                asistencias = FotoAsistenciaComponent.obtener_asistencias_con_fotos(
+                    sesion_id=sesion_id,
+                    paciente_id=paciente_id,
+                    fecha_desde=fecha_desde,
+                    fecha_hasta=fecha_hasta
+                )
+                
+                return response_success(
+                    {
+                        'asistencias': asistencias,
+                        'total': len(asistencias)
+                    },
+                    "Asistencias con fotos obtenidas exitosamente"
+                )
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_asistencias_con_fotos: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/asistencias/<int:asistencia_id>/fotos/todas', methods=['DELETE'])
+        @token_required
+        def eliminar_todas_fotos_asistencia(asistencia_id):
+            """Eliminar todas las fotos de una asistencia"""
+            try:
+                from src.api.Components.FotoAsistenciaComponent import FotoAsistenciaComponent
+                from src.utils.general.response import response_success, response_error
+                
+                # Verificar que la asistencia existe
+                if not FotoAsistenciaComponent.verificar_asistencia_existe(asistencia_id):
+                    return response_error("Asistencia no encontrada", 404)
+                
+                resultado = FotoAsistenciaComponent.eliminar_todas_fotos_asistencia(asistencia_id)
+                
+                if resultado['success']:
+                    return response_success(None, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en eliminar_todas_fotos_asistencia: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DE FOTOS DE ASISTENCIA
+    # ============================================
+    register_fotos_asistencia_routes(app)
+
 

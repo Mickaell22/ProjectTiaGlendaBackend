@@ -146,6 +146,7 @@ CREATE TABLE personal (
     fecha_ingreso DATE NOT NULL,
     fecha_salida DATE,
     cargo VARCHAR(100),
+    titulo_profesional VARCHAR(100),
     tipo_contrato VARCHAR(20) CHECK (tipo_contrato IN ('indefinido', 'temporal', 'honorarios', 'practicante')),
     salario DECIMAL(10,2) CHECK (salario >= 0),
     estado VARCHAR(10) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo', 'vacaciones', 'licencia')),
@@ -463,6 +464,7 @@ CREATE TABLE asistencia_sesiones (
     -- Evaluación de la sesión
     calificacion_sesion INTEGER CHECK (calificacion_sesion BETWEEN 1 AND 5),
     requiere_seguimiento BOOLEAN DEFAULT FALSE,
+    
     
     -- Campos de auditoría
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1303,6 +1305,7 @@ COMMENT ON TABLE cronograma_clases IS 'Programación de clases pedagógicas';
 COMMENT ON TABLE asistencia_clases IS 'Registro de asistencia y evaluación en clases pedagógicas';
 COMMENT ON TABLE mensajes_chat IS 'Sistema de mensajería interna entre usuarios del centro';
 COMMENT ON TABLE observaciones_sesiones IS 'Observaciones y notas sobre sesiones terapéuticas y pedagógicas';
+
 
 -- =============================================
 -- FINALIZACIÓN
