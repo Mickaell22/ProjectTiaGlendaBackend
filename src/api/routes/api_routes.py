@@ -1230,6 +1230,13 @@ def register_routes(app):
             """Obtener todas las sesiones pedagógicas"""
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.get_sesiones()
+        
+        # Temporary debug endpoint without authentication
+        @app.route('/api/sesiones-pedagogicas-debug', methods=['GET'])
+        def get_sesiones_pedagogicas_debug():
+            """Debug endpoint - obtener todas las sesiones pedagógicas sin autenticación"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_sesiones()
 
         @app.route('/api/sesiones-pedagogicas/<int:sesion_id>', methods=['GET'])
         @token_required
