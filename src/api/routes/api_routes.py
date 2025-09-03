@@ -1238,6 +1238,280 @@ def register_routes(app):
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.get_sesiones()
 
+        # Debug endpoints for cronograma without authentication
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/cronograma-debug', methods=['GET'])
+        def get_cronograma_sesion_pedagogica_debug(sesion_id):
+            """Debug endpoint - obtener cronograma de una sesión pedagógica sin autenticación"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_cronograma_sesion(sesion_id)
+
+        @app.route('/api/debug/cronograma-component/<int:sesion_id>', methods=['GET'])
+        def debug_cronograma_component(sesion_id):
+            """Debug endpoint - llamar directamente al componente"""
+            try:
+                from src.api.Components.SesionPedagogicaComponent import SesionPedagogicaComponent
+                from src.utils.general.response import response_success
+                
+                # Llamar directamente al componente
+                result = SesionPedagogicaComponent.get_cronograma_sesion(sesion_id)
+                
+                return response_success({
+                    'raw_component_result': result,
+                    'result_type': type(result).__name__,
+                    'result_length': len(result) if result else 0,
+                    'is_none': result is None,
+                    'is_empty_list': result == []
+                }, f"Debug componente para sesión {sesion_id}")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"debug_cronograma_component - Error: {str(e)}")
+                return response_error(f"Error en debug componente: {str(e)}", 500)
+
+        @app.route('/api/cronograma-clases/<int:cronograma_id>/asistencias-debug', methods=['GET'])
+        def get_asistencias_clase_debug(cronograma_id):
+            """Debug endpoint - obtener asistencias de una clase sin autenticación"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                query = """
+                    SELECT 
+                        ac.id,
+                        ac.paciente_id,
+                        p.nombre_completo as estudiante_nombre,
+                        ac.asistio,
+                        ac.llegada_tardanza_minutos,
+                        ac.observaciones_asistencia,
+                        ac.participacion_clase,
+                        ac.tareas_entregadas,
+                        ac.notas_comportamiento,
+                        ac.calificacion_evaluacion,
+                        ac.observaciones_evaluacion,
+                        ac.fecha_registro
+                    FROM asistencia_clases ac
+                    LEFT JOIN persona p ON ac.paciente_id = p.id
+                    WHERE ac.cronograma_clases_id = %s
+                    ORDER BY p.nombre_completo
+                """
+                
+                result = DataBaseHandle.getRecords(query, (cronograma_id,))
+                
+                if result is None:
+                    result = []
+                
+                return response_success(result, f"Asistencias obtenidas para la clase {cronograma_id}")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"get_asistencias_clase_debug - Error: {str(e)}")
+                return response_error(f"Error al obtener asistencias: {str(e)}", 500)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/cronograma/generar-debug', methods=['POST'])
+        def generar_cronograma_sesion_pedagogica_debug(sesion_id):
+            """Debug endpoint - generar cronograma de una sesión pedagógica sin autenticación"""
+            from src.api.Components.SesionPedagogicaComponent import SesionPedagogicaComponent
+            try:
+                SesionPedagogicaComponent.generar_cronograma(sesion_id)
+                from src.utils.general.response import response_success
+                return response_success({'sesion_id': sesion_id}, "Cronograma de clases generado exitosamente")
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"generar_cronograma_sesion_pedagogica_debug - Error: {str(e)}")
+                return response_error(f"Error al generar cronograma: {str(e)}", 500)
+
+        @app.route('/api/debug/cronograma-clases/<int:sesion_id>', methods=['GET'])
+        def debug_cronograma_clases(sesion_id):
+            """Debug endpoint - verificar cronograma directamente en base de datos"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                # Query directo a la tabla
+                query = """
+                    SELECT cc.*, sp.titulo as sesion_titulo
+                    FROM cronograma_clases cc
+                    LEFT JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
+                    WHERE cc.id_sesion = %s
+                    ORDER BY cc.numero_clase_semanal
+                """
+                
+                result = DataBaseHandle.getRecords(query, (sesion_id,))
+                
+                if result is None:
+                    result = []
+                
+                # También check basic de la sesión
+                sesion_query = "SELECT id, titulo, estado FROM sesion_pedagogica WHERE id = %s"
+                sesion = DataBaseHandle.getRecords(sesion_query, (sesion_id,), size=1)
+                
+                return response_success({
+                    'sesion': sesion,
+                    'cronograma_count': len(result) if result else 0,
+                    'cronograma': result
+                }, f"Debug query para sesión {sesion_id}")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"debug_cronograma_clases - Error: {str(e)}")
+                return response_error(f"Error en debug: {str(e)}", 500)
+
+        @app.route('/api/debug/all-sesiones-pedagogicas', methods=['GET'])
+        def debug_all_sesiones_pedagogicas():
+            """Debug endpoint - verificar todas las sesiones directamente en base de datos"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                # Query directo a la tabla
+                query = "SELECT id, titulo, codigo_sesion, estado, fecha_creacion FROM sesion_pedagogica ORDER BY id"
+                
+                result = DataBaseHandle.getRecords(query)
+                
+                if result is None:
+                    result = []
+                
+                return response_success({
+                    'total_sesiones': len(result) if result else 0,
+                    'sesiones': result
+                }, f"Debug query - todas las sesiones")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"debug_all_sesiones_pedagogicas - Error: {str(e)}")
+                return response_error(f"Error en debug: {str(e)}", 500)
+
+        @app.route('/api/debug/create-sample-sessions', methods=['POST'])
+        def create_sample_sessions_debug():
+            """Debug endpoint - crear sesiones pedagógicas de ejemplo sin autenticación"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                from datetime import datetime
+                
+                # Crear 2 sesiones pedagógicas de ejemplo
+                sessions_data = [
+                    {
+                        'nombre_clase': 'Lectoescritura Inicial',
+                        'id_educador': 1,
+                        'id_especialidad': 1,
+                        'fecha_inicio': '2025-01-10',
+                        'fecha_fin': '2025-06-10',
+                        'dias_semana': '{lunes,miercoles,viernes}',
+                        'hora_inicio': '14:00:00',
+                        'duracion_minutos': 60,
+                        'nivel_academico': 'preescolar',
+                        'capacidad_maxima': 6,
+                        'estado': 'en_curso',
+                        'usuario_creacion': 1
+                    },
+                    {
+                        'nombre_clase': 'Matemáticas Básicas',
+                        'id_educador': 1,
+                        'id_especialidad': 1,
+                        'fecha_inicio': '2025-01-15',
+                        'fecha_fin': '2025-06-15',
+                        'dias_semana': '{martes,jueves}',
+                        'hora_inicio': '15:00:00',
+                        'duracion_minutos': 60,
+                        'nivel_academico': 'primaria',
+                        'capacidad_maxima': 4,
+                        'estado': 'en_curso',
+                        'usuario_creacion': 1
+                    }
+                ]
+                
+                created_sessions = []
+                for session in sessions_data:
+                    query = """
+                        INSERT INTO sesion_pedagogica 
+                        (nombre_clase, id_educador, id_especialidad, fecha_inicio, fecha_fin, 
+                         dias_semana, hora_inicio, duracion_minutos, nivel_academico, 
+                         capacidad_maxima, estado, usuario_creacion, fecha_creacion)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id, codigo_sesion
+                    """
+                    
+                    params = (
+                        session['nombre_clase'], session['id_educador'], session['id_especialidad'],
+                        session['fecha_inicio'], session['fecha_fin'], session['dias_semana'],
+                        session['hora_inicio'], session['duracion_minutos'], session['nivel_academico'],
+                        session['capacidad_maxima'], session['estado'], session['usuario_creacion'],
+                        datetime.now()
+                    )
+                    
+                    result = DataBaseHandle.getRecords(query, params, size=1)
+                    if result:
+                        created_sessions.append(result)
+                
+                return response_success({
+                    'created_sessions': created_sessions,
+                    'total_created': len(created_sessions)
+                }, "Sesiones pedagógicas de ejemplo creadas exitosamente")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"create_sample_sessions_debug - Error: {str(e)}")
+                return response_error(f"Error creando sesiones: {str(e)}", 500)
+
+        @app.route('/api/debug/database-status', methods=['GET'])
+        def debug_database_status():
+            """Debug endpoint - verificar estado completo de la base de datos"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                # Contar registros en tablas principales
+                queries = {
+                    'sesiones_pedagogicas': "SELECT COUNT(*) as count FROM sesion_pedagogica",
+                    'cronograma_clases': "SELECT COUNT(*) as count FROM cronograma_clases", 
+                    'asistencia_clases': "SELECT COUNT(*) as count FROM asistencia_clases",
+                    'personal': "SELECT COUNT(*) as count FROM personal",
+                    'especialidades': "SELECT COUNT(*) as count FROM especialidad"
+                }
+                
+                results = {}
+                for table, query in queries.items():
+                    result = DataBaseHandle.getRecords(query, size=1)
+                    results[table] = result['count'] if result else 0
+                
+                # También obtener las sesiones con detalles
+                sesiones_query = """
+                    SELECT id, codigo_sesion, nombre_clase, estado, fecha_creacion
+                    FROM sesion_pedagogica 
+                    ORDER BY id
+                """
+                sesiones = DataBaseHandle.getRecords(sesiones_query)
+                
+                # Y cronogramas
+                cronograma_query = """
+                    SELECT cc.id, cc.id_sesion, cc.numero_clase_semanal, cc.fecha_programada, cc.estado,
+                           sp.codigo_sesion, sp.nombre_clase
+                    FROM cronograma_clases cc
+                    LEFT JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
+                    ORDER BY cc.id_sesion, cc.numero_clase_semanal
+                    LIMIT 10
+                """
+                cronogramas = DataBaseHandle.getRecords(cronograma_query)
+                
+                return response_success({
+                    'table_counts': results,
+                    'sesiones_sample': sesiones or [],
+                    'cronogramas_sample': cronogramas or []
+                }, "Estado de la base de datos")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"debug_database_status - Error: {str(e)}")
+                return response_error(f"Error verificando estado: {str(e)}", 500)
+
         @app.route('/api/sesiones-pedagogicas/<int:sesion_id>', methods=['GET'])
         @token_required
         def get_sesion_pedagogica(sesion_id):

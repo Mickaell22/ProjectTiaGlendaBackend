@@ -274,15 +274,15 @@ INSERT INTO sesion_terapia (
     numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
     tipo_sesion, estado, id_centro, usuario_creacion
 ) VALUES (
-    'ST-2024-0001',
+    'ST-2025-0001',
     'Terapia del Lenguaje - Comunicación Expresiva',
     'Mejorar la comunicación expresiva y comprensiva del paciente mediante terapia lúdica con actividades interactivas y material visual',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567892')), -- Ana Martínez
     (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
-    '2024-02-01', '2024-05-31',
+    '2025-01-15', '2025-06-15',
     ARRAY['lunes', 'miercoles'], '08:00', '08:45', 45,
-    24, 3, 25000.00, 600000.00,
-    'individual', 'planificada', 
+    24, 5, 25000.00, 600000.00,
+    'individual', 'en_curso', 
     (SELECT id FROM centros WHERE codigo = 'NORTE'),
     (SELECT id FROM usuario WHERE usuario = 'admin.norte')
 );
@@ -294,15 +294,15 @@ INSERT INTO sesion_terapia (
     numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
     tipo_sesion, estado, id_centro, usuario_creacion
 ) VALUES (
-    'ST-2024-0002',
+    'ST-2025-0002',
     'Fisioterapia - Motricidad Fina',
     'Fortalecer la motricidad fina y coordinación mediante ejercicios progresivos con material adaptado y juegos motores',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567893')), -- Luis Pérez
     (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'),
-    '2024-02-05', '2024-06-05',
+    '2025-01-20', '2025-07-20',
     ARRAY['martes', 'jueves'], '09:00', '09:45', 45,
-    16, 4, 30000.00, 480000.00,
-    'individual', 'planificada', 
+    16, 6, 30000.00, 480000.00,
+    'individual', 'en_curso', 
     (SELECT id FROM centros WHERE codigo = 'NORTE'),
     (SELECT id FROM usuario WHERE usuario = 'admin.norte')
 );
@@ -319,11 +319,11 @@ INSERT INTO sesion_pedagogica (
     frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
     capacidad_maxima, estado, id_centro
 ) VALUES (
-    'SP-2024-0001',
+    'SP-2025-0001',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567894')), -- Sandra López
     (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
     'Lectoescritura Inicial', 'Desarrollo de habilidades básicas de lectura y escritura',
-    '2024-02-01', '2024-06-30', 'preescolar', 'preparatoria', 'Lenguaje',
+    '2025-01-10', '2025-08-10', 'preescolar', 'preparatoria', 'Lenguaje',
     'Reconocimiento de letras, formación de palabras, comprensión lectora básica',
     'Método fonético con apoyo visual y material manipulativo', 60,
     3, ARRAY['lunes', 'miércoles', 'viernes'], '14:00', '15:00', 'Aula 1',
@@ -338,11 +338,11 @@ INSERT INTO sesion_pedagogica (
     frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
     capacidad_maxima, estado, id_centro
 ) VALUES (
-    'SP-2024-0002',
+    'SP-2025-0002',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567895')), -- Miguel Torres
     (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo'),
     'Matemáticas Básicas', 'Refuerzo en operaciones matemáticas fundamentales',
-    '2024-02-05', '2024-07-05', 'primaria', '3ero', 'Matemáticas',
+    '2025-01-15', '2025-09-15', 'primaria', '3ero', 'Matemáticas',
     'Suma, resta, multiplicación básica, resolución de problemas simples',
     'Aprendizaje con material concreto y juegos matemáticos', 60,
     2, ARRAY['martes', 'jueves'], '15:00', '16:00', 'Aula 2',
@@ -355,23 +355,23 @@ INSERT INTO sesion_pedagogica (
 
 -- Inscripciones en Sesiones Terapéuticas
 INSERT INTO sesion_paciente (id_sesion, id_paciente, fecha_inscripcion, estado, observaciones) VALUES
-((SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0001'),
+((SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0001'),
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567900')), -- Sebastián
- '2024-02-01', 'activo', 'Paciente motivado y colaborador'),
+ '2025-01-15', 'activo', 'Paciente motivado y colaborador'),
 
-((SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0002'),
+((SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0002'),
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567901')), -- Valentina
- '2024-02-05', 'activo', 'Requiere motivación adicional para actividades');
+ '2025-01-20', 'activo', 'Requiere motivación adicional para actividades');
 
 -- Inscripciones en Sesiones Pedagógicas
 INSERT INTO sesion_estudiante (id_sesion, id_paciente, fecha_inscripcion, nivel_actual, adaptaciones_requeridas, estado, observaciones) VALUES
-((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2024-0001'),
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0001'),
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567902')), -- Mateo
- '2024-02-01', 'pre-lectura', 'Material visual ampliado, tiempo adicional', 'activo', 'Responde bien a estímulos visuales'),
+ '2025-01-10', 'pre-lectura', 'Material visual ampliado, tiempo adicional', 'activo', 'Responde bien a estímulos visuales'),
 
-((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2024-0002'),
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0002'),
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567903')), -- Isabella
- '2024-02-05', '3er grado', 'Explicaciones paso a paso, ejercicios graduales', 'activo', 'Estudiante persistente, necesita refuerzo positivo');
+ '2025-01-15', '3er grado', 'Explicaciones paso a paso, ejercicios graduales', 'activo', 'Estudiante persistente, necesita refuerzo positivo');
 
 -- =============================================
 -- 15. CRONOGRAMAS (GENERACIÓN AUTOMÁTICA)
@@ -387,10 +387,10 @@ INSERT INTO sesion_estudiante (id_sesion, id_paciente, fecha_inscripcion, nivel_
 
 -- Cronogramas de ejemplo generados automáticamente:
 
--- Cronograma para ST-2024-0001 (24 sesiones, lunes y miércoles)
+-- Cronograma para ST-2025-0001 (24 sesiones, lunes y miércoles)
 INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
 SELECT 
-    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0001'),
+    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0001'),
     ROW_NUMBER() OVER (ORDER BY fecha_gen),
     fecha_gen::date,
     '08:00'::time,
@@ -399,18 +399,18 @@ SELECT
     (SELECT id FROM usuario WHERE usuario = 'admin.norte')
 FROM (
     SELECT generate_series(
-        '2024-02-01'::date,
-        '2024-05-31'::date,
+        '2025-01-15'::date,
+        '2025-06-15'::date,
         '1 day'::interval
     ) AS fecha_gen
 ) t
 WHERE EXTRACT(dow FROM fecha_gen) IN (1, 3) -- lunes=1, miércoles=3
 LIMIT 24;
 
--- Cronograma para ST-2024-0002 (16 sesiones, martes y jueves)  
+-- Cronograma para ST-2025-0002 (16 sesiones, martes y jueves)  
 INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
 SELECT 
-    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0002'),
+    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0002'),
     ROW_NUMBER() OVER (ORDER BY fecha_gen),
     fecha_gen::date,
     '09:00'::time,
@@ -419,13 +419,55 @@ SELECT
     (SELECT id FROM usuario WHERE usuario = 'admin.norte')
 FROM (
     SELECT generate_series(
-        '2024-02-05'::date,
-        '2024-06-05'::date,
+        '2025-01-20'::date,
+        '2025-07-20'::date,
         '1 day'::interval
     ) AS fecha_gen
 ) t
 WHERE EXTRACT(dow FROM fecha_gen) IN (2, 4) -- martes=2, jueves=4
 LIMIT 16;
+
+-- Cronograma para SP-2025-0001 (Lectoescritura, lunes, miércoles, viernes)
+INSERT INTO cronograma_clases (id_sesion, numero_clase_semanal, fecha_programada, hora_inicio, hora_fin, estado, tema_clase, usuario_creacion)
+SELECT 
+    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0001'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '14:00'::time,
+    '15:00'::time,
+    'programada',
+    'Reconocimiento de letras y formación de palabras',
+    (SELECT id FROM usuario WHERE usuario = 'admin.sur')
+FROM (
+    SELECT generate_series(
+        '2025-01-10'::date,
+        '2025-08-10'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (1, 3, 5) -- lunes=1, miércoles=3, viernes=5
+LIMIT 72; -- 3 clases por semana durante 7 meses
+
+-- Cronograma para SP-2025-0002 (Matemáticas, martes y jueves)
+INSERT INTO cronograma_clases (id_sesion, numero_clase_semanal, fecha_programada, hora_inicio, hora_fin, estado, tema_clase, usuario_creacion)
+SELECT 
+    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0002'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '15:00'::time,
+    '16:00'::time,
+    'programada',
+    'Operaciones matemáticas básicas',
+    (SELECT id FROM usuario WHERE usuario = 'admin.sur')
+FROM (
+    SELECT generate_series(
+        '2025-01-15'::date,
+        '2025-09-15'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (2, 4) -- martes=2, jueves=4
+LIMIT 64; -- 2 clases por semana durante 8 meses
 
 -- =============================================
 -- 16. DATOS DE ASISTENCIA DE EJEMPLO
@@ -434,7 +476,7 @@ LIMIT 16;
 -- Crear algunas asistencias de ejemplo para demostración
 -- (Solo para las primeras sesiones de cada cronograma)
 
--- Asistencias Sesión Terapéutica ST-2024-0001 (Sebastián)
+-- Asistencias Sesión Terapéutica ST-2025-0001 (Sebastián)
 INSERT INTO asistencia_sesiones (
     id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
     estado_asistencia, observaciones_terapeuta, objetivos_trabajados,
@@ -450,11 +492,11 @@ SELECT
     4
 FROM cronograma_sesiones cs
 JOIN sesion_terapia st ON cs.id_sesion = st.id
-WHERE st.codigo_sesion = 'ST-2024-0001'
+WHERE st.codigo_sesion = 'ST-2025-0001'
 AND cs.fecha_programada <= CURRENT_DATE
-LIMIT 3;
+LIMIT 5;
 
--- Asistencias Sesión Fisioterapia ST-2024-0002 (Valentina)
+-- Asistencias Sesión Fisioterapia ST-2025-0002 (Valentina)
 INSERT INTO asistencia_sesiones (
     id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
     estado_asistencia, observaciones_terapeuta, objetivos_trabajados,
@@ -470,11 +512,11 @@ SELECT
     5
 FROM cronograma_sesiones cs
 JOIN sesion_terapia st ON cs.id_sesion = st.id
-WHERE st.codigo_sesion = 'ST-2024-0002'
+WHERE st.codigo_sesion = 'ST-2025-0002'
 AND cs.fecha_programada <= CURRENT_DATE
-LIMIT 2;
+LIMIT 4;
 
--- Asistencias Sesión Pedagógica SP-2024-0001 (Mateo)
+-- Asistencias Sesión Pedagógica SP-2025-0001 (Mateo)
 INSERT INTO asistencia_clases (
     id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
     estado_asistencia, observaciones_educador, participacion_clase,
@@ -488,9 +530,28 @@ SELECT
     'buena', 'buena', true, 8
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
-WHERE sp.codigo_sesion = 'SP-2024-0001'
+WHERE sp.codigo_sesion = 'SP-2025-0001'
 AND cc.fecha_programada <= CURRENT_DATE
-LIMIT 2;
+LIMIT 6;
+
+-- Asistencias Sesión Pedagógica SP-2025-0002 (Isabella - Matemáticas)
+INSERT INTO asistencia_clases (
+    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    estado_asistencia, observaciones_educador, participacion_clase,
+    comprension_tema, actividades_completadas, calificacion_clase,
+    evaluacion_comportamiento
+)
+SELECT 
+    cc.id,
+    (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567903')),
+    true, '15:00', '16:00', 'presente',
+    'Muy dedicada en resolver ejercicios matemáticos',
+    'excelente', 'buena', true, 9, 'excelente'
+FROM cronograma_clases cc
+JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
+WHERE sp.codigo_sesion = 'SP-2025-0002'
+AND cc.fecha_programada <= CURRENT_DATE
+LIMIT 5;
 
 -- =============================================
 -- 17. MENSAJES DE EJEMPLO
@@ -522,14 +583,14 @@ INSERT INTO observaciones_sesiones (
     id_sesion, tipo_sesion, id_usuario, observacion, tipo_observacion,
     categoria, nivel_importancia, id_paciente
 ) VALUES
-((SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2024-0001'),
+((SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0001'),
  'terapeutica',
  (SELECT id FROM usuario WHERE usuario = 'terapeuta.ana'),
  'El paciente muestra gran interés por las actividades con cuentos. Se recomienda incorporar más material narrativo.',
  'progreso', 'academico', 'medio',
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567900'))),
 
-((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2024-0001'),
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0001'),
  'pedagogica',
  (SELECT id FROM usuario WHERE usuario = 'pedagogo.sandra'),
  'Mateo necesita más tiempo para procesar las instrucciones. Considerar pausas más largas entre actividades.',

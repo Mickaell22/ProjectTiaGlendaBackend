@@ -10,7 +10,14 @@
       "Bash(git commit:*)",
       "Bash(python:*)",
       "Bash(timeout 60 python:*)",
-      "Read(C:\\Users\\ASUS\\Desktop\\Proyecto/**)"
+      "Read(C:\\Users\\ASUS\\Desktop\\Proyecto/**)",
+      "Bash(npm start)",
+      "Bash(npm run:*)",
+      "Bash(curl:*)",
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": [],

@@ -537,6 +537,8 @@ class SesionPedagogicaComponent:
     def get_cronograma_sesion(sesion_id):
         """Obtener cronograma completo de una sesión pedagógica"""
         try:
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Iniciando para sesión {sesion_id}")
+            
             query = """
                 SELECT 
                     cc.id,
@@ -545,21 +547,31 @@ class SesionPedagogicaComponent:
                     cc.hora_inicio as hora_programada,
                     cc.tema_clase,
                     cc.estado,
-                    NULL as fecha_realizacion,
+                    cc.fecha_confirmacion as fecha_realizacion,
                     cc.objetivos_clase,
                     cc.materiales_necesarios as material_requerido,
-                    NULL as tareas_asignadas,
-                    NULL as evaluacion_programada,
-                    NULL as tipo_evaluacion
+                    '' as tareas_asignadas,
+                    '' as evaluacion_programada,
+                    '' as tipo_evaluacion
                 FROM cronograma_clases cc
                 WHERE cc.id_sesion = %s
                 ORDER BY cc.numero_clase_semanal
             """
 
             params = (sesion_id,)
-            result = DataBaseHandle.getRecords(query, params)
-            HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión {sesion_id}")
-            return result
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Ejecutando query con sesion_id: {sesion_id}")
+            
+            # Usar getRecordsWithStatus para mejor debugging
+            result_with_status = DataBaseHandle.getRecordsWithStatus(query, params)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Result with status: {result_with_status}")
+            
+            if result_with_status and 'data' in result_with_status:
+                result = result_with_status['data']
+                HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión {sesion_id}, registros: {len(result) if result else 0}")
+                return result if result is not None else []
+            else:
+                HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - No data returned or error in query for session {sesion_id}")
+                return []
 
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.get_cronograma_sesion - Error: {str(e)}")
