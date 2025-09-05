@@ -143,7 +143,7 @@ class SesionTerapiaService:
                     },
                     'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                     'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
-                    'dias_semana': sesion['dias_semana'].split(',') if sesion['dias_semana'] else [],
+                    'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
                     'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                     'duracion_minutos': sesion['duracion_minutos'],
                     'numero_sesiones_contratadas': sesion['numero_sesiones_contratadas'],
@@ -600,7 +600,7 @@ class SesionTerapiaService:
                 'numero_sesiones_contratadas': data['numero_sesiones_contratadas'],
                 'costo_total': float(data['costo_total']),
                 'meses_contrato': data.get('meses_contrato'),
-                'estado': data.get('estado', 'activo'),
+                'estado': data.get('estado', 'en_curso'),
                 'usuario_modificacion': current_user['id']
             }
 
@@ -834,7 +834,15 @@ class SesionTerapiaService:
         try:
             HandleLogs.write_log(f"SesionTerapiaService.marcar_sesion_realizada - Cronograma ID: {cronograma_id}")
 
-            data = request.get_json() or {}
+            # Safely get JSON data with UTF-8 error handling
+            try:
+                data = request.get_json(force=True) or {}
+            except UnicodeDecodeError as e:
+                HandleLogs.write_error(f"SesionTerapiaService.marcar_sesion_realizada - UTF-8 decode error: {str(e)}")
+                return response_error("Error de codificación en los datos enviados. Verifica que no haya caracteres especiales", 400)
+            except Exception as e:
+                HandleLogs.write_error(f"SesionTerapiaService.marcar_sesion_realizada - JSON parse error: {str(e)}")
+                return response_error("Error al procesar los datos JSON", 400)
 
             # Validar ID
             if not isinstance(cronograma_id, int) or cronograma_id <= 0:
@@ -940,7 +948,13 @@ class SesionTerapiaService:
         try:
             HandleLogs.write_log(f"SesionTerapiaService.registrar_asistencia - Cronograma: {cronograma_id}, Paciente: {paciente_id}")
 
-            data = request.get_json()
+            # Safely get JSON data with improved UTF-8 error handling
+            from src.utils.general.utf8_helper import UTF8Helper
+            
+            data, error_msg = UTF8Helper.safe_get_json()
+            if error_msg:
+                return response_error(error_msg, 400)
+            
             current_user = request.current_user
 
             # Validar IDs
@@ -964,16 +978,21 @@ class SesionTerapiaService:
                 HandleLogs.write_error(f"SesionTerapiaService.registrar_asistencia - Error verificando paciente: {str(check_error)}")
                 return response_error(f"Error verificando paciente: {str(check_error)}", 500)
 
-            # Preparar datos de asistencia
+            # Preparar datos de asistencia con mapeo correcto de campos
             asistencia_data = {
                 'asistio': data.get('asistio', False),
+                'llegada_tardanza_minutos': data.get('llegada_tardanza_minutos', 0) if data.get('llegada_tardanza_minutos') else 0,
                 'hora_llegada': data.get('hora_llegada') if data.get('hora_llegada') else None,
-                'observaciones_terapeuta': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
-                'progreso_observado': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
+                'observaciones_asistencia': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
+                'notas_progreso': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
                 'tareas_asignadas': data.get('tareas_asignadas', '').strip() if data.get('tareas_asignadas') else None,
-                'objetivos_trabajados': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None,
+                'proximos_objetivos': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None,
                 'usuario_creacion': current_user['id']
             }
+            
+            # Debug logging para verificar datos recibidos
+            HandleLogs.write_log(f"SesionTerapiaService.registrar_asistencia - Datos recibidos: {data}")
+            HandleLogs.write_log(f"SesionTerapiaService.registrar_asistencia - Datos preparados: {asistencia_data}")
 
             # Validar datos - todos los campos son opcionales excepto asistio
 
@@ -1107,8 +1126,14 @@ class SesionTerapiaService:
             if not isinstance(paciente_id, int) or paciente_id <= 0:
                 return response_error("ID de paciente debe ser un número positivo", 400)
 
-            # Obtener datos del request
-            data = request.json
+            # Safely get JSON data with UTF-8 error handling
+            # Safely get JSON data with improved UTF-8 error handling  
+            from src.utils.general.utf8_helper import UTF8Helper
+            
+            data, error_msg = UTF8Helper.safe_get_json()
+            if error_msg:
+                return response_error(error_msg, 400)
+            
             if not data:
                 return response_error("Datos de asistencia son requeridos", 400)
 
@@ -1116,8 +1141,23 @@ class SesionTerapiaService:
             current_user = g.get('usuario_info', {})
             usuario_modificacion = current_user.get('id', 1)
 
+            # Preparar datos de asistencia con mapeo correcto de campos (igual que en registrar)
+            asistencia_data = {
+                'asistio': data.get('asistio', False),
+                'llegada_tardanza_minutos': data.get('llegada_tardanza_minutos', 0) if data.get('llegada_tardanza_minutos') else 0,
+                'hora_llegada': data.get('hora_llegada') if data.get('hora_llegada') else None,
+                'observaciones_asistencia': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
+                'notas_progreso': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
+                'tareas_asignadas': data.get('tareas_asignadas', '').strip() if data.get('tareas_asignadas') else None,
+                'proximos_objetivos': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None
+            }
+            
+            # Debug logging para verificar datos recibidos
+            HandleLogs.write_log(f"SesionTerapiaService.actualizar_asistencia - Datos recibidos: {data}")
+            HandleLogs.write_log(f"SesionTerapiaService.actualizar_asistencia - Datos preparados: {asistencia_data}")
+
             # Actualizar asistencia
-            result = SesionTerapiaComponent.actualizar_asistencia(cronograma_id, paciente_id, data, usuario_modificacion)
+            result = SesionTerapiaComponent.actualizar_asistencia(cronograma_id, paciente_id, asistencia_data, usuario_modificacion)
 
             HandleLogs.write_log(f"SesionTerapiaService.actualizar_asistencia - Asistencia actualizada exitosamente")
             return response_success(result, "Asistencia actualizada exitosamente")

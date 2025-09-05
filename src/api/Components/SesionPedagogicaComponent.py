@@ -546,7 +546,10 @@ class SesionPedagogicaComponent:
                     cc.fecha_programada,
                     cc.hora_inicio as hora_programada,
                     cc.tema_clase,
-                    cc.estado,
+                    CASE 
+                        WHEN cc.estado = 'completada' THEN 'realizada'
+                        ELSE cc.estado
+                    END as estado,
                     cc.fecha_confirmacion as fecha_realizacion,
                     cc.objetivos_clase,
                     cc.materiales_necesarios as material_requerido,

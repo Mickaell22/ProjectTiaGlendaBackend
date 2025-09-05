@@ -1460,6 +1460,368 @@ def register_routes(app):
                 HandleLogs.write_error(f"create_sample_sessions_debug - Error: {str(e)}")
                 return response_error(f"Error creando sesiones: {str(e)}", 500)
 
+        @app.route('/api/cronograma-clases/<int:clase_id>/realizar-debug', methods=['PUT'])
+        def marcar_clase_realizada_debug(clase_id):
+            """Debug endpoint - marcar clase como realizada sin autenticación"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                from datetime import datetime
+                
+                # Marcar la clase como completada (usando el estado correcto de la tabla)
+                fecha_realizacion = datetime.now()
+                update_query = """
+                    UPDATE cronograma_clases 
+                    SET estado = 'completada', 
+                        fecha_confirmacion = %s,
+                        fecha_modificacion = NOW(),
+                        usuario_modificacion = 'debug_user'
+                    WHERE id = %s
+                """
+                
+                # Ejecutar la actualización (sin verificar resultado, como otros endpoints)
+                DataBaseHandle.ExecuteNonQuery(update_query, (fecha_realizacion, clase_id))
+                
+                return response_success({
+                    'clase_id': clase_id,
+                    'estado': 'completada',
+                    'fecha_confirmacion': fecha_realizacion.isoformat()
+                }, "Clase marcada como completada exitosamente")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"marcar_clase_realizada_debug - Error: {str(e)}")
+                return response_error(f"Error marcando clase como realizada: {str(e)}", 500)
+
+        @app.route('/api/debug/cronograma-table/<int:clase_id>', methods=['GET'])
+        def debug_cronograma_table_direct(clase_id):
+            """Debug endpoint - consultar directamente la tabla cronograma_clases"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                
+                query = "SELECT id, estado, fecha_confirmacion, fecha_modificacion FROM cronograma_clases WHERE id = %s"
+                result = DataBaseHandle.getRecords(query, (clase_id,))
+                
+                if not result:
+                    return response_error(f"Clase {clase_id} no encontrada", 404)
+                
+                return response_success({
+                    'clase_data': result[0],
+                    'query_used': query
+                }, f"Debug directo para clase {clase_id}")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"debug_cronograma_table_direct - Error: {str(e)}")
+                return response_error(f"Error en debug directo: {str(e)}", 500)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes-debug', methods=['GET'])
+        def get_estudiantes_sesion_pedagogica_debug(sesion_id):
+            """Debug endpoint - obtener estudiantes de una sesión pedagógica sin autenticación"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                query = """
+                    SELECT 
+                        se.id,
+                        se.paciente_id,
+                        se.fecha_asignacion,
+                        se.estado as estado_asignacion,
+                        p.nombre_completo as estudiante_nombre,
+                        p.cedula as estudiante_cedula,
+                        p.fecha_nacimiento as estudiante_fecha_nacimiento
+                    FROM sesion_estudiante se
+                    JOIN paciente pac ON se.paciente_id = pac.id
+                    JOIN persona p ON pac.id_persona = p.id
+                    WHERE se.id_sesion = %s AND se.estado = 'activo'
+                    ORDER BY p.nombre_completo
+                """
+                
+                result = DataBaseHandle.getRecords(query, (sesion_id,))
+                
+                return response_success(result if result else [], "Estudiantes de la sesión obtenidos exitosamente")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"get_estudiantes_sesion_pedagogica_debug - Error: {str(e)}")
+                return response_error(f"Error obteniendo estudiantes: {str(e)}", 500)
+
+        @app.route('/api/pacientes-disponibles-debug', methods=['GET'])
+        def get_pacientes_disponibles_debug():
+            """Debug endpoint - obtener pacientes disponibles para agregar a sesiones sin autenticación"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success
+                
+                query = """
+                    SELECT 
+                        p.id,
+                        p.id_persona,
+                        per.nombre_completo,
+                        per.cedula,
+                        per.fecha_nacimiento,
+                        p.estado
+                    FROM paciente p
+                    JOIN persona per ON p.id_persona = per.id
+                    WHERE p.estado = 'activo'
+                    ORDER BY per.nombre_completo
+                """
+                
+                result = DataBaseHandle.getRecords(query)
+                
+                return response_success(result if result else [], "Pacientes disponibles obtenidos exitosamente")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"get_pacientes_disponibles_debug - Error: {str(e)}")
+                return response_error(f"Error obteniendo pacientes: {str(e)}", 500)
+
+        @app.route('/api/debug/create-patients-from-existing-personas', methods=['POST'])
+        def create_patients_from_existing_personas_debug():
+            """Debug endpoint - crear pacientes desde personas existentes con IDs específicos"""
+            try:
+                from src.api.Components.PacienteComponent import PacienteComponent
+                from src.utils.general.response import response_success, response_error
+                from datetime import date
+                
+                # IDs de personas que ya existen (obtenidas del intento anterior)
+                personas_ids = [15, 16, 17]
+                nombres = ["Emma López Vásquez", "Diego Castro Morales", "Valeria Herrera Jiménez"]
+                
+                created_patients = []
+                
+                for i, persona_id in enumerate(personas_ids):
+                    try:
+                        # Crear paciente usando el componente con el ID de persona existente
+                        paciente_data = {
+                            'id_persona': persona_id,
+                            'id_centro': 1,  # Usar centro 1 por defecto
+                            'fecha_ingreso': date.today().isoformat(),
+                            'motivo_consulta': f"Sesión pedagógica para estudiante {nombres[i]}",
+                            'observaciones': 'Paciente creado para pruebas pedagógicas',
+                            'estado': 'activo',
+                            'usuario_creacion': 1
+                        }
+                        
+                        paciente_result = PacienteComponent.create_paciente(paciente_data)
+                        
+                        created_patients.append({
+                            'persona_id': persona_id,
+                            'nombre': nombres[i],
+                            'paciente_result': paciente_result
+                        })
+                    
+                    except Exception as person_error:
+                        print(f"Error creating patient for persona {persona_id}: {person_error}")
+                        continue
+                
+                return response_success({
+                    'created_patients': created_patients,
+                    'total_created': len(created_patients)
+                }, f"Attempted to create {len(created_patients)} patients from existing personas")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"create_patients_from_existing_personas_debug - Error: {str(e)}")
+                return response_error(f"Error creando pacientes: {str(e)}", 500)
+
+        @app.route('/api/debug/load-initial-data', methods=['POST'])
+        def load_initial_data_debug():
+            """Debug endpoint - cargar datos iniciales completos desde el archivo SQL"""
+            try:
+                import os
+                from src.utils.general.response import response_success, response_error
+                from src.utils.general.logs import HandleLogs
+                
+                # Ejecutar el archivo de datos iniciales
+                sql_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'utils', 'database', '02_datos_completos.sql')
+                
+                if os.path.exists(sql_file_path):
+                    try:
+                        # Leer el archivo SQL
+                        with open(sql_file_path, 'r', encoding='utf-8') as file:
+                            sql_content = file.read()
+                        
+                        # Ejecutar usando psycopg2 directamente
+                        from src.utils.database.connection_db import DataBaseHandle
+                        import psycopg2
+                        
+                        # Obtener conexión directa para ejecutar múltiples statements
+                        connection = DataBaseHandle.get_connection()
+                        if connection:
+                            cursor = connection.cursor()
+                            cursor.execute(sql_content)
+                            connection.commit()
+                            cursor.close()
+                            connection.close()
+                            
+                            HandleLogs.write_log("Datos iniciales cargados exitosamente")
+                            return response_success({
+                                'loaded': True,
+                                'file_path': sql_file_path
+                            }, "Datos iniciales cargados exitosamente desde archivo SQL")
+                        else:
+                            return response_error("No se pudo obtener conexión a la base de datos", 500)
+                            
+                    except Exception as sql_error:
+                        HandleLogs.write_error(f"Error ejecutando SQL: {str(sql_error)}")
+                        return response_error(f"Error ejecutando SQL: {str(sql_error)}", 500)
+                else:
+                    return response_error(f"Archivo SQL no encontrado: {sql_file_path}", 404)
+                
+            except Exception as e:
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"load_initial_data_debug - Error: {str(e)}")
+                return response_error(f"Error cargando datos iniciales: {str(e)}", 500)
+
+        @app.route('/api/cronograma-clases/<int:clase_id>/marcar-realizada-working', methods=['PUT'])
+        def marcar_clase_realizada_working_debug(clase_id):
+            """Debug endpoint - marcar clase como realizada con método que funciona"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                from datetime import datetime
+                import psycopg2
+                
+                # Usar conexión directa para asegurar que se persistan los cambios
+                connection = DataBaseHandle.get_connection()
+                if not connection:
+                    return response_error("No se pudo conectar a la base de datos", 500)
+                
+                try:
+                    cursor = connection.cursor()
+                    
+                    # Marcar la clase como completada usando conexión directa
+                    fecha_realizacion = datetime.now()
+                    update_query = """
+                        UPDATE cronograma_clases 
+                        SET estado = 'completada', 
+                            fecha_confirmacion = %s,
+                            fecha_modificacion = NOW(),
+                            usuario_modificacion = 1
+                        WHERE id = %s
+                    """
+                    
+                    cursor.execute(update_query, (fecha_realizacion, clase_id))
+                    
+                    # Verificar que se actualizó al menos una fila
+                    if cursor.rowcount > 0:
+                        connection.commit()
+                        cursor.close()
+                        connection.close()
+                        
+                        return response_success({
+                            'clase_id': clase_id,
+                            'estado': 'completada',
+                            'fecha_confirmacion': fecha_realizacion.isoformat(),
+                            'rows_affected': cursor.rowcount
+                        }, "Clase marcada como completada exitosamente")
+                    else:
+                        connection.rollback()
+                        cursor.close()
+                        connection.close()
+                        return response_error(f"No se encontró la clase con ID {clase_id}", 404)
+                        
+                except Exception as db_error:
+                    connection.rollback()
+                    cursor.close()
+                    connection.close()
+                    return response_error(f"Error en base de datos: {str(db_error)}", 500)
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"marcar_clase_realizada_working_debug - Error: {str(e)}")
+                return response_error(f"Error marcando clase como completada: {str(e)}", 500)
+
+        @app.route('/api/debug/create-sample-patients', methods=['POST'])
+        def create_sample_patients_debug():
+            """Debug endpoint - crear pacientes de ejemplo usando componentes existentes"""
+            try:
+                from src.api.Components.PacienteComponent import PacienteComponent
+                from src.api.Components.PersonaComponent import PersonaComponent
+                from src.utils.general.response import response_success, response_error
+                from datetime import date
+                
+                # Datos de personas de ejemplo para pacientes (usando cédulas únicas)
+                personas_data = [
+                    {
+                        'nombre': 'Emma',
+                        'apellido': 'López Vásquez',
+                        'cedula': '1750123456',
+                        'fecha_nacimiento': '2015-03-15',
+                        'telefono': '0987654321',
+                        'email': 'emma.lopez@email.com'
+                    },
+                    {
+                        'nombre': 'Diego',
+                        'apellido': 'Castro Morales',
+                        'cedula': '1750123457',
+                        'fecha_nacimiento': '2014-07-22',
+                        'telefono': '0987654322',
+                        'email': 'diego.castro@email.com'
+                    },
+                    {
+                        'nombre': 'Valeria',
+                        'apellido': 'Herrera Jiménez',
+                        'cedula': '1750123458',
+                        'fecha_nacimiento': '2016-01-10',
+                        'telefono': '0987654323',
+                        'email': 'valeria.herrera@email.com'
+                    }
+                ]
+                
+                created_patients = []
+                
+                for persona_data in personas_data:
+                    try:
+                        # Crear persona usando el componente
+                        persona_id = PersonaComponent.create_persona(persona_data)
+                        
+                        if persona_id:
+                            # Crear paciente usando el componente
+                            paciente_data = {
+                                'id_persona': persona_id,
+                                'id_centro': 1,  # Usar centro 1 por defecto
+                                'fecha_ingreso': date.today().isoformat(),
+                                'motivo_consulta': f"Sesión pedagógica para estudiante {persona_data['nombre']}",
+                                'observaciones': 'Paciente creado para pruebas pedagógicas',
+                                'estado': 'activo',
+                                'usuario_creacion': 1
+                            }
+                            
+                            paciente_id = PacienteComponent.create_paciente(paciente_data)
+                            
+                            if paciente_id:
+                                created_patients.append({
+                                    'paciente_id': paciente_id,
+                                    'persona_id': persona_id,
+                                    'nombre': f"{persona_data['nombre']} {persona_data['apellido']}",
+                                    'cedula': persona_data['cedula']
+                                })
+                    
+                    except Exception as person_error:
+                        print(f"Error creating patient for {persona_data['nombre']}: {person_error}")
+                        continue
+                
+                return response_success({
+                    'created_patients': created_patients,
+                    'total_created': len(created_patients)
+                }, f"{len(created_patients)} pacientes de ejemplo creados exitosamente")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"create_sample_patients_debug - Error: {str(e)}")
+                return response_error(f"Error creando pacientes: {str(e)}", 500)
+
         @app.route('/api/debug/database-status', methods=['GET'])
         def debug_database_status():
             """Debug endpoint - verificar estado completo de la base de datos"""

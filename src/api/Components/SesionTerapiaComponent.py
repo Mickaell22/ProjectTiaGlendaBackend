@@ -321,20 +321,27 @@ class SesionTerapiaComponent:
             # Remover duplicados y ordenar
             dias_numeros = sorted(list(set(dias_numeros)))
             
-            # Calcular fecha límite inteligente
-            # Si no hay fecha_fin, calcular basándose en el número de sesiones
-            if not fecha_fin:
-                # Estimar fecha fin: (sesiones / días_por_semana) * 7 días + margen de 4 semanas
-                dias_por_semana = len(dias_numeros)
-                semanas_estimadas = (max_sesiones // dias_por_semana) + 1
-                fecha_fin = fecha_inicio + timedelta(weeks=semanas_estimadas + 4)
+            # Calcular fecha límite inteligente SIEMPRE
+            # Calcular fecha mínima necesaria para generar todas las sesiones
+            dias_por_semana = len(dias_numeros)
+            semanas_necesarias = (max_sesiones // dias_por_semana) + 2  # +2 para cubrir sesiones parciales
+            fecha_minima_necesaria = fecha_inicio + timedelta(weeks=semanas_necesarias + 4)  # +4 semanas de margen
+            
+            # Si fecha_fin existe pero es muy restrictiva, expandirla
+            if fecha_fin and fecha_fin < fecha_minima_necesaria:
+                HandleLogs.write_log(f"SesionTerapiaComponent.generar_cronograma - Fecha fin original ({fecha_fin}) muy restrictiva, expandiendo a {fecha_minima_necesaria}")
+                fecha_fin = fecha_minima_necesaria
+            elif not fecha_fin:
+                fecha_fin = fecha_minima_necesaria
             
             # Generar cronograma de manera eficiente
             fecha_actual = fecha_inicio
             numero_sesion_semanal = 1
             sesiones_creadas = 0
-            intentos_max = 1000  # Evitar bucles infinitos
+            intentos_max = max_sesiones * 20  # Margen más amplio: 20 intentos por sesión requerida
             intentos = 0
+            
+            HandleLogs.write_log(f"SesionTerapiaComponent.generar_cronograma - Iniciando generación: {max_sesiones} sesiones desde {fecha_inicio} hasta {fecha_fin}, días: {dias_numeros}")
             
             while sesiones_creadas < max_sesiones and fecha_actual <= fecha_fin and intentos < intentos_max:
                 dia_semana = fecha_actual.weekday()  # 0=lunes, 6=domingo
@@ -367,9 +374,18 @@ class SesionTerapiaComponent:
             if sesiones_creadas == 0:
                 raise Exception("No se pudieron generar sesiones. Verificar fechas y días de la semana.")
             
+            # Información detallada sobre finalización del bucle
             if sesiones_creadas < max_sesiones:
+                razon_termino = ""
+                if fecha_actual > fecha_fin:
+                    razon_termino = f"Se alcanzó la fecha límite ({fecha_fin})"
+                elif intentos >= intentos_max:
+                    razon_termino = f"Se alcanzó el límite de intentos ({intentos_max})"
+                else:
+                    razon_termino = "Razón desconocida"
+                    
                 HandleLogs.write_error(
-                    f"Advertencia: Solo se generaron {sesiones_creadas} de {max_sesiones} sesiones solicitadas")
+                    f"Advertencia: Solo se generaron {sesiones_creadas} de {max_sesiones} sesiones solicitadas. {razon_termino}. Intentos: {intentos}, Fecha actual: {fecha_actual}")
             
             HandleLogs.write_log(
                 f"SesionTerapiaComponent.generar_cronograma - {sesiones_creadas} sesiones programadas para sesión {sesion_id}")
@@ -526,6 +542,7 @@ class SesionTerapiaComponent:
                 UPDATE cronograma_sesiones 
                 SET estado = 'completada', 
                     observaciones = %s,
+                    fecha_realizacion = CURRENT_TIMESTAMP,
                     fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id = %s
             """
@@ -726,6 +743,7 @@ class SesionTerapiaComponent:
                     p.cedula as paciente_cedula,
                     COALESCE(a.asistio, false) as asistio,
                     CAST(a.hora_llegada AS TEXT) as hora_llegada,
+                    COALESCE(a.llegada_tardanza_minutos, 0) as llegada_tardanza_minutos,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
@@ -774,6 +792,7 @@ class SesionTerapiaComponent:
                     -- Información de asistencia (si existe)
                     COALESCE(a.asistio, false) as asistio,
                     CAST(a.hora_llegada AS TEXT) as hora_llegada,
+                    COALESCE(a.llegada_tardanza_minutos, 0) as llegada_tardanza_minutos,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
@@ -849,6 +868,7 @@ class SesionTerapiaComponent:
                         'paciente_cedula': row['paciente_cedula'],
                         'asistio': row['asistio'],
                         'hora_llegada': str(row['hora_llegada']) if row['hora_llegada'] else None,
+                        'llegada_tardanza_minutos': row['llegada_tardanza_minutos'],
                         'observaciones_terapeuta': row['observaciones_terapeuta'],
                         'progreso_observado': row['progreso_observado'],
                         'tareas_asignadas': row['tareas_asignadas'],
@@ -884,13 +904,16 @@ class SesionTerapiaComponent:
                 WHERE id_cronograma = %s AND id_paciente = %s
             """
             
+            # Limpiar campos de texto para UTF-8
+            from src.utils.general.utf8_helper import UTF8Helper
+            
             params = (
                 data.get('asistio', False),
                 data.get('hora_llegada'),
-                data.get('observaciones_terapeuta', ''),
-                data.get('progreso_observado', ''),
-                data.get('tareas_asignadas', ''),
-                data.get('objetivos_trabajados', ''),
+                UTF8Helper.clean_observaciones(data.get('observaciones_terapeuta', '')),
+                UTF8Helper.clean_observaciones(data.get('progreso_observado', '')),
+                UTF8Helper.clean_observaciones(data.get('tareas_asignadas', '')),
+                UTF8Helper.clean_observaciones(data.get('objetivos_trabajados', '')),
                 usuario_modificacion,
                 cronograma_id,
                 paciente_id
@@ -918,14 +941,15 @@ class SesionTerapiaComponent:
             # Ejecutar UPSERT usando ExecuteNonQuery
             upsert_query = """
                 INSERT INTO asistencia_sesiones (
-                    id_cronograma, id_paciente, asistio, hora_llegada,
+                    id_cronograma, id_paciente, asistio, hora_llegada, llegada_tardanza_minutos,
                     observaciones_terapeuta, progreso_observado, tareas_asignadas,
                     objetivos_trabajados, usuario_creacion
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id_cronograma, id_paciente) 
                 DO UPDATE SET
                     asistio = EXCLUDED.asistio,
                     hora_llegada = EXCLUDED.hora_llegada,
+                    llegada_tardanza_minutos = EXCLUDED.llegada_tardanza_minutos,
                     observaciones_terapeuta = EXCLUDED.observaciones_terapeuta,
                     progreso_observado = EXCLUDED.progreso_observado,
                     tareas_asignadas = EXCLUDED.tareas_asignadas,
@@ -933,15 +957,45 @@ class SesionTerapiaComponent:
                     usuario_modificacion = EXCLUDED.usuario_creacion
             """
 
+            # Limpiar campos de texto para UTF-8
+            from src.utils.general.utf8_helper import UTF8Helper
+            
+            # Calcular hora_llegada si se proporciona llegada_tardanza_minutos
+            hora_llegada = asistencia_data.get('hora_llegada')
+            if not hora_llegada and asistencia_data.get('llegada_tardanza_minutos', 0) > 0:
+                try:
+                    # Obtener hora de inicio programada para calcular hora_llegada
+                    cronograma_query = """
+                        SELECT hora_inicio FROM cronograma_sesiones WHERE id = %s
+                    """
+                    cronograma_result = DataBaseHandle.getRecords(cronograma_query, (cronograma_id,), size=1)
+                    if cronograma_result and len(cronograma_result) > 0:
+                        from datetime import datetime, timedelta
+                        hora_inicio = cronograma_result[0]['hora_inicio']
+                        if isinstance(hora_inicio, str):
+                            # Parse time string if needed
+                            hora_inicio = datetime.strptime(hora_inicio, '%H:%M:%S').time()
+                        
+                        # Convert to datetime to add minutes
+                        base_date = datetime.combine(datetime.today().date(), hora_inicio)
+                        hora_llegada_calc = base_date + timedelta(minutes=asistencia_data.get('llegada_tardanza_minutos', 0))
+                        hora_llegada = hora_llegada_calc.time()
+                        HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - Calculada hora_llegada: {hora_llegada} (tardanza: {asistencia_data.get('llegada_tardanza_minutos', 0)} min)")
+                    else:
+                        HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - No se encontró cronograma {cronograma_id}, usando tardanza manual")
+                except Exception as e:
+                    HandleLogs.write_error(f"SesionTerapiaComponent.registrar_asistencia - Error calculando hora_llegada: {str(e)}")
+            
             params = (
                 cronograma_id,
                 paciente_id,
                 asistencia_data.get('asistio', False),
-                asistencia_data.get('hora_llegada'),
-                asistencia_data.get('observaciones_terapeuta'),
-                asistencia_data.get('progreso_observado'),
-                asistencia_data.get('tareas_asignadas'),
-                asistencia_data.get('objetivos_trabajados'),
+                hora_llegada,
+                asistencia_data.get('llegada_tardanza_minutos', 0),
+                UTF8Helper.clean_observaciones(asistencia_data.get('observaciones_asistencia')),
+                UTF8Helper.clean_observaciones(asistencia_data.get('notas_progreso')),
+                UTF8Helper.clean_observaciones(asistencia_data.get('tareas_asignadas')),
+                UTF8Helper.clean_observaciones(asistencia_data.get('proximos_objetivos')),
                 asistencia_data['usuario_creacion']
             )
 
@@ -953,7 +1007,7 @@ class SesionTerapiaComponent:
             # Actualizar estado del cronograma si el paciente asistió
             if asistencia_data.get('asistio', False):
                 # Marcar sesión como realizada si al menos un paciente asistió
-                observaciones_cronograma = asistencia_data.get('observaciones_terapeuta') or asistencia_data.get('progreso_observado')
+                observaciones_cronograma = asistencia_data.get('observaciones_asistencia') or asistencia_data.get('notas_progreso')
                 SesionTerapiaComponent.marcar_sesion_realizada(cronograma_id, observaciones_cronograma)
                 HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - Cronograma {cronograma_id} marcado como realizada")
                 
@@ -1071,7 +1125,7 @@ class SesionTerapiaComponent:
                 LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
                 WHERE cs.fecha_programada = CURRENT_DATE 
                     AND st.estado IN ('planificada', 'en_curso')
-                    AND cs.estado IN ('programada', 'realizada')
+                    AND cs.estado IN ('programada', 'completada')
                     AND e.area = 'Especialidad terapéutica'
                 GROUP BY cs.id, st.id, p_ter.nombre, p_ter.apellido, e.nombre
                 ORDER BY cs.hora_inicio
@@ -1109,7 +1163,7 @@ class SesionTerapiaComponent:
             query_cronograma = """
                 SELECT 
                     COUNT(*) as total_sesiones_programadas,
-                    COUNT(CASE WHEN estado = 'realizada' THEN 1 END) as sesiones_realizadas,
+                    COUNT(CASE WHEN estado = 'completada' THEN 1 END) as sesiones_realizadas,
                     COUNT(CASE WHEN estado = 'programada' THEN 1 END) as sesiones_pendientes,
                     COUNT(CASE WHEN estado = 'cancelada' THEN 1 END) as sesiones_canceladas_cronograma,
                     COUNT(CASE WHEN estado = 'reprogramada' THEN 1 END) as sesiones_reprogramadas
@@ -1276,6 +1330,7 @@ class SesionTerapiaComponent:
                     p.cedula as paciente_cedula,
                     a.asistio,
                     CAST(a.hora_llegada AS TEXT) as hora_llegada,
+                    a.llegada_tardanza_minutos,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
@@ -1321,7 +1376,7 @@ class SesionTerapiaComponent:
                     a.objetivos_trabajados,
                     a.fecha_creacion as fecha_registro,
                     cs.fecha_programada,
-                    cs.hora_inicio,
+                    CAST(cs.hora_inicio AS TEXT) as hora_inicio,
                     cs.numero_sesion_semanal,
                     st.objetivo_general as sesion_titulo,
                     st.codigo_sesion,

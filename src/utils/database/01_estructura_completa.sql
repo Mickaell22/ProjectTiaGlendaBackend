@@ -428,6 +428,7 @@ CREATE TABLE cronograma_sesiones (
     fecha_original DATE,
     motivo_reprogramacion TEXT,
     reprogramada_por INTEGER, -- ID del usuario que reprogramó
+    fecha_realizacion TIMESTAMP DEFAULT NULL,
     
     observaciones TEXT,
     
@@ -451,6 +452,7 @@ CREATE TABLE asistencia_sesiones (
     asistio BOOLEAN DEFAULT FALSE,
     hora_llegada TIME,
     hora_salida TIME,
+    llegada_tardanza_minutos INTEGER DEFAULT 0,
     estado_asistencia VARCHAR(20) DEFAULT 'pendiente' CHECK (estado_asistencia IN 
         ('pendiente', 'presente', 'ausente', 'tarde', 'justificado', 'cancelado')),
     
@@ -933,6 +935,8 @@ CREATE TRIGGER trigger_observaciones_sesiones_fecha_modificacion
     FOR EACH ROW
     EXECUTE FUNCTION actualizar_fecha_modificacion();
 
+-- Trigger para calcular tardanza se define después de la función (ver línea 1314+)
+
 -- =============================================
 -- FUNCIONES DE NEGOCIO
 -- =============================================
@@ -1279,6 +1283,44 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Función para calcular tardanza (híbrida: manual + automática)
+CREATE OR REPLACE FUNCTION calcular_tardanza_asistencia()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- PRIORIDAD 1: Si viene tardanza manual del frontend (> 0), mantenerla
+    IF NEW.llegada_tardanza_minutos IS NOT NULL AND NEW.llegada_tardanza_minutos > 0 THEN
+        -- Mantener el valor manual
+        RETURN NEW;
+    END IF;
+    
+    -- PRIORIDAD 2: Si hay hora_llegada, calcular automáticamente
+    IF NEW.asistio = TRUE AND NEW.hora_llegada IS NOT NULL THEN
+        -- Obtener la hora programada del cronograma
+        SELECT 
+            CASE 
+                WHEN NEW.hora_llegada > cs.hora_inicio THEN
+                    EXTRACT(EPOCH FROM (NEW.hora_llegada - cs.hora_inicio)) / 60
+                ELSE 
+                    0
+            END
+        INTO NEW.llegada_tardanza_minutos
+        FROM cronograma_sesiones cs
+        WHERE cs.id = NEW.id_cronograma;
+    ELSE
+        -- PRIORIDAD 3: Por defecto 0
+        NEW.llegada_tardanza_minutos := 0;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para calcular tardanza automáticamente
+CREATE TRIGGER trigger_calcular_tardanza
+    BEFORE INSERT OR UPDATE ON asistencia_sesiones
+    FOR EACH ROW
+    EXECUTE FUNCTION calcular_tardanza_asistencia();
+
 -- =============================================
 -- COMENTARIOS EN TABLAS
 -- =============================================
@@ -1299,6 +1341,8 @@ COMMENT ON TABLE sesion_terapia IS 'Configuración y gestión de sesiones terap�
 COMMENT ON TABLE sesion_paciente IS 'Inscripción de pacientes en sesiones terapéuticas';
 COMMENT ON TABLE cronograma_sesiones IS 'Programación de citas individuales de terapia';
 COMMENT ON TABLE asistencia_sesiones IS 'Registro de asistencia y progreso en sesiones terapéuticas';
+COMMENT ON COLUMN asistencia_sesiones.llegada_tardanza_minutos IS 'Minutos de tardanza del paciente (manual con prioridad, o calculado automáticamente)';
+COMMENT ON COLUMN cronograma_sesiones.fecha_realizacion IS 'Fecha y hora cuando se marcó la sesión como completada';
 COMMENT ON TABLE sesion_pedagogica IS 'Configuración y gestión de sesiones pedagógicas/educativas';
 COMMENT ON TABLE sesion_estudiante IS 'Inscripción de pacientes como estudiantes en sesiones pedagógicas';
 COMMENT ON TABLE cronograma_clases IS 'Programación de clases pedagógicas';
