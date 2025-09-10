@@ -502,6 +502,7 @@ CREATE TABLE sesion_pedagogica (
     -- Programación
     duracion_minutos INTEGER DEFAULT 60 CHECK (duracion_minutos > 0),
     frecuencia_semanal INTEGER DEFAULT 2 CHECK (frecuencia_semanal > 0 AND frecuencia_semanal <= 7),
+    numero_clases_programadas INTEGER DEFAULT 20 CHECK (numero_clases_programadas > 0), -- Total de clases programadas
     dias_semana TEXT[] CHECK (array_length(dias_semana, 1) > 0), -- Array: ['martes', 'jueves']
     hora_inicio TIME DEFAULT '09:00',
     hora_fin TIME DEFAULT '10:00',
@@ -572,7 +573,7 @@ CREATE TABLE cronograma_clases (
     
     -- Control de estado de la clase
     estado VARCHAR(20) DEFAULT 'programada' CHECK (estado IN 
-        ('programada', 'preparada', 'en_curso', 'completada', 'cancelada', 'reprogramada')),
+        ('programada', 'preparada', 'en_curso', 'completada', 'cancelada', 'reprogramada', 'realizada')),
     fecha_confirmacion TIMESTAMP,
     motivo_cancelacion TEXT,
     
@@ -603,11 +604,13 @@ CREATE TABLE asistencia_clases (
     asistio BOOLEAN DEFAULT FALSE,
     hora_llegada TIME,
     hora_salida TIME,
+    llegada_tardanza_minutos INTEGER DEFAULT 0 CHECK (llegada_tardanza_minutos >= 0),
     estado_asistencia VARCHAR(20) DEFAULT 'pendiente' CHECK (estado_asistencia IN 
         ('pendiente', 'presente', 'ausente', 'tarde', 'justificado', 'cancelado')),
     
     -- Observaciones académicas
     observaciones_educador TEXT,
+    objetivos_trabajados TEXT,
     participacion_clase VARCHAR(20) CHECK (participacion_clase IN ('excelente', 'buena', 'regular', 'deficiente')),
     comprension_tema VARCHAR(20) CHECK (comprension_tema IN ('excelente', 'buena', 'regular', 'deficiente')),
     actividades_completadas BOOLEAN DEFAULT FALSE,

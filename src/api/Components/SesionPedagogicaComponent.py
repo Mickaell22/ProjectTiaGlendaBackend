@@ -23,7 +23,7 @@ class SesionPedagogicaComponent:
                 HandleLogs.write_log("SesionPedagogicaComponent.get_sesiones - No sessions found in database")
                 return []
             
-            # Simplified query without complex JOINs for debugging
+            # Query with correct student count calculation
             query = """
                 SELECT 
                     sp.id,
@@ -39,7 +39,7 @@ class SesionPedagogicaComponent:
                     sp.dias_semana,
                     sp.hora_inicio,
                     sp.duracion_minutos,
-                    20 as numero_clases_programadas,
+                    COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
                     sp.nivel_academico,
                     sp.capacidad_maxima,
                     'presencial' as modalidad,
@@ -50,12 +50,17 @@ class SesionPedagogicaComponent:
                     '' as observaciones,
                     sp.fecha_creacion,
                     sp.fecha_modificacion,
-                    0 as total_estudiantes,
-                    0 as clases_programadas,
-                    0 as clases_realizadas,
+                    COALESCE(COUNT(DISTINCT se.id_paciente), 0) as total_estudiantes,
+                    COALESCE(COUNT(DISTINCT cc.id), 0) as clases_programadas,
+                    COALESCE(COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END), 0) as clases_realizadas,
                     0 as promedio_notas,
                     0 as promedio_asistencia
                 FROM sesion_pedagogica sp
+                LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
+                LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
+                GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.id_educador, sp.id_especialidad,
+                         sp.fecha_inicio, sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.duracion_minutos,
+                         sp.nivel_academico, sp.capacidad_maxima, sp.estado, sp.fecha_creacion, sp.fecha_modificacion
                 ORDER BY sp.fecha_creacion DESC
             """
 
@@ -102,7 +107,7 @@ class SesionPedagogicaComponent:
     def get_cronograma_sesiones(filtros=None):
         """Obtener cronograma de sesiones pedagógicas con filtros opcionales"""
         try:
-            # Query base para obtener sesiones con cronograma
+            # Query base para obtener sesiones con cronograma - corregido estado
             query = """
                 SELECT 
                     sp.id,
@@ -116,20 +121,20 @@ class SesionPedagogicaComponent:
                     sp.dias_semana,
                     sp.hora_inicio,
                     sp.duracion_minutos,
-                    ADDTIME(sp.hora_inicio, CONCAT(sp.duracion_minutos, ':00')) as hora_fin,
+                    (sp.hora_inicio + (sp.duracion_minutos || ' minutes')::interval) as hora_fin,
                     sp.nivel_academico,
                     sp.capacidad_maxima,
                     'presencial' as modalidad,
                     sp.estado,
                     sp.fecha_inicio,
                     sp.fecha_fin,
-                    COUNT(DISTINCT se.paciente_id) as total_estudiantes
+                    COUNT(DISTINCT se.id_paciente) as total_estudiantes
                 FROM sesion_pedagogica sp
                 JOIN personal per ON sp.id_educador = per.id
                 JOIN persona p_ped ON per.id_persona = p_ped.id
                 JOIN especialidad e ON sp.id_especialidad = e.id
                 LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
-                WHERE sp.estado = 'activa'
+                WHERE sp.estado IN ('en_curso', 'activa', 'activo')
             """
             
             params = []
@@ -147,11 +152,21 @@ class SesionPedagogicaComponent:
                 if filtros.get('semana'):
                     # Filtro por semana (se puede expandir según necesidades)
                     if filtros['semana'] == 'actual':
-                        query += " AND sp.fecha_inicio <= CURDATE() AND (sp.fecha_fin >= CURDATE() OR sp.fecha_fin IS NULL)"
+                        query += " AND sp.fecha_inicio <= CURRENT_DATE AND (sp.fecha_fin >= CURRENT_DATE OR sp.fecha_fin IS NULL)"
             
             query += " GROUP BY sp.id, p_ped.nombre, p_ped.apellido, e.nombre, e.area ORDER BY sp.hora_inicio"
             
             result = DataBaseHandle.getRecords(query, tuple(params) if params else None)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesiones - Query executed, raw result: {result}")
+            
+            # Verificar si result es None o vacío
+            if result is None:
+                HandleLogs.write_log("SesionPedagogicaComponent.get_cronograma_sesiones - Result is None, returning empty list")
+                return []
+            
+            if not isinstance(result, list):
+                HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesiones - Result is not list, type: {type(result)}")
+                return []
             
             # Procesar los días de la semana para cada sesión
             for sesion in result:
@@ -159,12 +174,19 @@ class SesionPedagogicaComponent:
                     try:
                         # Si dias_semana es JSON string, parsearlo
                         if isinstance(sesion['dias_semana'], str):
-                            sesion['dias_programados'] = json.loads(sesion['dias_semana'])
-                        else:
+                            # Limpiar string de array de PostgreSQL
+                            dias_str = sesion['dias_semana'].strip('{}').strip()
+                            if dias_str:
+                                sesion['dias_programados'] = [dia.strip() for dia in dias_str.split(',')]
+                            else:
+                                sesion['dias_programados'] = []
+                        elif isinstance(sesion['dias_semana'], list):
                             sesion['dias_programados'] = sesion['dias_semana']
-                    except:
-                        # Si no es JSON válido, asumir formato de string simple
-                        sesion['dias_programados'] = sesion['dias_semana'].split(',') if sesion['dias_semana'] else []
+                        else:
+                            sesion['dias_programados'] = []
+                    except Exception as parse_error:
+                        HandleLogs.write_error(f"Error parsing dias_semana: {parse_error}")
+                        sesion['dias_programados'] = []
                 else:
                     sesion['dias_programados'] = []
             
@@ -179,7 +201,7 @@ class SesionPedagogicaComponent:
     def create_sesion(sesion_data):
         """Crear nueva sesión pedagógica"""
         try:
-            # Primero insertar la sesión
+            # Primero insertar la sesión - usar campos correctos y estado 'en_curso'
             insert_query = """
                 INSERT INTO sesion_pedagogica (
                     codigo_sesion, nombre_clase, id_educador, id_especialidad, fecha_inicio, fecha_fin,
@@ -195,40 +217,49 @@ class SesionPedagogicaComponent:
                 sesion_data['pedagogo_id'],  # id_educador
                 sesion_data['especialidad_id'],  # id_especialidad
                 sesion_data['fecha_inicio'],
-                sesion_data['fecha_fin'],
+                sesion_data.get('fecha_fin'),  # puede ser None
                 sesion_data['dias_semana'],
                 sesion_data['hora_inicio'],
                 sesion_data.get('duracion_minutos', 60),
                 sesion_data.get('nivel_academico', 'primaria'),
-                sesion_data.get('capacidad_maxima', 10),  # capacidad_maxima
-                sesion_data.get('estado', 'planificada'),
+                sesion_data.get('capacidad_maxima', 10),
+                sesion_data.get('estado', 'en_curso'),  # Estado por defecto correcto
                 sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
             )
 
+            # Ejecutar INSERT
             DataBaseHandle.ExecuteNonQuery(insert_query, params)
+            HandleLogs.write_log("SesionPedagogicaComponent.create_sesion - INSERT ejecutado exitosamente")
             
-            # Obtener la sesión recién creada
+            # Obtener la sesión recién creada con mejor query
             select_query = """
                 SELECT id, codigo_sesion 
                 FROM sesion_pedagogica 
-                WHERE nombre_clase = %s AND id_educador = %s AND fecha_inicio = %s
-                ORDER BY id DESC 
+                WHERE nombre_clase = %s AND id_educador = %s AND usuario_creacion = %s
+                ORDER BY fecha_creacion DESC 
                 LIMIT 1
             """
-            select_params = (sesion_data['titulo'], sesion_data['pedagogo_id'], sesion_data['fecha_inicio'])
+            select_params = (sesion_data['titulo'], sesion_data['pedagogo_id'], sesion_data['usuario_creacion'])
             result = DataBaseHandle.getRecords(select_query, select_params, size=1)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.create_sesion - SELECT result: {result}")
 
             if result:
                 sesion_id = result['id']
                 HandleLogs.write_log(f"SesionPedagogicaComponent.create_sesion - Sesión {sesion_id} creada exitosamente")
                 
                 # Generar cronograma automáticamente
-                SesionPedagogicaComponent.generar_cronograma(sesion_id)
+                try:
+                    SesionPedagogicaComponent.generar_cronograma(sesion_id)
+                    HandleLogs.write_log(f"SesionPedagogicaComponent.create_sesion - Cronograma generado para sesión {sesion_id}")
+                except Exception as cronograma_error:
+                    HandleLogs.write_error(f"Error generando cronograma: {str(cronograma_error)}")
+                    # No fallar por error de cronograma, solo registrar
                 
                 return result
             else:
-                raise Exception("No se pudo crear la sesión pedagógica")
+                HandleLogs.write_error("SesionPedagogicaComponent.create_sesion - No se pudo obtener la sesión creada")
+                raise Exception("No se pudo obtener la sesión pedagógica creada")
 
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.create_sesion - Error: {str(e)}")
@@ -301,7 +332,7 @@ class SesionPedagogicaComponent:
             # Primero obtener la información de la sesión
             sesion_query = """
                 SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, 
-                       COALESCE(frecuencia_semanal * 4, 20) as numero_clases_programadas, 
+                       COALESCE(numero_clases_programadas, 20) as numero_clases_programadas, 
                        usuario_creacion
                 FROM sesion_pedagogica 
                 WHERE id = %s
@@ -416,6 +447,14 @@ class SesionPedagogicaComponent:
                 HandleLogs.write_error(
                     f"Advertencia: Solo se generaron {clases_creadas} de {max_clases} clases solicitadas")
             
+            # NUEVO: Crear registros de asistencia para todos los estudiantes inscritos
+            try:
+                SesionPedagogicaComponent._crear_registros_asistencia_cronograma(sesion_id)
+                HandleLogs.write_log(f"Registros de asistencia creados para cronograma de sesión {sesion_id}")
+            except Exception as asistencia_error:
+                HandleLogs.write_error(f"Error creando registros de asistencia: {str(asistencia_error)}")
+                # No fallar por este error, el cronograma ya está creado
+            
             HandleLogs.write_log(
                 f"SesionPedagogicaComponent.generar_cronograma - {clases_creadas} clases programadas para sesión {sesion_id}")
             return True
@@ -423,6 +462,66 @@ class SesionPedagogicaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.generar_cronograma - Error: {str(e)}")
             raise Exception(f"Error al generar cronograma: {str(e)}")
+
+    @staticmethod
+    def _crear_registros_asistencia_cronograma(sesion_id):
+        """Crear registros de asistencia para todos los estudiantes de todas las clases del cronograma"""
+        try:
+            # Obtener todas las clases del cronograma
+            cronograma_query = """
+                SELECT id FROM cronograma_clases 
+                WHERE id_sesion = %s 
+                ORDER BY fecha_programada, hora_inicio
+            """
+            clases = DataBaseHandle.getRecords(cronograma_query, (sesion_id,))
+            
+            if not clases:
+                HandleLogs.write_log(f"No hay clases en el cronograma para sesión {sesion_id}")
+                return
+            
+            # Obtener todos los estudiantes inscritos en la sesión
+            estudiantes_query = """
+                SELECT id_paciente FROM sesion_estudiante 
+                WHERE id_sesion = %s AND estado = 'activo'
+            """
+            estudiantes = DataBaseHandle.getRecords(estudiantes_query, (sesion_id,))
+            
+            if not estudiantes:
+                HandleLogs.write_log(f"No hay estudiantes inscritos en sesión {sesion_id}")
+                return
+            
+            # Crear registros de asistencia para cada combinación clase-estudiante
+            registros_creados = 0
+            for clase in clases:
+                for estudiante in estudiantes:
+                    try:
+                        # Verificar si ya existe el registro
+                        check_query = """
+                            SELECT id FROM asistencia_clases 
+                            WHERE id_cronograma = %s AND id_paciente = %s
+                        """
+                        existing = DataBaseHandle.getRecords(check_query, (clase['id'], estudiante['id_paciente']), size=1)
+                        
+                        if not existing:
+                            # Crear nuevo registro de asistencia (sin marcar asistencia por defecto)
+                            insert_query = """
+                                INSERT INTO asistencia_clases (
+                                    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
+                                    estado_asistencia, fecha_creacion, usuario_creacion
+                                ) VALUES (%s, %s, NULL, 0, 'pendiente', CURRENT_TIMESTAMP, 1)
+                            """
+                            DataBaseHandle.ExecuteNonQuery(insert_query, (clase['id'], estudiante['id_paciente']))
+                            registros_creados += 1
+                    
+                    except Exception as registro_error:
+                        HandleLogs.write_error(f"Error creando registro asistencia clase {clase['id']}, estudiante {estudiante['id_paciente']}: {str(registro_error)}")
+                        continue
+            
+            HandleLogs.write_log(f"Creados {registros_creados} registros de asistencia para sesión {sesion_id}")
+            
+        except Exception as e:
+            HandleLogs.write_error(f"Error en _crear_registros_asistencia_cronograma: {str(e)}")
+            raise Exception(f"Error creando registros de asistencia: {str(e)}")
 
     # ============================================
     # MÉTODOS PARA SESION_ESTUDIANTE
@@ -469,6 +568,17 @@ class SesionPedagogicaComponent:
     def add_estudiante_to_sesion(sesion_id, estudiante_data):
         """Agregar un estudiante a una sesión pedagógica"""
         try:
+            # Primero verificar si el estudiante ya está asignado a esta sesión
+            check_query = """
+                SELECT id FROM sesion_estudiante 
+                WHERE id_sesion = %s AND id_paciente = %s AND estado = 'activo'
+            """
+            check_params = (sesion_id, estudiante_data['paciente_id'])
+            existing = DataBaseHandle.getRecords(check_query, check_params)
+            
+            if existing and len(existing) > 0:
+                raise Exception("El estudiante ya está asignado a esta sesión pedagógica")
+            
             # Usar ExecuteNonQuery para INSERT (según buenas prácticas de CLAUDE.md)
             query = """
                 INSERT INTO sesion_estudiante (
@@ -545,6 +655,7 @@ class SesionPedagogicaComponent:
                     cc.numero_clase_semanal as numero_clase,
                     cc.fecha_programada,
                     cc.hora_inicio as hora_programada,
+                    cc.hora_fin,
                     cc.tema_clase,
                     CASE 
                         WHEN cc.estado = 'completada' THEN 'realizada'
@@ -553,6 +664,10 @@ class SesionPedagogicaComponent:
                     cc.fecha_confirmacion as fecha_realizacion,
                     cc.objetivos_clase,
                     cc.materiales_necesarios as material_requerido,
+                    cc.observaciones,
+                    cc.motivo_reprogramacion,
+                    cc.fecha_original,
+                    cc.motivo_cancelacion,
                     '' as tareas_asignadas,
                     '' as evaluacion_programada,
                     '' as tipo_evaluacion
@@ -571,6 +686,13 @@ class SesionPedagogicaComponent:
             if result_with_status and 'data' in result_with_status:
                 result = result_with_status['data']
                 HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Cronograma obtenido para sesión {sesion_id}, registros: {len(result) if result else 0}")
+                
+                # Convert None values to empty strings for consistency
+                if result:
+                    for record in result:
+                        if record.get('observaciones') is None:
+                            record['observaciones'] = ''
+                
                 return result if result is not None else []
             else:
                 HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - No data returned or error in query for session {sesion_id}")
@@ -599,7 +721,7 @@ class SesionPedagogicaComponent:
                     sp.dias_semana,
                     sp.hora_inicio,
                     sp.duracion_minutos,
-                    COALESCE(sp.frecuencia_semanal * 4, 20) as numero_clases_programadas,
+                    COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
                     sp.nivel_academico,
                     sp.capacidad_maxima,
                     'presencial' as modalidad,
@@ -649,11 +771,11 @@ class SesionPedagogicaComponent:
             query = """
                 SELECT 
                     COUNT(*) as total_sesiones,
-                    COUNT(CASE WHEN estado = 'activo' THEN 1 END) as sesiones_activas,
-                    COUNT(CASE WHEN estado = 'completado' THEN 1 END) as sesiones_completadas,
-                    COUNT(CASE WHEN estado = 'suspendido' THEN 1 END) as sesiones_suspendidas,
-                    COUNT(CASE WHEN estado = 'cancelado' THEN 1 END) as sesiones_canceladas,
-                    COALESCE(SUM(frecuencia_semanal * 4), 0) as total_clases_programadas,
+                    COUNT(CASE WHEN estado IN ('en_curso', 'activo', 'activa') THEN 1 END) as sesiones_activas,
+                    COUNT(CASE WHEN estado IN ('completada', 'completado') THEN 1 END) as sesiones_completadas,
+                    COUNT(CASE WHEN estado IN ('suspendida', 'suspendido') THEN 1 END) as sesiones_suspendidas,
+                    COUNT(CASE WHEN estado IN ('cancelada', 'cancelado') THEN 1 END) as sesiones_canceladas,
+                    0 as total_clases_programadas,
                     0 as ingresos_totales,
                     ROUND(AVG(duracion_minutos), 0) as duracion_promedio
                 FROM sesion_pedagogica
@@ -662,9 +784,9 @@ class SesionPedagogicaComponent:
             query_clases = """
                 SELECT 
                     COUNT(*) as total_clases_programadas,
-                    COUNT(CASE WHEN estado = 'realizada' THEN 1 END) as clases_realizadas,
+                    COUNT(CASE WHEN estado IN ('realizada', 'completada') THEN 1 END) as clases_realizadas,
                     COUNT(CASE WHEN estado = 'programada' THEN 1 END) as clases_pendientes,
-                    COUNT(CASE WHEN estado = 'cancelada' THEN 1 END) as clases_canceladas,
+                    COUNT(CASE WHEN estado IN ('cancelada', 'cancelado') THEN 1 END) as clases_canceladas,
                     COUNT(CASE WHEN estado = 'reprogramada' THEN 1 END) as clases_reprogramadas
                 FROM cronograma_clases
             """
@@ -705,3 +827,404 @@ class SesionPedagogicaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.get_estadisticas_sesiones - Error: {str(e)}")
             raise Exception(f"Error al obtener estadísticas: {str(e)}")
+
+    # ============================================
+    # MÉTODOS PARA SISTEMA DE ASISTENCIAS
+    # ============================================
+
+    @staticmethod
+    def registrar_asistencia(cronograma_id, estudiante_id, asistencia_data):
+        """Registrar asistencia de un estudiante a una clase"""
+        try:
+            # Verificar que la clase existe
+            verificar_query = """
+                SELECT cc.id, cc.fecha_programada, cc.hora_inicio, cc.id_sesion
+                FROM cronograma_clases cc
+                WHERE cc.id = %s
+            """
+            clase_info = DataBaseHandle.getRecords(verificar_query, (cronograma_id,), size=1)
+            
+            if not clase_info:
+                raise Exception(f"Clase con ID {cronograma_id} no encontrada")
+
+            # Insertar asistencia
+            insert_query = """
+                INSERT INTO asistencia_clases (
+                    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+                    llegada_tardanza_minutos, estado_asistencia, observaciones_educador,
+                    objetivos_trabajados, calificacion_clase,
+                    usuario_creacion
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+
+            params = (
+                cronograma_id,
+                estudiante_id,
+                asistencia_data.get('asistio', False),
+                asistencia_data.get('hora_llegada'),
+                asistencia_data.get('hora_salida'),
+                asistencia_data.get('llegada_tardanza_minutos', 0),
+                asistencia_data.get('estado_asistencia', 'presente' if asistencia_data.get('asistio') else 'ausente'),
+                asistencia_data.get('observaciones_educador') or asistencia_data.get('observaciones_asistencia'),
+                asistencia_data.get('objetivos_trabajados') or asistencia_data.get('proximos_objetivos'),
+                asistencia_data.get('calificacion_evaluacion') or asistencia_data.get('calificacion_clase'),
+                asistencia_data.get('usuario_creacion', 1)
+            )
+
+            DataBaseHandle.ExecuteNonQuery(insert_query, params)
+
+            # Obtener el ID de asistencia creado
+            select_query = """
+                SELECT id FROM asistencia_clases 
+                WHERE id_cronograma = %s AND id_paciente = %s
+                ORDER BY fecha_creacion DESC LIMIT 1
+            """
+            result = DataBaseHandle.getRecords(select_query, (cronograma_id, estudiante_id), size=1)
+
+            if result:
+                asistencia_id = result['id']
+                HandleLogs.write_log(f"SesionPedagogicaComponent.registrar_asistencia - Asistencia {asistencia_id} registrada")
+                return asistencia_id
+            else:
+                raise Exception("No se pudo obtener el ID de asistencia creado")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.registrar_asistencia - Error: {str(e)}")
+            raise Exception(f"Error al registrar asistencia: {str(e)}")
+
+    @staticmethod
+    def actualizar_asistencia(cronograma_id, estudiante_id, asistencia_data):
+        """Actualizar asistencia existente o crear nueva si no existe (UPSERT)"""
+        try:
+            # PostgreSQL UPSERT: INSERT ... ON CONFLICT DO UPDATE
+            upsert_query = """
+                INSERT INTO asistencia_clases (
+                    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+                    llegada_tardanza_minutos, estado_asistencia, observaciones_educador,
+                    objetivos_trabajados, calificacion_clase,
+                    usuario_creacion, usuario_modificacion
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id_cronograma, id_paciente) 
+                DO UPDATE SET
+                    asistio = EXCLUDED.asistio,
+                    hora_llegada = EXCLUDED.hora_llegada,
+                    hora_salida = EXCLUDED.hora_salida,
+                    llegada_tardanza_minutos = EXCLUDED.llegada_tardanza_minutos,
+                    estado_asistencia = EXCLUDED.estado_asistencia,
+                    observaciones_educador = EXCLUDED.observaciones_educador,
+                    objetivos_trabajados = EXCLUDED.objetivos_trabajados,
+                    calificacion_clase = EXCLUDED.calificacion_clase,
+                    usuario_modificacion = EXCLUDED.usuario_modificacion,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+            """
+
+            params = (
+                cronograma_id,
+                estudiante_id,
+                asistencia_data.get('asistio', False),
+                asistencia_data.get('hora_llegada'),
+                asistencia_data.get('hora_salida'),
+                asistencia_data.get('llegada_tardanza_minutos', 0),
+                asistencia_data.get('estado_asistencia', 'presente' if asistencia_data.get('asistio') else 'ausente'),
+                asistencia_data.get('observaciones_educador'),
+                asistencia_data.get('objetivos_trabajados'),
+                asistencia_data.get('calificacion_evaluacion'),
+                asistencia_data.get('usuario_creacion', 1),
+                asistencia_data.get('usuario_modificacion', 1)
+            )
+
+            DataBaseHandle.ExecuteNonQuery(upsert_query, params)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.actualizar_asistencia - Asistencia upserted para clase {cronograma_id}, estudiante {estudiante_id}")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.actualizar_asistencia - Error: {str(e)}")
+            raise Exception(f"Error al actualizar asistencia: {str(e)}")
+
+    @staticmethod
+    def get_asistencias_por_sesion(sesion_id):
+        """Obtener todas las asistencias de una sesión pedagógica"""
+        try:
+            query = """
+                SELECT 
+                    ac.id,
+                    ac.id_cronograma,
+                    ac.id_paciente,
+                    cc.fecha_programada,
+                    cc.hora_inicio as hora_programada,
+                    cc.numero_clase_semanal,
+                    CONCAT(p.nombre, ' ', p.apellido) as estudiante_nombre,
+                    p.cedula as estudiante_cedula,
+                    ac.asistio,
+                    ac.hora_llegada,
+                    ac.hora_salida,
+                    ac.llegada_tardanza_minutos,
+                    ac.estado_asistencia,
+                    ac.observaciones_educador,
+                    ac.objetivos_trabajados,
+                    ac.progreso_observado,
+                    ac.calificacion_clase,
+                    ac.fecha_creacion as fecha_registro
+                FROM asistencia_clases ac
+                JOIN cronograma_clases cc ON ac.id_cronograma = cc.id
+                JOIN paciente pac ON ac.id_paciente = pac.id
+                JOIN persona p ON pac.id_persona = p.id
+                WHERE cc.id_sesion = %s
+                ORDER BY cc.fecha_programada DESC, p.nombre
+            """
+
+            result = DataBaseHandle.getRecords(query, (sesion_id,))
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_asistencias_por_sesion - {len(result) if result else 0} asistencias encontradas")
+            return result or []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.get_asistencias_por_sesion - Error: {str(e)}")
+            raise Exception(f"Error al obtener asistencias: {str(e)}")
+
+    @staticmethod
+    def get_control_asistencia(cronograma_id):
+        """Obtener control de asistencia completo para una clase específica"""
+        try:
+            query = """
+                SELECT 
+                    cc.id as cronograma_id,
+                    cc.numero_clase_semanal,
+                    cc.fecha_programada,
+                    cc.hora_inicio,
+                    cc.tema_clase,
+                    sp.nombre_clase as sesion_titulo,
+                    sp.codigo_sesion,
+                    CONCAT(p_edu.nombre, ' ', p_edu.apellido) as educador_nombre,
+                    -- Información de estudiantes y sus asistencias
+                    se.id_paciente as estudiante_id,
+                    CONCAT(p_est.nombre, ' ', p_est.apellido) as nombre,
+                    CONCAT(p_est.nombre, ' ', p_est.apellido) as estudiante_nombre,
+                    p_est.cedula as estudiante_cedula,
+                    ac.asistio,
+                    ac.hora_llegada,
+                    ac.hora_salida,
+                    ac.llegada_tardanza_minutos,
+                    ac.estado_asistencia,
+                    ac.observaciones_educador,
+                    ac.objetivos_trabajados,
+                    ac.calificacion_clase,
+                    ac.evaluacion_comportamiento,
+                    ac.tareas_asignadas,
+                    ac.actividades_completadas,
+                    ac.fecha_creacion as fecha_registro,
+                    ac.fecha_modificacion
+                FROM cronograma_clases cc
+                JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
+                JOIN personal per ON sp.id_educador = per.id
+                JOIN persona p_edu ON per.id_persona = p_edu.id
+                LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
+                LEFT JOIN paciente pac ON se.id_paciente = pac.id
+                LEFT JOIN persona p_est ON pac.id_persona = p_est.id
+                LEFT JOIN asistencia_clases ac ON cc.id = ac.id_cronograma AND se.id_paciente = ac.id_paciente
+                WHERE cc.id = %s
+                ORDER BY p_est.nombre
+            """
+
+            result = DataBaseHandle.getRecords(query, (cronograma_id,))
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_control_asistencia - Control obtenido para clase {cronograma_id}")
+            return result or []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.get_control_asistencia - Error: {str(e)}")
+            raise Exception(f"Error al obtener control de asistencia: {str(e)}")
+
+    @staticmethod
+    def marcar_clase_realizada(cronograma_id, usuario_id, observaciones=''):
+        """Marcar una clase como realizada con observaciones"""
+        try:
+            # Actualizar el registro con las observaciones
+            update_query = """
+                UPDATE cronograma_clases SET
+                    estado = 'realizada',
+                    fecha_confirmacion = CURRENT_TIMESTAMP,
+                    observaciones = %s,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """
+            
+            params = (observaciones, usuario_id, cronograma_id)
+            DataBaseHandle.ExecuteNonQuery(update_query, params)
+            
+            HandleLogs.write_log(f"SesionPedagogicaComponent.marcar_clase_realizada - Clase {cronograma_id} marcada como realizada con observaciones: '{observaciones[:50]}{'...' if len(observaciones) > 50 else ''}'")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.marcar_clase_realizada - Error: {str(e)}")
+            raise Exception(f"Error al marcar clase como realizada: {str(e)}")
+
+    @staticmethod
+    def reprogramar_clase(cronograma_id, nueva_fecha, nueva_hora, motivo, usuario_id):
+        """Reprogramar una clase - CREAR NUEVA CLASE EN LUGAR DE ACTUALIZAR LA EXISTENTE"""
+        try:
+            # Primero, obtener información de la clase original
+            get_original_query = """
+                SELECT cc.*, sp.id as sesion_id, sp.duracion_minutos
+                FROM cronograma_clases cc
+                JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
+                WHERE cc.id = %s
+            """
+            
+            original_class = DataBaseHandle.getRecords(get_original_query, (cronograma_id,), size=1)
+            
+            if not original_class:
+                raise Exception(f"Clase con ID {cronograma_id} no encontrada")
+            
+            # Marcar la clase original como reprogramada (para histórico)
+            update_original_query = """
+                UPDATE cronograma_clases SET
+                    estado = 'reprogramada',
+                    motivo_reprogramacion = %s,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """
+            
+            params_update = (f"Reprogramada: {motivo}", usuario_id, cronograma_id)
+            DataBaseHandle.ExecuteNonQuery(update_original_query, params_update)
+            
+            # Calcular hora_fin para la nueva clase
+            from datetime import datetime, timedelta
+            duracion_minutos = original_class.get('duracion_minutos', 60)
+            hora_fin = (datetime.combine(nueva_fecha, nueva_hora) + timedelta(minutes=duracion_minutos)).time()
+            
+            # Obtener el próximo número de clase disponible para evitar duplicados
+            next_class_number_query = """
+                SELECT COALESCE(MAX(numero_clase_semanal), 0) + 1 as next_number
+                FROM cronograma_clases 
+                WHERE id_sesion = %s
+            """
+            next_number_result = DataBaseHandle.getRecords(next_class_number_query, (original_class['id_sesion'],), size=1)
+            next_class_number = next_number_result['next_number'] if next_number_result else 1
+            
+            # Crear observaciones detalladas con fecha actual
+            from datetime import datetime
+            fecha_hoy = datetime.now().strftime('%d/%m/%Y')
+            
+            # Preservar observaciones existentes si las hay
+            observaciones_existentes = original_class.get('observaciones', '')
+            observaciones_reprogramacion = f"REPROGRAMADA el {fecha_hoy}: Clase original #{original_class['numero_clase_semanal']} programada para {original_class['fecha_programada']} fue reprogramada para {nueva_fecha}. Motivo: {motivo}"
+            
+            if observaciones_existentes and observaciones_existentes.strip():
+                observaciones_detalladas = f"{observaciones_existentes}\n\n{observaciones_reprogramacion}"
+            else:
+                observaciones_detalladas = observaciones_reprogramacion
+            
+            # Crear nueva entrada en cronograma con la nueva fecha/hora
+            insert_new_query = """
+                INSERT INTO cronograma_clases (
+                    id_sesion, fecha_programada, hora_inicio, hora_fin,
+                    numero_clase_semanal, tema_clase, objetivos_clase, 
+                    materiales_necesarios, estado, observaciones,
+                    motivo_reprogramacion, fecha_original,
+                    usuario_creacion
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'programada', %s, %s, %s, %s)
+            """
+            
+            # Usar nuevo número de clase y contenido de la original
+            params_insert = (
+                original_class['id_sesion'],           # sesion_id
+                nueva_fecha,                           # nueva fecha
+                nueva_hora,                            # nueva hora
+                hora_fin,                              # hora fin calculada
+                next_class_number,                     # NUEVO número de clase
+                original_class.get('tema_clase', ''),  # mismo tema
+                original_class.get('objetivos_clase', ''), # mismos objetivos
+                original_class.get('materiales_necesarios', ''), # mismos materiales
+                observaciones_detalladas,              # observaciones detalladas
+                motivo,                                # motivo de reprogramación
+                original_class['fecha_programada'],    # fecha original para referencia
+                usuario_id                             # usuario que reprograma
+            )
+            
+            DataBaseHandle.ExecuteNonQuery(insert_new_query, params_insert)
+            
+            # Obtener el ID de la nueva clase creada - usando el nuevo número de clase
+            get_new_id_query = """
+                SELECT id FROM cronograma_clases 
+                WHERE id_sesion = %s AND fecha_programada = %s AND hora_inicio = %s 
+                AND numero_clase_semanal = %s AND estado = 'programada' AND usuario_creacion = %s
+                ORDER BY fecha_creacion DESC LIMIT 1
+            """
+            
+            new_class_params = (
+                original_class['id_sesion'],
+                nueva_fecha, 
+                nueva_hora,
+                next_class_number,
+                usuario_id
+            )
+            
+            new_class_result = DataBaseHandle.getRecords(get_new_id_query, new_class_params, size=1)
+            
+            if new_class_result:
+                nueva_clase_id = new_class_result['id']
+                
+                # Crear registros de asistencia para la nueva clase (para todos los estudiantes inscritos)
+                try:
+                    estudiantes_query = """
+                        SELECT id_paciente FROM sesion_estudiante 
+                        WHERE id_sesion = %s AND estado = 'activo'
+                    """
+                    estudiantes = DataBaseHandle.getRecords(estudiantes_query, (original_class['id_sesion'],))
+                    
+                    if estudiantes:
+                        for estudiante in estudiantes:
+                            # Verificar que no existe ya un registro de asistencia
+                            check_asistencia_query = """
+                                SELECT id FROM asistencia_clases 
+                                WHERE id_cronograma = %s AND id_paciente = %s
+                            """
+                            existing = DataBaseHandle.getRecords(check_asistencia_query, (nueva_clase_id, estudiante['id_paciente']), size=1)
+                            
+                            if not existing:
+                                # Crear registro de asistencia pendiente
+                                insert_asistencia_query = """
+                                    INSERT INTO asistencia_clases (
+                                        id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
+                                        estado_asistencia, fecha_creacion, usuario_creacion
+                                    ) VALUES (%s, %s, NULL, 0, 'pendiente', CURRENT_TIMESTAMP, %s)
+                                """
+                                DataBaseHandle.ExecuteNonQuery(insert_asistencia_query, (nueva_clase_id, estudiante['id_paciente'], usuario_id))
+                    
+                    HandleLogs.write_log(f"SesionPedagogicaComponent.reprogramar_clase - Registros de asistencia creados para nueva clase {nueva_clase_id}")
+                
+                except Exception as asistencia_error:
+                    HandleLogs.write_error(f"Error creando registros de asistencia para clase reprogramada: {str(asistencia_error)}")
+                    # No fallar por este error, la clase ya fue creada exitosamente
+                
+                HandleLogs.write_log(f"SesionPedagogicaComponent.reprogramar_clase - Clase {cronograma_id} (#{original_class['numero_clase_semanal']}) reprogramada. Nueva clase creada: {nueva_clase_id} (#{next_class_number})")
+                return nueva_clase_id
+            else:
+                raise Exception("No se pudo obtener el ID de la nueva clase creada")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.reprogramar_clase - Error: {str(e)}")
+            raise Exception(f"Error al reprogramar clase: {str(e)}")
+
+    @staticmethod
+    def cancelar_clase(cronograma_id, motivo, usuario_id):
+        """Cancelar una clase"""
+        try:
+            update_query = """
+                UPDATE cronograma_clases SET
+                    estado = 'cancelada',
+                    motivo_cancelacion = %s,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """
+            
+            params = (motivo, usuario_id, cronograma_id)
+            DataBaseHandle.ExecuteNonQuery(update_query, params)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.cancelar_clase - Clase {cronograma_id} cancelada")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.cancelar_clase - Error: {str(e)}")
+            raise Exception(f"Error al cancelar clase: {str(e)}")

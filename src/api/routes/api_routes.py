@@ -1280,7 +1280,7 @@ def register_routes(app):
                     SELECT 
                         ac.id,
                         ac.paciente_id,
-                        p.nombre_completo as estudiante_nombre,
+                        CONCAT(p.nombre, ' ', p.apellido) as estudiante_nombre,
                         ac.asistio,
                         ac.llegada_tardanza_minutos,
                         ac.observaciones_asistencia,
@@ -1291,9 +1291,10 @@ def register_routes(app):
                         ac.observaciones_evaluacion,
                         ac.fecha_registro
                     FROM asistencia_clases ac
-                    LEFT JOIN persona p ON ac.paciente_id = p.id
+                    LEFT JOIN paciente pac ON ac.paciente_id = pac.id
+                    LEFT JOIN persona p ON pac.id_persona = p.id
                     WHERE ac.cronograma_clases_id = %s
-                    ORDER BY p.nombre_completo
+                    ORDER BY p.nombre, p.apellido
                 """
                 
                 result = DataBaseHandle.getRecords(query, (cronograma_id,))
@@ -1528,17 +1529,17 @@ def register_routes(app):
                 query = """
                     SELECT 
                         se.id,
-                        se.paciente_id,
-                        se.fecha_asignacion,
+                        se.id_paciente,
+                        se.fecha_inscripcion as fecha_asignacion,
                         se.estado as estado_asignacion,
-                        p.nombre_completo as estudiante_nombre,
+                        CONCAT(p.nombre, ' ', p.apellido) as estudiante_nombre,
                         p.cedula as estudiante_cedula,
                         p.fecha_nacimiento as estudiante_fecha_nacimiento
                     FROM sesion_estudiante se
-                    JOIN paciente pac ON se.paciente_id = pac.id
+                    JOIN paciente pac ON se.id_paciente = pac.id
                     JOIN persona p ON pac.id_persona = p.id
                     WHERE se.id_sesion = %s AND se.estado = 'activo'
-                    ORDER BY p.nombre_completo
+                    ORDER BY p.nombre, p.apellido
                 """
                 
                 result = DataBaseHandle.getRecords(query, (sesion_id,))
@@ -1551,6 +1552,58 @@ def register_routes(app):
                 HandleLogs.write_error(f"get_estudiantes_sesion_pedagogica_debug - Error: {str(e)}")
                 return response_error(f"Error obteniendo estudiantes: {str(e)}", 500)
 
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes-debug', methods=['POST'])
+        def add_estudiante_sesion_pedagogica_debug(sesion_id):
+            """Debug endpoint - agregar estudiante a sesión pedagógica sin autenticación"""
+            try:
+                from src.utils.database.connection_db import DataBaseHandle
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                import json
+                from datetime import date
+                
+                data = request.get_json() if request.is_json else {}
+                
+                # Validar datos requeridos
+                if not data.get('paciente_id'):
+                    return response_error("Campo paciente_id es requerido", 400)
+                
+                # Preparar datos para insertar
+                insert_data = {
+                    'id_sesion': sesion_id,
+                    'id_paciente': int(data['paciente_id']),
+                    'fecha_inscripcion': data.get('fecha_inscripcion', str(date.today())),
+                    'nivel_actual': data.get('nivel_actual', 'basico'),
+                    'estado': 'activo',
+                    'observaciones': data.get('observaciones', ''),
+                    'usuario_creacion': 1  # Usuario debug
+                }
+                
+                # Insertar en la base de datos
+                insert_query = """
+                    INSERT INTO sesion_estudiante 
+                    (id_sesion, id_paciente, fecha_inscripcion, nivel_actual, estado, observaciones, usuario_creacion)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                
+                DataBaseHandle.ExecuteNonQuery(insert_query, (
+                    insert_data['id_sesion'],
+                    insert_data['id_paciente'],
+                    insert_data['fecha_inscripcion'],
+                    insert_data['nivel_actual'],
+                    insert_data['estado'],
+                    insert_data['observaciones'],
+                    insert_data['usuario_creacion']
+                ))
+                
+                return response_success(insert_data, "Estudiante agregado exitosamente a la sesión")
+                
+            except Exception as e:
+                from src.utils.general.response import response_error
+                from src.utils.general.logs import HandleLogs
+                HandleLogs.write_error(f"add_estudiante_sesion_pedagogica_debug - Error: {str(e)}")
+                return response_error(f"Error agregando estudiante: {str(e)}", 500)
+
         @app.route('/api/pacientes-disponibles-debug', methods=['GET'])
         def get_pacientes_disponibles_debug():
             """Debug endpoint - obtener pacientes disponibles para agregar a sesiones sin autenticación"""
@@ -1562,14 +1615,14 @@ def register_routes(app):
                     SELECT 
                         p.id,
                         p.id_persona,
-                        per.nombre_completo,
+                        CONCAT(per.nombre, ' ', per.apellido) as nombre_completo,
                         per.cedula,
                         per.fecha_nacimiento,
                         p.estado
                     FROM paciente p
                     JOIN persona per ON p.id_persona = per.id
                     WHERE p.estado = 'activo'
-                    ORDER BY per.nombre_completo
+                    ORDER BY per.nombre, per.apellido
                 """
                 
                 result = DataBaseHandle.getRecords(query)
@@ -2246,6 +2299,99 @@ def register_routes(app):
             """Obtener pedagogos disponibles para asignar a sesiones"""
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.get_pedagogos_disponibles()
+
+        # ============================================
+        # ENDPOINTS DEL SISTEMA DE ASISTENCIAS
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/estudiantes/<int:estudiante_id>/asistencia', methods=['POST'])
+        @token_required
+        def registrar_asistencia_pedagogica(cronograma_id, estudiante_id):
+            """Registrar asistencia de estudiante a una clase"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.registrar_asistencia(cronograma_id, estudiante_id)
+
+        @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/estudiantes/<int:estudiante_id>/asistencia', methods=['PUT'])
+        @token_required
+        def actualizar_asistencia_pedagogica(cronograma_id, estudiante_id):
+            """Actualizar asistencia existente de estudiante"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.actualizar_asistencia(cronograma_id, estudiante_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/asistencias', methods=['GET'])
+        @token_required
+        def get_asistencias_pedagogicas(sesion_id):
+            """Obtener todas las asistencias de una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_asistencias_por_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/control-asistencia', methods=['GET'])
+        @token_required
+        def get_control_asistencia_pedagogica(cronograma_id):
+            """Obtener control de asistencia completo para una clase"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_control_asistencia(cronograma_id)
+
+        # ============================================
+        # ENDPOINTS DE GESTIÓN DE CRONOGRAMA
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/realizar', methods=['PUT'])
+        @token_required
+        def marcar_clase_realizada_pedagogica(cronograma_id):
+            """Marcar clase como realizada"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.marcar_clase_realizada(cronograma_id)
+
+        @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/reprogramar', methods=['PUT'])
+        @token_required
+        def reprogramar_clase_pedagogica(cronograma_id):
+            """Reprogramar una clase"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.reprogramar_clase(cronograma_id)
+
+        @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/cancelar', methods=['PUT'])
+        @token_required
+        def cancelar_clase_pedagogica(cronograma_id):
+            """Cancelar una clase"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.cancelar_clase(cronograma_id)
+
+        # Endpoint temporal para debug de asistencias
+        @app.route('/api/debug-asistencia/<int:cronograma_id>/<int:estudiante_id>', methods=['GET'])
+        def debug_asistencia(cronograma_id, estudiante_id):
+            """Debug endpoint para verificar asistencias"""
+            try:
+                from src.utils.database.DataBaseHandle import DataBaseHandle
+                from src.utils.general.response_handler import response_success, response_error
+                
+                # Verificar si existe registro de asistencia
+                asistencia_query = """
+                    SELECT * FROM asistencia_clases 
+                    WHERE id_cronograma = %s AND id_paciente = %s
+                """
+                asistencia = DataBaseHandle.getRecords(asistencia_query, (cronograma_id, estudiante_id))
+                
+                # Verificar si existe cronograma
+                cronograma_query = "SELECT * FROM cronograma_clases WHERE id = %s"
+                cronograma = DataBaseHandle.getRecords(cronograma_query, (cronograma_id,))
+                
+                # Verificar si existe estudiante
+                estudiante_query = "SELECT * FROM paciente WHERE id = %s"
+                estudiante = DataBaseHandle.getRecords(estudiante_query, (estudiante_id,))
+                
+                return response_success({
+                    'asistencia_exists': bool(asistencia),
+                    'asistencia_data': asistencia,
+                    'cronograma_exists': bool(cronograma),
+                    'estudiante_exists': bool(estudiante),
+                    'cronograma_id': cronograma_id,
+                    'estudiante_id': estudiante_id
+                }, "Debug data retrieved")
+                
+            except Exception as e:
+                from src.utils.general.response_handler import response_error
+                return response_error(f"Debug error: {str(e)}", 500)
 
     # ============================================
     # REGISTRAR RUTAS DE SESIONES PEDAGÓGICAS

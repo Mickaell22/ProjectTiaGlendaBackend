@@ -493,11 +493,14 @@ class SesionPedagogicaService:
                         'numero_clase': clase['numero_clase'],
                         'fecha_programada': clase['fecha_programada'].isoformat() if clase['fecha_programada'] else None,
                         'hora_programada': str(clase['hora_programada']) if clase['hora_programada'] else None,
+                        'hora_fin': str(clase['hora_fin']) if clase['hora_fin'] else None,
                         'tema_clase': clase['tema_clase'],
                         'estado': clase['estado'],
                         'fecha_realizacion': clase['fecha_realizacion'].isoformat() if clase['fecha_realizacion'] else None,
                         'objetivos_clase': clase['objetivos_clase'],
                         'material_requerido': clase['material_requerido'],
+                        'observaciones': clase['observaciones'],
+                        'motivo_reprogramacion': clase.get('motivo_reprogramacion'),
                         'tareas_asignadas': clase['tareas_asignadas'],
                         'evaluacion_programada': clase['evaluacion_programada'],
                         'tipo_evaluacion': clase['tipo_evaluacion']
@@ -640,3 +643,290 @@ class SesionPedagogicaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaService.get_pedagogos_disponibles - Error: {str(e)}")
             return response_error(f"Error al obtener pedagogos disponibles: {str(e)}", 500)
+
+    # ============================================
+    # MÉTODOS PARA SISTEMA DE ASISTENCIAS
+    # ============================================
+
+    @staticmethod
+    def registrar_asistencia(cronograma_id, estudiante_id):
+        """Registrar nueva asistencia de estudiante"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.registrar_asistencia - Cronograma: {cronograma_id}, Estudiante: {estudiante_id}")
+
+            # Obtener y validar datos UTF-8
+            from src.utils.general.utf8_helper import UTF8Helper
+            data, error_msg = UTF8Helper.safe_get_json()
+            if error_msg:
+                return response_error(error_msg, 400)
+
+            if not data:
+                return response_error("No se enviaron datos de asistencia", 400)
+
+            # Validar IDs
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+            
+            if not isinstance(estudiante_id, int) or estudiante_id <= 0:
+                return response_error("ID de estudiante debe ser un número positivo", 400)
+
+            # Agregar usuario actual
+            data['usuario_creacion'] = request.current_user['id']
+
+            # Registrar asistencia
+            asistencia_id = SesionPedagogicaComponent.registrar_asistencia(cronograma_id, estudiante_id, data)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.registrar_asistencia - Asistencia {asistencia_id} registrada exitosamente")
+            return response_success({
+                'asistencia_id': asistencia_id,
+                'cronograma_id': cronograma_id,
+                'estudiante_id': estudiante_id
+            }, "Asistencia registrada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.registrar_asistencia - Error: {str(e)}")
+            return response_error(f"Error al registrar asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def actualizar_asistencia(cronograma_id, estudiante_id):
+        """Actualizar asistencia existente"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.actualizar_asistencia - Cronograma: {cronograma_id}, Estudiante: {estudiante_id}")
+
+            # Obtener y validar datos UTF-8
+            from src.utils.general.utf8_helper import UTF8Helper
+            data, error_msg = UTF8Helper.safe_get_json()
+            if error_msg:
+                return response_error(error_msg, 400)
+
+            if not data:
+                return response_error("No se enviaron datos para actualizar", 400)
+
+            # Validar IDs
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+            
+            if not isinstance(estudiante_id, int) or estudiante_id <= 0:
+                return response_error("ID de estudiante debe ser un número positivo", 400)
+
+            # Agregar usuario de modificación
+            data['usuario_modificacion'] = request.current_user['id']
+
+            # Actualizar asistencia
+            SesionPedagogicaComponent.actualizar_asistencia(cronograma_id, estudiante_id, data)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.actualizar_asistencia - Asistencia actualizada exitosamente")
+            return response_success({
+                'cronograma_id': cronograma_id,
+                'estudiante_id': estudiante_id
+            }, "Asistencia actualizada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.actualizar_asistencia - Error: {str(e)}")
+            return response_error(f"Error al actualizar asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def get_asistencias_por_sesion(sesion_id):
+        """Obtener todas las asistencias de una sesión"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.get_asistencias_por_sesion - Sesión: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            asistencias = SesionPedagogicaComponent.get_asistencias_por_sesion(sesion_id)
+
+            # Formatear asistencias
+            asistencias_formateadas = []
+            for asistencia in asistencias:
+                asistencia_data = {
+                    'id': asistencia['id'],
+                    'cronograma_id': asistencia['id_cronograma'],
+                    'estudiante_id': asistencia['id_paciente'],
+                    'fecha_programada': asistencia['fecha_programada'].isoformat() if asistencia['fecha_programada'] else None,
+                    'hora_programada': str(asistencia['hora_programada']) if asistencia['hora_programada'] else None,
+                    'numero_clase': asistencia['numero_clase_semanal'],
+                    'estudiante': {
+                        'nombre': asistencia['estudiante_nombre'],
+                        'cedula': asistencia['estudiante_cedula']
+                    },
+                    'asistio': asistencia['asistio'],
+                    'hora_llegada': str(asistencia['hora_llegada']) if asistencia['hora_llegada'] else None,
+                    'hora_salida': str(asistencia['hora_salida']) if asistencia['hora_salida'] else None,
+                    'tardanza_minutos': asistencia['llegada_tardanza_minutos'],
+                    'estado_asistencia': asistencia['estado_asistencia'],
+                    'observaciones_educador': asistencia['observaciones_educador'],
+                    'objetivos_trabajados': asistencia['objetivos_trabajados'],
+                    'progreso_observado': asistencia['progreso_observado'],
+                    'calificacion_clase': asistencia['calificacion_clase'],
+                    'fecha_registro': asistencia['fecha_registro'].isoformat() if asistencia['fecha_registro'] else None
+                }
+                asistencias_formateadas.append(asistencia_data)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.get_asistencias_por_sesion - {len(asistencias_formateadas)} asistencias encontradas")
+            return response_success(asistencias_formateadas, "Asistencias obtenidas exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.get_asistencias_por_sesion - Error: {str(e)}")
+            return response_error(f"Error al obtener asistencias: {str(e)}", 500)
+
+    @staticmethod
+    def get_control_asistencia(cronograma_id):
+        """Obtener control de asistencia completo para una clase"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.get_control_asistencia - Cronograma: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            control_data = SesionPedagogicaComponent.get_control_asistencia(cronograma_id)
+
+            if not control_data:
+                return response_error(f"Cronograma con ID {cronograma_id} no encontrado", 404)
+
+            # Formatear datos de control
+            clase_info = None
+            estudiantes = []
+
+            for registro in control_data:
+                # Información de la clase (solo una vez)
+                if not clase_info:
+                    clase_info = {
+                        'cronograma_id': registro['cronograma_id'],
+                        'numero_clase': registro['numero_clase_semanal'],
+                        'fecha_programada': registro['fecha_programada'].isoformat() if registro['fecha_programada'] else None,
+                        'hora_inicio': str(registro['hora_inicio']) if registro['hora_inicio'] else None,
+                        'tema_clase': registro['tema_clase'],
+                        'sesion': {
+                            'titulo': registro['sesion_titulo'],
+                            'codigo_sesion': registro['codigo_sesion']
+                        },
+                        'educador_nombre': registro['educador_nombre']
+                    }
+
+                # Información de estudiantes y asistencias
+                if registro['estudiante_id']:
+                    estudiante_data = {
+                        'estudiante_id': registro['estudiante_id'],
+                        'estudiante_nombre': registro['estudiante_nombre'],
+                        'estudiante_cedula': registro['estudiante_cedula'],
+                        'nombre': registro['estudiante_nombre'],
+                        'cedula': registro['estudiante_cedula'],
+                        'asistio': registro['asistio'],
+                        'hora_llegada': str(registro['hora_llegada']) if registro['hora_llegada'] else None,
+                        'llegada_tardanza_minutos': registro['llegada_tardanza_minutos'],
+                        'tardanza_minutos': registro['llegada_tardanza_minutos'],  # Mantener ambos nombres
+                        'estado_asistencia': registro['estado_asistencia'],
+                        'observaciones_educador': registro['observaciones_educador'],
+                        'observaciones': registro['observaciones_educador'],  # Mantener ambos nombres
+                        'calificacion_clase': registro['calificacion_clase'],
+                        'calificacion': registro['calificacion_clase'],  # Mantener ambos nombres
+                        'fecha_registro': registro['fecha_registro'].isoformat() if registro['fecha_registro'] else None,
+                        'objetivos_trabajados': registro['objetivos_trabajados'],
+                        'evaluacion_comportamiento': registro['evaluacion_comportamiento'],
+                        'tareas_asignadas': registro['tareas_asignadas'],
+                        'actividades_completadas': registro['actividades_completadas']
+                    }
+                    estudiantes.append(estudiante_data)
+
+            control_completo = {
+                'clase': clase_info,
+                'estudiantes': estudiantes,
+                'resumen': {
+                    'total_estudiantes': len(estudiantes),
+                    'presentes': len([e for e in estudiantes if e['asistio']]),
+                    'ausentes': len([e for e in estudiantes if not e['asistio']]),
+                    'con_tardanza': len([e for e in estudiantes if e['tardanza_minutos'] and e['tardanza_minutos'] > 0])
+                }
+            }
+
+            return response_success(control_completo, "Control de asistencia obtenido exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.get_control_asistencia - Error: {str(e)}")
+            return response_error(f"Error al obtener control de asistencia: {str(e)}", 500)
+
+    @staticmethod
+    def marcar_clase_realizada(cronograma_id):
+        """Marcar clase como realizada con observaciones"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.marcar_clase_realizada - Cronograma: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            # Obtener las observaciones del request JSON
+            data = request.get_json()
+            observaciones = data.get('observaciones', '') if data else ''
+
+            # Marcar como realizada con observaciones
+            SesionPedagogicaComponent.marcar_clase_realizada(cronograma_id, request.current_user['id'], observaciones)
+
+            return response_success({
+                'cronograma_id': cronograma_id,
+                'observaciones': observaciones
+            }, "Clase marcada como realizada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.marcar_clase_realizada - Error: {str(e)}")
+            return response_error(f"Error al marcar clase como realizada: {str(e)}", 500)
+
+    @staticmethod
+    def reprogramar_clase(cronograma_id):
+        """Reprogramar una clase - CREAR NUEVA CLASE EN LUGAR DE ACTUALIZAR LA EXISTENTE"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.reprogramar_clase - Cronograma: {cronograma_id}")
+
+            data = request.get_json()
+            if not data:
+                return response_error("No se enviaron datos para reprogramar", 400)
+
+            # Validar campos requeridos
+            if 'nueva_fecha' not in data or 'nueva_hora' not in data:
+                return response_error("Se requieren nueva_fecha y nueva_hora", 400)
+
+            try:
+                nueva_fecha = datetime.strptime(data['nueva_fecha'], '%Y-%m-%d').date()
+                nueva_hora = datetime.strptime(data['nueva_hora'], '%H:%M').time()
+            except ValueError:
+                return response_error("Formato de fecha u hora inválido", 400)
+
+            motivo = data.get('motivo_reprogramacion', data.get('motivo', 'Reprogramación solicitada'))
+
+            # Reprogramar clase - ahora retorna el ID de la nueva clase creada
+            nueva_clase_id = SesionPedagogicaComponent.reprogramar_clase(cronograma_id, nueva_fecha, nueva_hora, motivo, request.current_user['id'])
+
+            return response_success({
+                'cronograma_id_original': cronograma_id,
+                'cronograma_id_nuevo': nueva_clase_id,
+                'nueva_fecha': nueva_fecha.isoformat(),
+                'nueva_hora': str(nueva_hora),
+                'motivo': motivo
+            }, "Clase reprogramada exitosamente. Se creó una nueva clase programada.")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.reprogramar_clase - Error: {str(e)}")
+            return response_error(f"Error al reprogramar clase: {str(e)}", 500)
+
+    @staticmethod
+    def cancelar_clase(cronograma_id):
+        """Cancelar una clase"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.cancelar_clase - Cronograma: {cronograma_id}")
+
+            data = request.get_json()
+            motivo = data.get('motivo', 'Cancelación solicitada') if data else 'Cancelación solicitada'
+
+            # Cancelar clase
+            SesionPedagogicaComponent.cancelar_clase(cronograma_id, motivo, request.current_user['id'])
+
+            return response_success({
+                'cronograma_id': cronograma_id
+            }, "Clase cancelada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.cancelar_clase - Error: {str(e)}")
+            return response_error(f"Error al cancelar clase: {str(e)}", 500)

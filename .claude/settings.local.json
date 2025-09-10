@@ -144,7 +144,9 @@
       "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\terapeutico/**)",
       "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\terapeutico/**)",
       "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\views\\terapeutico/**)",
-      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\api/**)"
+      "Read(/C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\api/**)",
+      "Bash(set TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluLm5vcnRlIiwicm9sIjoiQWRtaW5pc3RyYWRvciIsImV4cCI6MTc1NzM0ODI3NywiaWF0IjoxNzU3MjYxODc3fQ.fUJ5uJZEj4e8SxDcoqUfHbhTFb8_z1udcMGLJODwTPw)",
+      "Bash(timeout 30 python:*)"
     ],
     "deny": [],
     "ask": [],
