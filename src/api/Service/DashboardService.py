@@ -129,3 +129,43 @@ class DashboardService:
         except Exception as e:
             self.logger.error(f"Error en DashboardService.get_todas_estadisticas: {e}")
             raise
+
+    def get_mis_sesiones_hoy(self, id_personal):
+        """
+        Obtiene las sesiones de hoy para un terapeuta específico
+        """
+        try:
+            return self.dashboard_component.get_mis_sesiones_hoy(id_personal)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_mis_sesiones_hoy: {e}")
+            raise
+
+    def get_mis_clases_hoy(self, id_personal):
+        """
+        Obtiene las clases de hoy para un pedagogo específico
+        """
+        try:
+            return self.dashboard_component.get_mis_clases_hoy(id_personal)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_mis_clases_hoy: {e}")
+            raise
+
+    def get_mis_pacientes(self, id_personal):
+        """
+        Obtiene los pacientes asignados a un terapeuta
+        """
+        try:
+            return self.dashboard_component.get_mis_pacientes(id_personal)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_mis_pacientes: {e}")
+            raise
+
+    def get_mis_estudiantes(self, id_personal):
+        """
+        Obtiene los estudiantes de las clases de un pedagogo
+        """
+        try:
+            return self.dashboard_component.get_mis_estudiantes(id_personal)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_mis_estudiantes: {e}")
+            raise

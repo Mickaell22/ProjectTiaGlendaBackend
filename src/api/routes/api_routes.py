@@ -3365,9 +3365,488 @@ def register_routes(app):
                 HandleLogs.write_error(f"Error en get_metricas_asistencia_dashboard: {str(e)}")
                 return response_error("Error interno del servidor", 500)
 
+        # ============================================
+        # RUTAS DASHBOARD PERSONALIZADAS POR ROL
+        # ============================================
+
+        @app.route('/api/dashboard/mis-sesiones-hoy', methods=['GET'])
+        @token_required
+        def get_mis_sesiones_hoy():
+            """Obtener sesiones de hoy para el terapeuta autenticado"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Verificar que el usuario es personal (tiene personal_id)
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo personal autorizado puede acceder a esta información", 403)
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_mis_sesiones_hoy(request.current_user.personal_id)
+                
+                return response_success(resultado, "Mis sesiones de hoy obtenidas exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_mis_sesiones_hoy: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/mis-clases-hoy', methods=['GET'])
+        @token_required
+        def get_mis_clases_hoy():
+            """Obtener clases de hoy para el pedagogo autenticado"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Verificar que el usuario es personal (tiene personal_id)
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo personal autorizado puede acceder a esta información", 403)
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_mis_clases_hoy(request.current_user.personal_id)
+                
+                return response_success(resultado, "Mis clases de hoy obtenidas exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_mis_clases_hoy: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/mis-pacientes', methods=['GET'])
+        @token_required
+        def get_mis_pacientes():
+            """Obtener pacientes asignados al terapeuta autenticado"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Verificar que el usuario es personal (tiene personal_id)
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo personal autorizado puede acceder a esta información", 403)
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_mis_pacientes(request.current_user.personal_id)
+                
+                return response_success(resultado, "Mis pacientes obtenidos exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_mis_pacientes: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/mis-estudiantes', methods=['GET'])
+        @token_required
+        def get_mis_estudiantes():
+            """Obtener estudiantes de las clases del pedagogo autenticado"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Verificar que el usuario es personal (tiene personal_id)
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo personal autorizado puede acceder a esta información", 403)
+                
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_mis_estudiantes(request.current_user.personal_id)
+                
+                return response_success(resultado, "Mis estudiantes obtenidos exitosamente")
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_mis_estudiantes: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
     # ============================================
     # REGISTRAR RUTAS DEL DASHBOARD
     # ============================================
     register_dashboard_routes(app)
+
+    # ============================================
+    # RUTAS DEL SISTEMA DE REPORTES
+    # ============================================
+    def register_reportes_routes(app):
+        """Registrar rutas del sistema de reportes"""
+        
+        @app.route('/api/reportes/disponibles', methods=['GET'])
+        @token_required
+        def get_reportes_disponibles():
+            """Obtener lista de reportes disponibles"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                resultado = ReportesService.get_lista_reportes_disponibles(request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Lista de reportes disponibles obtenida exitosamente")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_reportes_disponibles: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/asistencia-paciente', methods=['POST'])
+        @token_required
+        def generate_reporte_asistencia_paciente():
+            """Generar reporte de asistencia por paciente"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                if not data:
+                    return response_error("Datos requeridos", 400)
+                
+                # Los filtros pueden estar directamente en data o dentro de 'filtros'
+                filtros = data.get('filtros', data)
+                resultado = ReportesService.get_reporte_asistencia_paciente(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Reporte de asistencia generado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_reporte_asistencia_paciente: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/progreso-terapeutico', methods=['POST'])
+        @token_required
+        def generate_reporte_progreso_terapeutico():
+            """Generar reporte de progreso terapéutico"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                if not data:
+                    return response_error("Datos requeridos", 400)
+                
+                filtros = data.get('filtros', data)
+                resultado = ReportesService.get_reporte_progreso_terapeutico(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Reporte de progreso terapéutico generado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_reporte_progreso_terapeutico: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/carga-trabajo-personal', methods=['POST'])
+        @token_required
+        def generate_reporte_carga_trabajo_personal():
+            """Generar reporte de carga de trabajo del personal"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                filtros = data.get('filtros', data) if data else {}
+                resultado = ReportesService.get_reporte_carga_trabajo_personal(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Reporte de carga de trabajo generado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_reporte_carga_trabajo_personal: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/academico-estudiante', methods=['POST'])
+        @token_required
+        def generate_reporte_academico_estudiante():
+            """Generar reporte académico por estudiante"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                filtros = data.get('filtros', data) if data else {}
+                resultado = ReportesService.get_reporte_academico_estudiante(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Reporte académico generado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_reporte_academico_estudiante: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/rendimiento-clase', methods=['POST'])
+        @token_required
+        def generate_reporte_rendimiento_clase():
+            """Generar reporte de rendimiento por clase"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                filtros = data.get('filtros', data) if data else {}
+                resultado = ReportesService.get_reporte_rendimiento_clase(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Reporte de rendimiento por clase generado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_reporte_rendimiento_clase: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/utilizacion-recursos', methods=['POST'])
+        @token_required
+        def generate_reporte_utilizacion_recursos():
+            """Generar reporte de utilización de recursos"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                filtros = data.get('filtros', data) if data else {}
+                resultado = ReportesService.get_reporte_utilizacion_recursos(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Reporte de utilización de recursos generado exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_reporte_utilizacion_recursos: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/estadisticas-generales', methods=['POST'])
+        @token_required
+        def generate_estadisticas_generales_reportes():
+            """Generar estadísticas generales para reportes"""
+            try:
+                from src.api.Service.ReportesService import ReportesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                data = request.get_json()
+                filtros = data.get('filtros', data) if data else {}
+                resultado = ReportesService.get_estadisticas_generales_reportes(filtros, request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado, "Estadísticas generales generadas exitosamente")
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en generate_estadisticas_generales_reportes: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        # ============================================
+        # RUTAS DE EXPORTACIÓN
+        # ============================================
+
+        @app.route('/api/reportes/export/pdf', methods=['POST'])
+        @token_required
+        def export_reporte_pdf():
+            """Exportar reporte a PDF"""
+            from src.api.Service.ExportService import ExportService
+            from flask import request, send_file
+            try:
+                
+                data = request.get_json()
+                if not data or 'data' not in data or 'metadata' not in data:
+                    return response_error("Datos y metadata requeridos", 400)
+                
+                formato = data.get('formato', 'portrait')
+                resultado = ExportService.export_to_pdf(data['data'], data['metadata'], formato)
+                
+                if resultado['success']:
+                    return send_file(
+                        resultado['file_path'],
+                        as_attachment=True,
+                        download_name=resultado['filename'],
+                        mimetype='application/pdf'
+                    )
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en export_reporte_pdf: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/reportes/export/excel', methods=['POST'])
+        @token_required
+        def export_reporte_excel():
+            """Exportar reporte a Excel"""
+            from src.api.Service.ExportService import ExportService
+            from flask import request, send_file
+            try:
+                
+                data = request.get_json()
+                if not data or 'data' not in data or 'metadata' not in data:
+                    return response_error("Datos y metadata requeridos", 400)
+                
+                resultado = ExportService.export_to_excel(data['data'], data['metadata'])
+                
+                if resultado['success']:
+                    return send_file(
+                        resultado['file_path'],
+                        as_attachment=True,
+                        download_name=resultado['filename'],
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    )
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en export_reporte_excel: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DE REPORTES
+    # ============================================
+    register_reportes_routes(app)
+    
+    # ============================================
+    # RUTAS DE CONFIGURACIÓN DEL SISTEMA
+    # ============================================
+    
+    def register_configuracion_routes(app):
+        """Registrar rutas de configuración del sistema"""
+        
+        # ============================================
+        # CONFIGURACIÓN GENERAL
+        # ============================================
+        
+        @app.route('/api/configuracion/general', methods=['GET'])
+        @token_required
+        def get_configuracion_general():
+            """Obtener configuración general del sistema"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.get_configuracion_general()
+        
+        @app.route('/api/configuracion/general', methods=['PUT'])
+        @admin_required
+        def update_configuracion_general():
+            """Actualizar configuración general del sistema"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.update_configuracion_general()
+        
+        # ============================================
+        # CONFIGURACIÓN DE SESIONES
+        # ============================================
+        
+        @app.route('/api/configuracion/sesiones', methods=['GET'])
+        @token_required
+        def get_configuracion_sesiones():
+            """Obtener configuración de sesiones terapéuticas y pedagógicas"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.get_configuracion_sesiones()
+        
+        @app.route('/api/configuracion/sesiones', methods=['PUT'])
+        @admin_required
+        def update_configuracion_sesiones():
+            """Actualizar configuración de sesiones"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.update_configuracion_sesiones()
+        
+        # ============================================
+        # CONFIGURACIÓN DE NOTIFICACIONES
+        # ============================================
+        
+        @app.route('/api/configuracion/notificaciones/global', methods=['GET'])
+        @admin_required
+        def get_configuracion_notificaciones_global():
+            """Obtener configuración global de notificaciones"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.get_configuracion_notificaciones()
+        
+        @app.route('/api/configuracion/notificaciones/global', methods=['PUT'])
+        @admin_required
+        def update_configuracion_notificaciones_global():
+            """Actualizar configuración global de notificaciones"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.update_configuracion_notificaciones()
+        
+        @app.route('/api/configuracion/notificaciones/usuario', methods=['GET'])
+        @token_required
+        def get_configuracion_notificaciones_usuario():
+            """Obtener configuración de notificaciones del usuario actual"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            from flask import request
+            user_id = request.current_user.get('id')
+            return ConfiguracionService.get_configuracion_notificaciones(user_id)
+        
+        @app.route('/api/configuracion/notificaciones/usuario', methods=['PUT'])
+        @token_required
+        def update_configuracion_notificaciones_usuario():
+            """Actualizar configuración de notificaciones del usuario actual"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            from flask import request
+            user_id = request.current_user.get('id')
+            return ConfiguracionService.update_configuracion_notificaciones(user_id)
+        
+        @app.route('/api/configuracion/notificaciones/usuario/<int:user_id>', methods=['GET'])
+        @admin_required
+        def get_configuracion_notificaciones_usuario_especifico(user_id):
+            """Obtener configuración de notificaciones de un usuario específico (solo admin)"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.get_configuracion_notificaciones(user_id)
+        
+        @app.route('/api/configuracion/notificaciones/usuario/<int:user_id>', methods=['PUT'])
+        @admin_required
+        def update_configuracion_notificaciones_usuario_especifico(user_id):
+            """Actualizar configuración de notificaciones de un usuario específico (solo admin)"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.update_configuracion_notificaciones(user_id)
+        
+        # ============================================
+        # CONFIGURACIÓN DE SEGURIDAD
+        # ============================================
+        
+        @app.route('/api/configuracion/seguridad', methods=['GET'])
+        @admin_required
+        def get_configuracion_seguridad():
+            """Obtener configuración de seguridad del sistema"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.get_configuracion_seguridad()
+        
+        @app.route('/api/configuracion/seguridad', methods=['PUT'])
+        @admin_required
+        def update_configuracion_seguridad():
+            """Actualizar configuración de seguridad del sistema"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.update_configuracion_seguridad()
+        
+        # ============================================
+        # UTILIDADES Y ADMINISTRACIÓN
+        # ============================================
+        
+        @app.route('/api/configuracion/inicializar', methods=['POST'])
+        @admin_required
+        def inicializar_sistema_configuracion():
+            """Inicializar tablas de configuración del sistema"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.inicializar_sistema_configuracion()
+        
+        @app.route('/api/configuracion/resumen', methods=['GET'])
+        @token_required
+        def get_resumen_configuracion():
+            """Obtener resumen de todas las configuraciones accesibles para el usuario"""
+            from src.api.Service.ConfiguracionService import ConfiguracionService
+            return ConfiguracionService.get_resumen_configuracion()
+        
+    # ============================================
+    # REGISTRAR RUTAS DE CONFIGURACIÓN
+    # ============================================
+    register_configuracion_routes(app)
 
 

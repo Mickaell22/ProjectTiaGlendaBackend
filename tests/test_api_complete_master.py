@@ -28,7 +28,7 @@ def print_header():
     print("=" * 80)
     print(f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Servidor: {BASE_URL}")
-    print(f"Modulos a probar: 17 modulos completos (8 base + 9 nuevos)")
+    print(f"Modulos a probar: 18 modulos completos (8 base + 10 nuevos)")
     print("=" * 80)
 
 
@@ -399,6 +399,7 @@ def main():
         ("DOCUMENTOS PACIENTES", "test_documentos_pacientes_api.py"),
         
         # Nuevos módulos (Fases 2-3)
+        ("REPORTES", "test_reportes_api.py"),
         ("CHAT INTERNO", "test_chat_api.py"),
         ("FOTOS DE PERFIL", "test_fotos_perfil_api.py"),
         ("OBSERVACIONES", "test_observaciones_api.py"),
