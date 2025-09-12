@@ -13,15 +13,20 @@ class ConfiguracionService:
     
     @staticmethod
     def get_configuracion_general():
-        """Obtener configuración general del sistema"""
+        """Obtener configuración del centro del usuario actual"""
         try:
+            # Obtener centro_id del usuario actual
+            centro_id = request.current_user.get('id_centro')
+            if not centro_id:
+                return response_error("Usuario sin centro asignado", 403)
+            
             component = ConfiguracionComponent()
-            result = component.get_configuracion_general()
+            result = component.get_configuracion_general(centro_id)
             
             if result['success']:
                 return response_success(
                     result['data'], 
-                    "Configuración general obtenida exitosamente"
+                    f"Configuración del centro obtenida exitosamente"
                 )
             else:
                 return response_error(result['message'], 500)
@@ -32,13 +37,22 @@ class ConfiguracionService:
     
     @staticmethod
     def update_configuracion_general():
-        """Actualizar configuración general del sistema"""
+        """Actualizar configuración del centro del usuario actual"""
         try:
             data = request.get_json()
             
             if not data:
                 return response_error("Datos requeridos", 400)
             
+            # Obtener centro_id del usuario actual
+            centro_id = request.current_user.get('id_centro')
+            if not centro_id:
+                return response_error("Usuario sin centro asignado", 403)
+            
+            # DEBUG: Log de datos recibidos
+            HandleLogs.write_log(f"DEBUG - Datos recibidos del frontend para centro {centro_id}: {data}")
+            
+            # Los datos ya vienen mapeados desde el frontend
             # Validar campos requeridos
             required_fields = ['nombre_centro']
             for field in required_fields:
@@ -59,7 +73,7 @@ class ConfiguracionService:
                     return response_error("El horario de inicio debe ser anterior al horario de fin", 400)
             
             component = ConfiguracionComponent()
-            result = component.update_configuracion_general(data)
+            result = component.update_configuracion_general(data, centro_id)
             
             if result['success']:
                 HandleLogs.write_log(f"Configuración general actualizada por usuario: {request.current_user.get('usuario', 'unknown')}")
@@ -103,6 +117,7 @@ class ConfiguracionService:
             if not data:
                 return response_error("Datos requeridos", 400)
             
+            # Los datos ya vienen mapeados desde el frontend
             # Validar campos numéricos positivos
             numeric_fields = [
                 'duracion_sesion_terapia', 'duracion_clase_pedagogica', 
@@ -113,18 +128,19 @@ class ConfiguracionService:
             ]
             
             for field in numeric_fields:
-                if field in data:
+                if field in data and data[field] is not None:
                     value = data[field]
                     if not isinstance(value, int) or value < 0:
                         return response_error(f"El campo {field} debe ser un número entero positivo", 400)
             
             # Validar escala de calificaciones
-            if 'escala_calificacion_min' in data and 'escala_calificacion_max' in data:
+            if (data.get('escala_calificacion_min') is not None and 
+                data.get('escala_calificacion_max') is not None):
                 if data['escala_calificacion_min'] >= data['escala_calificacion_max']:
                     return response_error("La escala mínima debe ser menor que la máxima", 400)
             
             # Validar sistema de calificaciones
-            if 'sistema_calificaciones' in data:
+            if data.get('sistema_calificaciones'):
                 valid_systems = ['numerico', 'alfabetico', 'conceptual']
                 if data['sistema_calificaciones'] not in valid_systems:
                     return response_error(f"Sistema de calificaciones debe ser uno de: {', '.join(valid_systems)}", 400)
@@ -360,12 +376,16 @@ class ConfiguracionService:
         try:
             current_user_rol = request.current_user.get('rol')
             current_user_id = request.current_user.get('id')
+            centro_id = request.current_user.get('id_centro')
+            
+            if not centro_id:
+                return response_error("Usuario sin centro asignado", 403)
             
             component = ConfiguracionComponent()
             resumen = {}
             
-            # Configuración general (todos pueden ver)
-            general_result = component.get_configuracion_general()
+            # Configuración general (todos pueden ver su centro)
+            general_result = component.get_configuracion_general(centro_id)
             if general_result['success']:
                 resumen['general'] = general_result['data']
             
@@ -434,3 +454,42 @@ class ConfiguracionService:
             return start < end
         except:
             return False
+    
+    # ============================================
+    # MÉTODOS DE MAPEO DE DATOS
+    # ============================================
+    
+    @staticmethod
+    def _map_frontend_to_backend_general(frontend_data):
+        """Mapear datos del frontend (camelCase) al backend (snake_case) para configuración general"""
+        return {
+            'nombre_centro': frontend_data.get('nombreCentro'),
+            'direccion': frontend_data.get('direccion'),
+            'telefono': frontend_data.get('telefono'),
+            'email': frontend_data.get('email'),
+            'logo_url': frontend_data.get('logoUrl'),
+            'horario_inicio': frontend_data.get('horarioInicio'),
+            'horario_fin': frontend_data.get('horarioFin'),
+            'zona_horaria': frontend_data.get('zonaHoraria'),
+            'formato_fecha': frontend_data.get('formatoFecha'),
+            'formato_hora': frontend_data.get('formatoHora'),
+            'moneda': frontend_data.get('moneda'),
+            'idioma': frontend_data.get('idioma'),
+            'descripcion': frontend_data.get('descripcion')
+        }
+    
+    @staticmethod
+    def _map_frontend_to_backend_sesiones(frontend_data):
+        """Mapear datos del frontend (camelCase) al backend (snake_case) para configuración de sesiones"""
+        return {
+            'duracion_sesion_terapia': frontend_data.get('duracionSesionTerapia'),
+            'duracion_clase_pedagogica': frontend_data.get('duracionClasePedagogica'),
+            'tolerancia_llegada_tarde': frontend_data.get('toleranciaLlegadaTarde'),
+            'tiempo_recordatorio': frontend_data.get('tiempoRecordatorio'),
+            'permitir_cancelacion_horas': frontend_data.get('permitirCancelacionHoras'),
+            'permitir_reprogramacion_horas': frontend_data.get('permitirReprogramacionHoras'),
+            'capacidad_maxima_clase': frontend_data.get('capacidadMaximaClase'),
+            'sistema_calificaciones': frontend_data.get('sistemaCalificaciones'),
+            'escala_calificacion_min': frontend_data.get('escalaCalificacionMin'),
+            'escala_calificacion_max': frontend_data.get('escalaCalificacionMax')
+        }

@@ -157,7 +157,10 @@
       "Read(//c/Users/ASUS/Desktop/**)",
       "Bash(move:*)",
       "Bash(timeout:*)",
-      "Read(//c/Users/ASUS/Desktop/Proyecto/**)"
+      "Read(//c/Users/ASUS/Desktop/Proyecto/**)",
+      "Bash(findstr:*)",
+      "Bash(set TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluLm5vcnRlIiwicm9sIjoiQWRtaW5pc3RyYWRvciIsImV4cCI6MTc1Nzc4MDY3NCwiaWF0IjoxNzU3Njk0Mjc0fQ.ZmZPYO8ZbTTj6BY3xS7n0q4v8styRDkZbCEztonWoGA)",
+      "Bash(set TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluLm5vcnRlIiwicm9sIjoiQWRtaW5pc3RyYWRvciIsImV4cCI6MTc1Nzc5NDI0MSwiaWF0IjoxNzU3NzA3ODQxfQ.7TKuUN9fJirw-IOJ3jF4HZxSiJmKgTp8t9iZHNBVFWM)"
     ],
     "deny": [],
     "ask": [],

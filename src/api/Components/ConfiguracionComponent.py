@@ -12,29 +12,25 @@ class ConfiguracionComponent:
     # MÉTODOS DE CONFIGURACIÓN GENERAL
     # ============================================
     
-    def get_configuracion_general(self):
-        """Obtener configuración general del sistema"""
+    def get_configuracion_general(self, centro_id):
+        """Obtener configuración del centro específico"""
         try:
             query = """
                 SELECT 
-                    nombre_centro,
-                    logo_url,
+                    nombre as nombre_centro,
                     direccion,
                     telefono,
                     email,
-                    horario_inicio,
-                    horario_fin,
-                    zona_horaria,
-                    formato_fecha,
-                    formato_hora,
-                    moneda,
-                    idioma,
-                    descripcion
-                FROM configuracion_general 
-                WHERE id = 1
+                    horario_apertura as horario_inicio,
+                    horario_cierre as horario_fin,
+                    observaciones as descripcion,
+                    codigo,
+                    turno_principal
+                FROM centros 
+                WHERE id = %s
             """
             
-            result = self.db.getRecords(query)
+            result = self.db.getRecords(query, (centro_id,))
             
             if result and len(result) > 0:
                 config = result[0]
@@ -42,104 +38,58 @@ class ConfiguracionComponent:
                     'success': True,
                     'data': {
                         'nombre_centro': config.get('nombre_centro'),
-                        'logo_url': config.get('logo_url'),
+                        'logo_url': None,  # No logo por ahora
                         'direccion': config.get('direccion'),
                         'telefono': config.get('telefono'),
                         'email': config.get('email'),
-                        'horario_inicio': str(config.get('horario_inicio')) if config.get('horario_inicio') else None,
-                        'horario_fin': str(config.get('horario_fin')) if config.get('horario_fin') else None,
-                        'zona_horaria': config.get('zona_horaria'),
-                        'formato_fecha': config.get('formato_fecha'),
-                        'formato_hora': config.get('formato_hora'),
-                        'moneda': config.get('moneda'),
-                        'idioma': config.get('idioma'),
-                        'descripcion': config.get('descripcion')
-                    }
-                }
-            else:
-                # Devolver configuración por defecto si no existe
-                return {
-                    'success': True,
-                    'data': {
-                        'nombre_centro': 'Centro Tía Glenda',
-                        'logo_url': None,
-                        'direccion': '',
-                        'telefono': '',
-                        'email': '',
-                        'horario_inicio': '08:00:00',
-                        'horario_fin': '17:00:00',
-                        'zona_horaria': 'America/Guayaquil',
+                        'horario_inicio': str(config.get('horario_inicio')) if config.get('horario_inicio') else '08:00:00',
+                        'horario_fin': str(config.get('horario_fin')) if config.get('horario_fin') else '17:00:00',
+                        'zona_horaria': 'America/Guayaquil',  # Valor por defecto para Ecuador
                         'formato_fecha': 'DD/MM/YYYY',
                         'formato_hora': '24h',
                         'moneda': 'USD',
                         'idioma': 'es',
-                        'descripcion': ''
+                        'descripcion': config.get('descripcion') or f'Centro de Rehabilitación {config.get("nombre_centro", "")}'
                     }
+                }
+            else:
+                return {
+                    'success': False,
+                    'message': 'Centro no encontrado'
                 }
                 
         except Exception as e:
             HandleLogs.write_error(f"Error en get_configuracion_general: {str(e)}")
             return {
                 'success': False,
-                'message': f'Error obteniendo configuración general: {str(e)}'
+                'message': f'Error obteniendo configuración del centro: {str(e)}'
             }
     
-    def update_configuracion_general(self, data):
-        """Actualizar configuración general del sistema"""
+    def update_configuracion_general(self, data, centro_id):
+        """Actualizar configuración del centro específico"""
         try:
-            # Verificar si existe el registro
-            check_query = "SELECT COUNT(*) as count FROM configuracion_general WHERE id = 1"
-            check_result = self.db.getRecords(check_query)
-            
-            exists = check_result and len(check_result) > 0 and check_result[0].get('count', 0) > 0
-            
-            if exists:
-                # Actualizar registro existente
-                query = """
-                    UPDATE configuracion_general SET
-                        nombre_centro = %s,
-                        logo_url = %s,
-                        direccion = %s,
-                        telefono = %s,
-                        email = %s,
-                        horario_inicio = %s,
-                        horario_fin = %s,
-                        zona_horaria = %s,
-                        formato_fecha = %s,
-                        formato_hora = %s,
-                        moneda = %s,
-                        idioma = %s,
-                        descripcion = %s,
-                        fecha_modificacion = NOW()
-                    WHERE id = 1
-                """
-            else:
-                # Crear nuevo registro
-                query = """
-                    INSERT INTO configuracion_general (
-                        id, nombre_centro, logo_url, direccion, telefono, email,
-                        horario_inicio, horario_fin, zona_horaria, formato_fecha,
-                        formato_hora, moneda, idioma, descripcion,
-                        fecha_creacion, fecha_modificacion
-                    ) VALUES (
-                        1, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW()
-                    )
-                """
+            # Actualizar la información del centro
+            query = """
+                UPDATE centros SET
+                    nombre = %s,
+                    direccion = %s,
+                    telefono = %s,
+                    email = %s,
+                    horario_apertura = %s,
+                    horario_cierre = %s,
+                    observaciones = %s
+                WHERE id = %s
+            """
             
             params = (
                 data.get('nombre_centro'),
-                data.get('logo_url'),
                 data.get('direccion'),
                 data.get('telefono'),
                 data.get('email'),
                 data.get('horario_inicio'),
                 data.get('horario_fin'),
-                data.get('zona_horaria'),
-                data.get('formato_fecha'),
-                data.get('formato_hora'),
-                data.get('moneda'),
-                data.get('idioma'),
-                data.get('descripcion')
+                data.get('descripcion'),
+                centro_id
             )
             
             result = self.db.ExecuteNonQuery(query, params)
