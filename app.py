@@ -71,6 +71,27 @@ app.register_blueprint(swaggerui_blueprint)
 # Registrar todas las rutas del API
 register_routes(app)
 
+# Inicializar el scheduler de notificaciones al arrancar la aplicación
+def inicializar_scheduler():
+    """Inicializar el scheduler de notificaciones al arranque"""
+    try:
+        from src.utils.general.NotificationScheduler import iniciar_scheduler_global
+        HandleLogs.write_log("Iniciando scheduler de notificaciones...")
+        
+        exito = iniciar_scheduler_global()
+        if exito:
+            HandleLogs.write_log("Scheduler de notificaciones iniciado exitosamente")
+        else:
+            HandleLogs.write_error("Error al iniciar scheduler de notificaciones")
+            
+    except Exception as e:
+        HandleLogs.write_error(f"Error crítico iniciando scheduler: {str(e)}")
+
+# Inicializar scheduler (solo en producción o cuando se especifique)
+AUTO_START_SCHEDULER = os.getenv('AUTO_START_SCHEDULER', 'true').lower() == 'true'
+if AUTO_START_SCHEDULER:
+    inicializar_scheduler()
+
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])

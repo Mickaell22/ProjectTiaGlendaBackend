@@ -18,26 +18,37 @@ class ChatComponent:
         """
         try:
             db = DataBaseHandle()
-            
-            query = """
-                INSERT INTO mensajes_chat 
+
+            # Step 1: Insert the message using ExecuteInsert
+            insert_query = """
+                INSERT INTO mensajes_chat
                 (id_remitente, id_destinatario, mensaje, id_centro, tipo_mensaje, prioridad, usuario_creacion)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, fecha_envio
+                RETURNING id
             """
-            
+
             params = (id_remitente, id_destinatario, mensaje, id_centro, tipo_mensaje, prioridad, usuario_creacion or id_remitente)
-            resultado = db.getRecords(query, params)
-            
-            if resultado:
+            HandleLogs.write_log(f"[ChatComponent] Enviando mensaje - Parámetros: {params}")
+
+            mensaje_id = db.ExecuteInsert(insert_query, params)
+
+            if mensaje_id:
+                # Step 2: Get the fecha_envio for the inserted message
+                select_query = "SELECT fecha_envio FROM mensajes_chat WHERE id = %s"
+                resultado = db.getRecords(select_query, (mensaje_id,))
+
+                fecha_envio = resultado[0]['fecha_envio'] if resultado else None
+                HandleLogs.write_log(f"[ChatComponent] Mensaje enviado exitosamente - ID: {mensaje_id}")
+
                 return {
                     'success': True,
-                    'id_mensaje': resultado[0]['id'],
-                    'fecha_envio': resultado[0]['fecha_envio'].isoformat() if resultado[0]['fecha_envio'] else None
+                    'id_mensaje': mensaje_id,
+                    'fecha_envio': fecha_envio.isoformat() if fecha_envio else None
                 }
             else:
+                HandleLogs.write_error("[ChatComponent] Error al insertar mensaje - ExecuteInsert retornó None")
                 return {'success': False, 'message': 'Error al enviar mensaje'}
-                
+
         except Exception as e:
             HandleLogs.write_error(f"Error en enviar_mensaje: {str(e)}")
             return {'success': False, 'message': f'Error interno: {str(e)}'}
@@ -51,31 +62,48 @@ class ChatComponent:
             db = DataBaseHandle()
             
             query = """
-                SELECT DISTINCT
-                    CASE 
-                        WHEN mc.id_remitente = %s THEN mc.id_destinatario
-                        ELSE mc.id_remitente
-                    END as id_contacto,
-                    CASE 
-                        WHEN mc.id_remitente = %s THEN 
-                            CONCAT(p_dest.nombre, ' ', p_dest.apellido)
-                        ELSE 
-                            CONCAT(p_rem.nombre, ' ', p_rem.apellido)
-                    END as nombre_contacto,
-                    MAX(mc.fecha_envio) as fecha_ultimo_mensaje,
-                    COUNT(CASE WHEN mc.id_destinatario = %s AND mc.leido = false THEN 1 END) as mensajes_no_leidos
-                FROM mensajes_chat mc
-                LEFT JOIN usuario u_rem ON mc.id_remitente = u_rem.id
-                LEFT JOIN persona p_rem ON u_rem.id_persona = p_rem.id
-                LEFT JOIN usuario u_dest ON mc.id_destinatario = u_dest.id
-                LEFT JOIN persona p_dest ON u_dest.id_persona = p_dest.id
-                WHERE (mc.id_remitente = %s OR mc.id_destinatario = %s)
-                  AND mc.id_centro = %s
-                GROUP BY id_contacto, nombre_contacto
+                WITH conversaciones AS (
+                    SELECT
+                        CASE
+                            WHEN mc.id_remitente = %s THEN mc.id_destinatario
+                            ELSE mc.id_remitente
+                        END as id_contacto,
+                        CASE
+                            WHEN mc.id_remitente = %s THEN
+                                CONCAT(p_dest.nombre, ' ', p_dest.apellido)
+                            ELSE
+                                CONCAT(p_rem.nombre, ' ', p_rem.apellido)
+                        END as nombre_contacto,
+                        mc.fecha_envio,
+                        mc.mensaje,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY (
+                                CASE
+                                    WHEN mc.id_remitente = %s THEN mc.id_destinatario
+                                    ELSE mc.id_remitente
+                                END
+                            )
+                            ORDER BY mc.fecha_envio DESC
+                        ) as rn
+                    FROM mensajes_chat mc
+                    LEFT JOIN usuario u_rem ON mc.id_remitente = u_rem.id
+                    LEFT JOIN persona p_rem ON u_rem.id_persona = p_rem.id
+                    LEFT JOIN usuario u_dest ON mc.id_destinatario = u_dest.id
+                    LEFT JOIN persona p_dest ON u_dest.id_persona = p_dest.id
+                    WHERE (mc.id_remitente = %s OR mc.id_destinatario = %s)
+                )
+                SELECT
+                    id_contacto,
+                    nombre_contacto,
+                    fecha_envio as fecha_ultimo_mensaje,
+                    LEFT(mensaje, 50) as ultimo_mensaje,
+                    0 as mensajes_no_leidos
+                FROM conversaciones
+                WHERE rn = 1
                 ORDER BY fecha_ultimo_mensaje DESC
             """
             
-            resultado = db.getRecords(query, (id_usuario, id_usuario, id_usuario, id_usuario, id_usuario, id_centro))
+            resultado = db.getRecords(query, (id_usuario, id_usuario, id_usuario, id_usuario, id_usuario))
             
             if resultado:
                 # Convertir fechas a string para serialización JSON
@@ -108,6 +136,8 @@ class ChatComponent:
         try:
             db = DataBaseHandle()
             
+            HandleLogs.write_log(f"🔍 [ChatComponent] obtener_mensajes_conversacion - Parámetros: id_usuario={id_usuario}, id_contacto={id_contacto}, id_centro={id_centro}, limite={limite}")
+            
             query = """
                 SELECT 
                     mc.id,
@@ -131,13 +161,14 @@ class ChatComponent:
                 JOIN persona pd ON ud.id_persona = pd.id
                 WHERE ((mc.id_remitente = %s AND mc.id_destinatario = %s)
                     OR (mc.id_remitente = %s AND mc.id_destinatario = %s))
-                AND mc.id_centro = %s
                 ORDER BY mc.fecha_envio DESC
                 LIMIT %s
             """
             
-            params = (id_usuario, id_usuario, id_contacto, id_contacto, id_usuario, id_centro, limite)
+            params = (id_usuario, id_usuario, id_contacto, id_contacto, id_usuario, limite)
+            HandleLogs.write_log(f"📝 [ChatComponent] Query params: {params}")
             resultado = db.getRecords(query, params)
+            HandleLogs.write_log(f"📊 [ChatComponent] Resultado de getRecords: {len(resultado) if resultado else 0} registros encontrados")
             
             if resultado:
                 # Convertir fechas a string y organizar mensajes
@@ -213,11 +244,10 @@ class ChatComponent:
                     usuario_modificacion = %s
                 WHERE id_remitente = %s 
                 AND id_destinatario = %s
-                AND id_centro = %s
                 AND leido = FALSE
             """
             
-            rows_affected = db.ExecuteNonQuery(query, (id_usuario, id_contacto, id_usuario, id_centro))
+            rows_affected = db.ExecuteNonQuery(query, (id_usuario, id_contacto, id_usuario))
             
             return {
                 'success': True, 
@@ -249,12 +279,11 @@ class ChatComponent:
                 JOIN persona p ON u.id_persona = p.id
                 JOIN rol r ON u.id_rol = r.id
                 WHERE u.id != %s
-                AND u.id_centro = %s
                 {estado_filter}
                 ORDER BY p.nombre, p.apellido
             """
             
-            resultado = db.getRecords(query, (id_usuario, id_centro))
+            resultado = db.getRecords(query, (id_usuario,))
             
             if resultado:
                 usuarios = [dict(user) for user in resultado]
@@ -289,10 +318,9 @@ class ChatComponent:
                     SUM(CASE WHEN id_destinatario = %s THEN 1 ELSE 0 END) as mensajes_recibidos
                 FROM mensajes_chat 
                 WHERE (id_remitente = %s OR id_destinatario = %s)
-                AND id_centro = %s
             """
             
-            params = (id_usuario, id_usuario, id_usuario, id_usuario, id_usuario, id_centro)
+            params = (id_usuario, id_usuario, id_usuario, id_usuario, id_usuario)
             resultado = db.getRecords(query, params)
             
             # Contar conversaciones activas por separado
@@ -305,10 +333,9 @@ class ChatComponent:
                 ) as conversaciones_activas
                 FROM mensajes_chat 
                 WHERE (id_remitente = %s OR id_destinatario = %s)
-                AND id_centro = %s
             """
             
-            resultado_conv = db.getRecords(query_conversaciones, (id_usuario, id_usuario, id_usuario, id_centro))
+            resultado_conv = db.getRecords(query_conversaciones, (id_usuario, id_usuario, id_usuario))
             
             if resultado and len(resultado) > 0:
                 stats = dict(resultado[0])
@@ -346,7 +373,7 @@ class ChatComponent:
             db = DataBaseHandle()
             
             contacto_filter = "AND ((mc.id_remitente = %s AND mc.id_destinatario = %s) OR (mc.id_remitente = %s AND mc.id_destinatario = %s))" if id_contacto else ""
-            params_base = (id_usuario, id_centro, f"%{texto_busqueda}%")
+            params_base = (id_usuario, id_usuario, id_usuario, f"%{texto_busqueda}%")
             
             if id_contacto:
                 params_base += (id_usuario, id_contacto, id_contacto, id_usuario)
@@ -370,7 +397,6 @@ class ChatComponent:
                 JOIN usuario ud ON mc.id_destinatario = ud.id
                 JOIN persona pd ON ud.id_persona = pd.id
                 WHERE (mc.id_remitente = %s OR mc.id_destinatario = %s)
-                AND mc.id_centro = %s
                 AND mc.mensaje ILIKE %s
                 {contacto_filter}
                 ORDER BY mc.fecha_envio DESC

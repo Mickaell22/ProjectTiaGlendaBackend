@@ -227,7 +227,7 @@ class SesionPedagogicaService:
             except ValueError as e:
                 return response_error(f"Formato de fecha/hora inválido: {str(e)}", 400)
 
-            # Validar números
+            # Validaciones básicas
             if 'numero_clases_programadas' in data and data['numero_clases_programadas'] <= 0:
                 return response_error("El número de clases programadas debe ser mayor a 0", 400)
             
@@ -310,7 +310,7 @@ class SesionPedagogicaService:
                 except ValueError:
                     return response_error("Formato de hora inválido (HH:MM)", 400)
 
-            # Validaciones numéricas
+            # Validaciones básicas
             if 'duracion_minutos' in data and data['duracion_minutos'] <= 0:
                 return response_error("La duración en minutos debe ser mayor a 0", 400)
             

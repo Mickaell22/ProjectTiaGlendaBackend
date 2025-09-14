@@ -40,10 +40,11 @@ class ChatService:
             if id_destinatario == usuario_autenticado['id']:
                 return {'success': False, 'message': 'No puedes enviarte mensajes a ti mismo'}
             
-            # Validar que el destinatario existe y está en el mismo centro
+            # Validar que el destinatario existe
             resultado_destinatario = ChatComponent.obtener_usuarios_disponibles(
                 usuario_autenticado['id'], 
-                usuario_autenticado['id_centro']
+                None,  # No filtrar por centro
+                solo_activos=True
             )
             
             if not resultado_destinatario['success']:
@@ -116,7 +117,8 @@ class ChatService:
             # Verificar que el contacto es válido
             resultado_usuarios = ChatComponent.obtener_usuarios_disponibles(
                 usuario_autenticado['id'],
-                usuario_autenticado['id_centro']
+                None,  # No filtrar por centro
+                solo_activos=True
             )
             
             if not resultado_usuarios['success']:
@@ -176,7 +178,7 @@ class ChatService:
         try:
             resultado = ChatComponent.obtener_usuarios_disponibles(
                 usuario_autenticado['id'],
-                usuario_autenticado['id_centro'],
+                None,  # No filtrar por centro - mostrar todos los usuarios
                 solo_activos=True
             )
             
@@ -228,7 +230,8 @@ class ChatService:
                 # Verificar que el contacto es válido
                 resultado_usuarios = ChatComponent.obtener_usuarios_disponibles(
                     usuario_autenticado['id'],
-                    usuario_autenticado['id_centro']
+                    None,  # No filtrar por centro
+                    solo_activos=True
                 )
                 
                 if not resultado_usuarios['success']:

@@ -3740,23 +3740,6 @@ def register_routes(app):
             from src.api.Service.ConfiguracionService import ConfiguracionService
             return ConfiguracionService.update_configuracion_general()
         
-        # ============================================
-        # CONFIGURACIÓN DE SESIONES
-        # ============================================
-        
-        @app.route('/api/configuracion/sesiones', methods=['GET'])
-        @token_required
-        def get_configuracion_sesiones():
-            """Obtener configuración de sesiones terapéuticas y pedagógicas"""
-            from src.api.Service.ConfiguracionService import ConfiguracionService
-            return ConfiguracionService.get_configuracion_sesiones()
-        
-        @app.route('/api/configuracion/sesiones', methods=['PUT'])
-        @admin_required
-        def update_configuracion_sesiones():
-            """Actualizar configuración de sesiones"""
-            from src.api.Service.ConfiguracionService import ConfiguracionService
-            return ConfiguracionService.update_configuracion_sesiones()
         
         # ============================================
         # CONFIGURACIÓN DE NOTIFICACIONES
@@ -3808,34 +3791,11 @@ def register_routes(app):
             from src.api.Service.ConfiguracionService import ConfiguracionService
             return ConfiguracionService.update_configuracion_notificaciones(user_id)
         
-        # ============================================
-        # CONFIGURACIÓN DE SEGURIDAD
-        # ============================================
-        
-        @app.route('/api/configuracion/seguridad', methods=['GET'])
-        @admin_required
-        def get_configuracion_seguridad():
-            """Obtener configuración de seguridad del sistema"""
-            from src.api.Service.ConfiguracionService import ConfiguracionService
-            return ConfiguracionService.get_configuracion_seguridad()
-        
-        @app.route('/api/configuracion/seguridad', methods=['PUT'])
-        @admin_required
-        def update_configuracion_seguridad():
-            """Actualizar configuración de seguridad del sistema"""
-            from src.api.Service.ConfiguracionService import ConfiguracionService
-            return ConfiguracionService.update_configuracion_seguridad()
         
         # ============================================
         # UTILIDADES Y ADMINISTRACIÓN
         # ============================================
         
-        @app.route('/api/configuracion/inicializar', methods=['POST'])
-        @admin_required
-        def inicializar_sistema_configuracion():
-            """Inicializar tablas de configuración del sistema"""
-            from src.api.Service.ConfiguracionService import ConfiguracionService
-            return ConfiguracionService.inicializar_sistema_configuracion()
         
         @app.route('/api/configuracion/resumen', methods=['GET'])
         @token_required
@@ -3848,5 +3808,190 @@ def register_routes(app):
     # REGISTRAR RUTAS DE CONFIGURACIÓN
     # ============================================
     register_configuracion_routes(app)
+
+    # ============================================
+    # RUTAS DE NOTIFICACIONES PUSH
+    # ============================================
+    def register_notificaciones_routes(app):
+        """Registrar rutas del sistema de notificaciones push"""
+        
+        @app.route('/api/notificaciones', methods=['GET'])
+        @token_required
+        def obtener_mis_notificaciones():
+            """Obtener notificaciones del usuario autenticado"""
+            try:
+                from src.api.Service.NotificacionesService import NotificacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Validar permisos
+                permisos = NotificacionesService.validar_permisos_notificaciones(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                # Obtener parámetros opcionales
+                incluir_leidas = request.args.get('incluir_leidas', 'false').lower() == 'true'
+                limite = request.args.get('limite', 50, type=int)
+                
+                resultado = NotificacionesService.obtener_notificaciones_usuario(
+                    request.current_user, incluir_leidas, limite
+                )
+                
+                if resultado['success']:
+                    return response_success({
+                        'notificaciones': resultado['notificaciones'],
+                        'total': resultado['total']
+                    }, "Notificaciones obtenidas exitosamente")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_mis_notificaciones: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/notificaciones/<int:id_notificacion>/leer', methods=['PUT'])
+        @token_required
+        def marcar_notificacion_leida(id_notificacion):
+            """Marcar una notificación como leída"""
+            try:
+                from src.api.Service.NotificacionesService import NotificacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Validar permisos
+                permisos = NotificacionesService.validar_permisos_notificaciones(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                resultado = NotificacionesService.marcar_notificacion_leida(
+                    id_notificacion, request.current_user
+                )
+                
+                if resultado['success']:
+                    return response_success({}, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en marcar_notificacion_leida: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/notificaciones/estadisticas', methods=['GET'])
+        @token_required
+        def obtener_estadisticas_notificaciones():
+            """Obtener estadísticas de notificaciones del usuario"""
+            try:
+                from src.api.Service.NotificacionesService import NotificacionesService
+                from src.utils.general.response import response_success, response_error
+                from flask import request
+                
+                # Validar permisos
+                permisos = NotificacionesService.validar_permisos_notificaciones(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+                
+                resultado = NotificacionesService.obtener_estadisticas_notificaciones(request.current_user)
+                
+                if resultado['success']:
+                    return response_success(resultado['estadisticas'], "Estadísticas obtenidas exitosamente")
+                else:
+                    return response_error(resultado['message'], 500)
+                    
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_estadisticas_notificaciones: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # RUTAS DE ADMINISTRACIÓN DEL SCHEDULER (Solo Admin)
+    # ============================================
+    def register_scheduler_admin_routes(app):
+        """Registrar rutas de administración del scheduler de notificaciones"""
+        
+        @app.route('/api/admin/scheduler/estado', methods=['GET'])
+        @token_required
+        @admin_required
+        def obtener_estado_scheduler():
+            """Obtener estado del scheduler de notificaciones"""
+            try:
+                from src.utils.general.NotificationScheduler import obtener_scheduler
+                from src.utils.general.response import response_success, response_error
+                
+                scheduler = obtener_scheduler()
+                estado = scheduler.obtener_estado_scheduler()
+                
+                return response_success(estado, "Estado del scheduler obtenido")
+                
+            except Exception as e:
+                HandleLogs.write_error(f"Error en obtener_estado_scheduler: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/admin/scheduler/iniciar', methods=['POST'])
+        @token_required
+        @admin_required
+        def iniciar_scheduler():
+            """Iniciar el scheduler de notificaciones"""
+            try:
+                from src.utils.general.NotificationScheduler import iniciar_scheduler_global
+                from src.utils.general.response import response_success, response_error
+                
+                exito = iniciar_scheduler_global()
+                
+                if exito:
+                    return response_success({}, "Scheduler iniciado exitosamente")
+                else:
+                    return response_error("Error al iniciar scheduler", 500)
+                
+            except Exception as e:
+                HandleLogs.write_error(f"Error en iniciar_scheduler: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/admin/scheduler/detener', methods=['POST'])
+        @token_required
+        @admin_required
+        def detener_scheduler():
+            """Detener el scheduler de notificaciones"""
+            try:
+                from src.utils.general.NotificationScheduler import detener_scheduler_global
+                from src.utils.general.response import response_success, response_error
+                
+                exito = detener_scheduler_global()
+                
+                if exito:
+                    return response_success({}, "Scheduler detenido exitosamente")
+                else:
+                    return response_error("Error al detener scheduler", 500)
+                
+            except Exception as e:
+                HandleLogs.write_error(f"Error en detener_scheduler: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/admin/scheduler/job/<nombre_job>/ejecutar', methods=['POST'])
+        @token_required
+        @admin_required
+        def ejecutar_job_manual(nombre_job):
+            """Ejecutar un job del scheduler manualmente"""
+            try:
+                from src.utils.general.NotificationScheduler import obtener_scheduler
+                from src.utils.general.response import response_success, response_error
+                
+                scheduler = obtener_scheduler()
+                resultado = scheduler.ejecutar_job_manual(nombre_job)
+                
+                if resultado['success']:
+                    return response_success({
+                        'timestamp': resultado['timestamp']
+                    }, resultado['message'])
+                else:
+                    return response_error(resultado['message'], 400)
+                
+            except Exception as e:
+                HandleLogs.write_error(f"Error en ejecutar_job_manual: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+    # ============================================
+    # REGISTRAR RUTAS DE NOTIFICACIONES
+    # ============================================
+    register_notificaciones_routes(app)
+    register_scheduler_admin_routes(app)
 
 
