@@ -4,6 +4,7 @@ from src.utils.general.security import SecurityUtils
 from src.utils.general.response import response_error
 from src.utils.general.logs import HandleLogs
 from src.api.Components.LoginComponent import LoginComponent
+from src.utils.database.connection_db import DataBaseHandle
 
 
 def token_required(f):
@@ -129,6 +130,28 @@ def token_required(f):
                 HandleLogs.write_error(f"auth_middleware.token_required - User verification traceback: {traceback.format_exc()}")
                 return response_error("Error verificando usuario", 401)
 
+            # Obtener personal_id para usuarios con rol de terapeuta o pedagógico
+            personal_id = None
+            if user_info and user_info.get('rol'):
+                user_role = user_info['rol'].lower()
+                if user_role in ['terapeuta', 'pedagógico', 'pedagogo']:
+                    try:
+                        personal_query = """
+                            SELECT id FROM personal
+                            WHERE id_persona = %s AND estado = 'activo'
+                        """
+                        personal_result = DataBaseHandle.getRecords(personal_query, (user_info['id_persona'],))
+
+                        if personal_result:
+                            personal_id = personal_result[0]['id']
+                        else:
+                            # Log when no personal record found
+                            HandleLogs.write_error(f"auth_middleware - No personal record found for id_persona: {user_info['id_persona']}")
+
+                    except Exception as personal_err:
+                        HandleLogs.write_error(f"auth_middleware - Error obteniendo personal_id: {str(personal_err)}")
+                        # Continue without personal_id - no crítico para autenticación
+
             # Agregar información del usuario al request
             request.current_user = {
                 'id': user_info['id'],
@@ -136,8 +159,18 @@ def token_required(f):
                 'rol': user_info['rol'],
                 'rol_id': user_info['rol_id'],
                 'nombre_completo': user_info['nombre_completo'],
+                'cedula': user_info.get('cedula'),
+                'correo': user_info.get('correo'),
+                'telefono': user_info.get('telefono'),
+                'direccion': user_info.get('direccion'),
+                'fecha_nacimiento': user_info.get('fecha_nacimiento'),
                 'estado': user_info.get('estado', 'activo'),
-                'id_centro': user_info.get('id_centro')
+                'id_centro': user_info.get('id_centro'),
+                'id_persona': user_info.get('id_persona'),
+                'personal_id': personal_id,
+                'centro_nombre': user_info.get('centro_nombre'),
+                'centro_codigo': user_info.get('centro_codigo'),
+                'centro_turno': user_info.get('centro_turno')
             }
 
             return f(*args, **kwargs)

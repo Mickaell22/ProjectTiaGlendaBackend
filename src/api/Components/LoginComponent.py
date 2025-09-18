@@ -68,13 +68,18 @@ class LoginComponent:
         """Obtener usuario por ID (para verificación de token)"""
         try:
             query = """
-            SELECT 
+            SELECT
                 u.id,
                 u.usuario,
                 u.estado,
                 u.id_centro,
+                u.id_persona,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.cedula,
                 p.correo,
+                p.telefono,
+                p.direccion,
+                p.fecha_nacimiento,
                 r.nombre as rol,
                 r.id as rol_id,
                 c.nombre as centro_nombre,

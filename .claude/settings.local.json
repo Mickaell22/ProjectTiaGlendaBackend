@@ -173,7 +173,13 @@
       "Bash(del \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\check_message_13.py\")",
       "Bash(del \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\test_message_fix.py\")",
       "Bash(del \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\test_complex_query.py\")",
-      "Bash(del debug_database.py debug_database_clean.py check_all_users.py check_tables.py find_user2.py check_message_13.py test_message_fix.py test_complex_query.py)"
+      "Bash(del debug_database.py debug_database_clean.py check_all_users.py check_tables.py find_user2.py check_message_13.py test_message_fix.py test_complex_query.py)",
+      "Bash(cat:*)",
+      "Bash(set NEW_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZUI6ImFkbWluLm5vcnRlIiwicm9sIjoiQWRtaW5pc3RyYWRvciIsImV4cCI6MTc1Nzk1MjMwOSwiaWF0IjoxNzU3ODY1OTA5fQ.e1UXINz1K98MUQf-H6HWoaGXi1rx2W-wI2U5pG3UdGc)",
+      "Bash(del test_session_creation.py)",
+      "Bash(del \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F\\src\\layouts\\full\\shared\\customizer\\RTL.jsx\")",
+      "Bash(find:*)",
+      "Bash(del test_profile_fixes.py get_fresh_token.py test_personal_id.py check_user_credentials.py fresh_token.txt test_token.txt)"
     ],
     "deny": [],
     "ask": [],
