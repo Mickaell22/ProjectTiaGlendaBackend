@@ -1228,3 +1228,165 @@ class SesionPedagogicaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.cancelar_clase - Error: {str(e)}")
             raise Exception(f"Error al cancelar clase: {str(e)}")
+
+    @staticmethod
+    def get_sesiones_by_centro(centro_id):
+        """Obtener todas las sesiones pedagógicas de un centro específico"""
+        try:
+            query = """
+                SELECT
+                    sp.id,
+                    sp.codigo_sesion,
+                    sp.nombre_clase as titulo,
+                    sp.id_educador as pedagogo_id,
+                    sp.id_especialidad as especialidad_id,
+                    sp.fecha_inicio,
+                    sp.fecha_fin,
+                    sp.dias_semana,
+                    sp.hora_inicio,
+                    sp.duracion_minutos,
+                    COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
+                    sp.nivel_academico,
+                    sp.capacidad_maxima,
+                    'presencial' as modalidad,
+                    0 as costo_total,
+                    0 as costo_por_clase,
+                    '' as periodo_academico,
+                    sp.estado,
+                    '' as observaciones,
+                    sp.fecha_creacion,
+                    sp.fecha_modificacion,
+                    sp.id_centro,
+                    -- Información del pedagogo
+                    CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
+                    -- Información de la especialidad
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    -- Estadísticas básicas
+                    COALESCE(COUNT(DISTINCT se.id_paciente), 0) as total_estudiantes,
+                    COALESCE(COUNT(DISTINCT cc.id), 0) as clases_programadas,
+                    COALESCE(COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END), 0) as clases_realizadas,
+                    0 as promedio_notas,
+                    0 as promedio_asistencia
+                FROM sesion_pedagogica sp
+                JOIN personal per ON sp.id_educador = per.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
+                JOIN especialidad e ON sp.id_especialidad = e.id
+                LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
+                LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
+                WHERE sp.id_centro = %s
+                GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.id_educador, sp.id_especialidad,
+                         sp.fecha_inicio, sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.duracion_minutos,
+                         sp.nivel_academico, sp.capacidad_maxima, sp.estado, sp.fecha_creacion, sp.fecha_modificacion,
+                         sp.id_centro, p_ped.nombre, p_ped.apellido, e.nombre, e.area
+                ORDER BY sp.fecha_creacion DESC
+            """
+
+            result = DataBaseHandle.getRecords(query, (centro_id,))
+
+            # Convert time objects to strings for JSON serialization
+            if result:
+                for sesion in result:
+                    if sesion.get('hora_inicio'):
+                        sesion['hora_inicio'] = str(sesion['hora_inicio'])
+                    if sesion.get('fecha_creacion'):
+                        sesion['fecha_creacion'] = sesion['fecha_creacion'].isoformat()
+                    if sesion.get('fecha_modificacion'):
+                        sesion['fecha_modificacion'] = sesion['fecha_modificacion'].isoformat()
+                    if sesion.get('fecha_inicio'):
+                        sesion['fecha_inicio'] = sesion['fecha_inicio'].isoformat()
+                    if sesion.get('fecha_fin'):
+                        sesion['fecha_fin'] = sesion['fecha_fin'].isoformat()
+
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_sesiones_by_centro - {len(result) if result else 0} sesiones encontradas para centro {centro_id}")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.get_sesiones_by_centro - Error: {str(e)}")
+            raise Exception(f"Error al obtener sesiones del centro: {str(e)}")
+
+    @staticmethod
+    def get_sesiones_by_pedagogo(pedagogo_id, centro_id=None):
+        """Obtener sesiones pedagógicas de un pedagogo específico, opcionalmente filtradas por centro"""
+        try:
+            # Base query
+            query = """
+                SELECT
+                    sp.id,
+                    sp.codigo_sesion,
+                    sp.nombre_clase as titulo,
+                    sp.id_educador as pedagogo_id,
+                    CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
+                    sp.id_especialidad as especialidad_id,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    sp.fecha_inicio,
+                    sp.fecha_fin,
+                    sp.dias_semana,
+                    sp.hora_inicio,
+                    sp.duracion_minutos,
+                    COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
+                    sp.nivel_academico,
+                    sp.capacidad_maxima,
+                    'presencial' as modalidad,
+                    0 as costo_total,
+                    0 as costo_por_clase,
+                    '' as periodo_academico,
+                    sp.estado,
+                    '' as observaciones,
+                    sp.fecha_creacion,
+                    sp.fecha_modificacion,
+                    sp.id_centro,
+                    -- Estadísticas básicas
+                    COALESCE(COUNT(DISTINCT se.id_paciente), 0) as total_estudiantes,
+                    COALESCE(COUNT(DISTINCT cc.id), 0) as clases_programadas,
+                    COALESCE(COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END), 0) as clases_realizadas,
+                    0 as promedio_notas,
+                    0 as promedio_asistencia
+                FROM sesion_pedagogica sp
+                JOIN personal per ON sp.id_educador = per.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
+                JOIN especialidad e ON sp.id_especialidad = e.id
+                LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
+                LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
+                WHERE sp.id_educador = %s
+            """
+
+            params = [pedagogo_id]
+
+            # Add center filter if provided
+            if centro_id:
+                query += " AND sp.id_centro = %s"
+                params.append(centro_id)
+
+            query += """
+                GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.id_educador, sp.id_especialidad,
+                         sp.fecha_inicio, sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.duracion_minutos,
+                         sp.nivel_academico, sp.capacidad_maxima, sp.estado, sp.fecha_creacion, sp.fecha_modificacion,
+                         sp.id_centro, p_ped.nombre, p_ped.apellido, e.nombre, e.area
+                ORDER BY sp.fecha_creacion DESC
+            """
+
+            result = DataBaseHandle.getRecords(query, tuple(params))
+
+            # Convert time objects to strings for JSON serialization
+            if result:
+                for sesion in result:
+                    if sesion.get('hora_inicio'):
+                        sesion['hora_inicio'] = str(sesion['hora_inicio'])
+                    if sesion.get('fecha_creacion'):
+                        sesion['fecha_creacion'] = sesion['fecha_creacion'].isoformat()
+                    if sesion.get('fecha_modificacion'):
+                        sesion['fecha_modificacion'] = sesion['fecha_modificacion'].isoformat()
+                    if sesion.get('fecha_inicio'):
+                        sesion['fecha_inicio'] = sesion['fecha_inicio'].isoformat()
+                    if sesion.get('fecha_fin'):
+                        sesion['fecha_fin'] = sesion['fecha_fin'].isoformat()
+
+            centro_str = f" en centro {centro_id}" if centro_id else ""
+            HandleLogs.write_log(f"SesionPedagogicaComponent.get_sesiones_by_pedagogo - {len(result) if result else 0} sesiones encontradas para pedagogo {pedagogo_id}{centro_str}")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.get_sesiones_by_pedagogo - Error: {str(e)}")
+            raise Exception(f"Error al obtener sesiones del pedagogo: {str(e)}")

@@ -9,11 +9,47 @@ class TutorService:
 
     @staticmethod
     def get_tutores():
-        """Obtener lista de todos los tutores"""
+        """Obtener lista de tutores filtrados según rol y centro del usuario"""
         try:
             HandleLogs.write_log("TutorService.get_tutores - Iniciando")
 
-            result = TutorComponent.get_all_tutores()
+            # Obtener información del usuario actual
+            current_user = getattr(request, 'current_user', {})
+            user_role = current_user.get('rol', '').lower()
+            user_centro_id = current_user.get('id_centro')
+            personal_id = current_user.get('personal_id')
+
+            # Filtrado basado en rol
+            if user_role == 'administrador':
+                # Administradores ven todos los tutores de su centro
+                if user_centro_id:
+                    result = TutorComponent.get_tutores_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"TutorService.get_tutores - Admin obteniendo tutores del centro {user_centro_id}")
+                else:
+                    # Fallback si no tiene centro asignado
+                    result = TutorComponent.get_all_tutores()
+                    HandleLogs.write_log("TutorService.get_tutores - Admin obteniendo todos los tutores (sin centro)")
+            elif user_role in ['terapeuta', 'pedagógico', 'pedagogo']:
+                # Terapeutas y pedagogos ven solo tutores de pacientes de sus sesiones
+                if personal_id and user_centro_id:
+                    result = TutorComponent.get_tutores_by_personal(personal_id, user_centro_id)
+                    HandleLogs.write_log(f"TutorService.get_tutores - {user_role} obteniendo tutores de sus pacientes (personal_id: {personal_id}, centro: {user_centro_id})")
+                else:
+                    # Si no tiene personal_id, mostrar tutores del centro
+                    if user_centro_id:
+                        result = TutorComponent.get_tutores_by_centro(user_centro_id)
+                        HandleLogs.write_log(f"TutorService.get_tutores - {user_role} obteniendo tutores del centro {user_centro_id} (fallback)")
+                    else:
+                        result = {'success': True, 'data': []}
+                        HandleLogs.write_log(f"TutorService.get_tutores - {user_role} sin centro asignado - lista vacía")
+            else:
+                # Otros roles - acceso limitado solo a su centro
+                if user_centro_id:
+                    result = TutorComponent.get_tutores_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"TutorService.get_tutores - Rol {user_role} obteniendo tutores del centro {user_centro_id}")
+                else:
+                    result = {'success': True, 'data': []}
+                    HandleLogs.write_log(f"TutorService.get_tutores - Rol {user_role} sin centro - lista vacía")
 
             if result['success']:
                 HandleLogs.write_log("TutorService.get_tutores - Tutores obtenidos exitosamente")

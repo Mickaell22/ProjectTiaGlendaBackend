@@ -13,11 +13,47 @@ class SesionPedagogicaService:
 
     @staticmethod
     def get_sesiones():
-        """Obtener todas las sesiones pedagógicas"""
+        """Obtener sesiones pedagógicas filtradas según rol y centro del usuario"""
         try:
             HandleLogs.write_log("SesionPedagogicaService.get_sesiones - Iniciando")
 
-            sesiones = SesionPedagogicaComponent.get_sesiones()
+            # Obtener información del usuario actual
+            current_user = getattr(request, 'current_user', {})
+            user_role = current_user.get('rol', '').lower()
+            user_centro_id = current_user.get('id_centro')
+            personal_id = current_user.get('personal_id')
+
+            # Filtrado basado en rol
+            if user_role == 'administrador':
+                # Administradores ven todas las sesiones de su centro
+                if user_centro_id:
+                    sesiones = SesionPedagogicaComponent.get_sesiones_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"SesionPedagogicaService.get_sesiones - Admin obteniendo sesiones del centro {user_centro_id}")
+                else:
+                    # Fallback si no tiene centro asignado
+                    sesiones = SesionPedagogicaComponent.get_sesiones()
+                    HandleLogs.write_log("SesionPedagogicaService.get_sesiones - Admin obteniendo todas las sesiones (sin centro)")
+            elif user_role in ['pedagógico', 'pedagogo']:
+                # Pedagogos ven solo sesiones donde están asignados como responsables
+                if personal_id and user_centro_id:
+                    sesiones = SesionPedagogicaComponent.get_sesiones_by_pedagogo(personal_id, user_centro_id)
+                    HandleLogs.write_log(f"SesionPedagogicaService.get_sesiones - {user_role} obteniendo sesiones asignadas (personal_id: {personal_id}, centro: {user_centro_id})")
+                else:
+                    # Si no tiene personal_id, mostrar sesiones del centro
+                    if user_centro_id:
+                        sesiones = SesionPedagogicaComponent.get_sesiones_by_centro(user_centro_id)
+                        HandleLogs.write_log(f"SesionPedagogicaService.get_sesiones - {user_role} obteniendo sesiones del centro {user_centro_id} (fallback)")
+                    else:
+                        sesiones = []
+                        HandleLogs.write_log(f"SesionPedagogicaService.get_sesiones - {user_role} sin centro asignado - lista vacía")
+            else:
+                # Otros roles - acceso limitado solo a su centro
+                if user_centro_id:
+                    sesiones = SesionPedagogicaComponent.get_sesiones_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"SesionPedagogicaService.get_sesiones - Rol {user_role} obteniendo sesiones del centro {user_centro_id}")
+                else:
+                    sesiones = []
+                    HandleLogs.write_log(f"SesionPedagogicaService.get_sesiones - Rol {user_role} sin centro - lista vacía")
 
             if sesiones:
                 # Formatear datos para respuesta
@@ -36,8 +72,8 @@ class SesionPedagogicaService:
                             'nombre': sesion['especialidad_nombre'],
                             'area': sesion['especialidad_area']
                         },
-                        'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
-                        'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
+                        'fecha_inicio': sesion['fecha_inicio'].isoformat() if hasattr(sesion['fecha_inicio'], 'isoformat') else sesion['fecha_inicio'],
+                        'fecha_fin': sesion['fecha_fin'].isoformat() if hasattr(sesion['fecha_fin'], 'isoformat') else sesion['fecha_fin'],
                         'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
                         'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
                         'duracion_minutos': sesion['duracion_minutos'],
@@ -60,7 +96,7 @@ class SesionPedagogicaService:
                             'promedio_notas': float(sesion['promedio_notas']) if sesion['promedio_notas'] else None,
                             'promedio_asistencia': float(sesion['promedio_asistencia']) if sesion['promedio_asistencia'] else None
                         },
-                        'fecha_creacion': sesion['fecha_creacion'].isoformat() if sesion['fecha_creacion'] else None
+                        'fecha_creacion': sesion['fecha_creacion'].isoformat() if hasattr(sesion['fecha_creacion'], 'isoformat') else sesion['fecha_creacion']
                     }
                     sesiones_formateadas.append(sesion_data)
 
@@ -621,15 +657,24 @@ class SesionPedagogicaService:
 
     @staticmethod
     def get_pedagogos_disponibles():
-        """Obtener lista de pedagogos disponibles para asignar a sesiones"""
+        """Obtener lista de pedagogos disponibles para asignar a sesiones (filtrados por centro del usuario)"""
         try:
             HandleLogs.write_log("SesionPedagogicaService.get_pedagogos_disponibles - Iniciando")
 
             from src.api.Components.PersonalComponent import PersonalComponent
-            
-            # Obtener personal del área pedagógica
-            pedagogos_result = PersonalComponent.get_personal_by_area('pedagogico')
-            
+
+            # Obtener información del usuario actual para filtrado por centro
+            current_user = getattr(request, 'current_user', {})
+            user_centro_id = current_user.get('id_centro')
+
+            # Obtener personal del área pedagógica filtrado por centro
+            if user_centro_id:
+                pedagogos_result = PersonalComponent.get_personal_by_area_and_centro('pedagogico', user_centro_id)
+                HandleLogs.write_log(f"SesionPedagogicaService.get_pedagogos_disponibles - Filtrando por centro {user_centro_id}")
+            else:
+                pedagogos_result = PersonalComponent.get_personal_by_area('pedagogico')
+                HandleLogs.write_log("SesionPedagogicaService.get_pedagogos_disponibles - Sin filtro de centro")
+
             if pedagogos_result['success']:
                 pedagogos = pedagogos_result['data']
             else:

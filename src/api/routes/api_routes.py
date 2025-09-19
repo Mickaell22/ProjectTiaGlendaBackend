@@ -2539,6 +2539,31 @@ def register_routes(app):
                 HandleLogs.write_error(f"Error en get_usuarios_disponibles_chat: {str(e)}")
                 return response_error("Error interno del servidor", 500)
 
+        @app.route('/api/chat/mensajes-no-leidos/count', methods=['GET'])
+        @token_required
+        def get_unread_messages_count():
+            """Obtener conteo de mensajes no leídos del usuario"""
+            try:
+                from flask import request
+                from src.api.Service.ChatService import ChatService
+                from src.utils.general.response import response_success, response_error
+
+                # Validar permisos
+                permisos = ChatService.validar_permisos_chat(request.current_user)
+                if not permisos['success']:
+                    return response_error(permisos['message'], 403)
+
+                resultado = ChatService.obtener_conteo_mensajes_no_leidos(request.current_user)
+
+                if resultado['success']:
+                    return response_success({'count': resultado['count']}, "Conteo obtenido")
+                else:
+                    return response_error(resultado['message'], 500)
+
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_unread_messages_count: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
         @app.route('/api/chat/estadisticas', methods=['GET'])
         @token_required
         def get_estadisticas_chat():

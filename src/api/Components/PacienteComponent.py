@@ -575,7 +575,7 @@ class PacienteComponent:
         """Obtener todos los pacientes de un centro específico"""
         try:
             query = """
-            SELECT 
+            SELECT
                 pac.id,
                 pac.id_centro,
                 pac.fecha_ingreso,
@@ -599,8 +599,8 @@ class PacienteComponent:
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
                 pt.telefono as telefono_tutor,
-                pt.correo as correo_tutor
-                -- Sin especialidad directa (se maneja por tabla paciente_especialidades),
+                pt.correo as correo_tutor,
+                -- Sin especialidad directa (se maneja por tabla paciente_especialidades)
                 -- Información del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
@@ -1013,5 +1013,99 @@ class PacienteComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.reactivar_paciente_general - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_pacientes_asignados_personal(personal_id, centro_id):
+        """Obtener pacientes que tienen sesiones asignadas a un personal específico (terapeuta/pedagogo)"""
+        try:
+            query = """
+            SELECT DISTINCT
+                pac.id,
+                pac.id_centro,
+                pac.fecha_ingreso,
+                pac.estado_tratamiento,
+                pac.observaciones,
+                pac.estado,
+                pac.fecha_creacion,
+                pac.fecha_modificacion,
+                -- Información del paciente (persona)
+                p.id as persona_id,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
+                p.fecha_nacimiento,
+                -- Información del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor,
+                -- Información del centro
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo
+            FROM paciente pac
+            INNER JOIN persona p ON pac.id_persona = p.id
+            INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
+            LEFT JOIN centros c ON pac.id_centro = c.id
+            WHERE pac.estado != 'eliminado'
+                AND pac.id_centro = %s
+                AND (
+                    -- Pacientes con sesiones terapéuticas asignadas al personal
+                    EXISTS (
+                        SELECT 1 FROM sesion_terapia st
+                        INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
+                        WHERE sp.id_paciente = pac.id
+                            AND st.id_terapeuta = %s
+                            AND st.estado != 'eliminado'
+                    )
+                    OR
+                    -- Pacientes con sesiones pedagógicas asignadas al personal
+                    EXISTS (
+                        SELECT 1 FROM sesion_pedagogica spe
+                        INNER JOIN sesion_estudiante se ON spe.id = se.id_sesion
+                        WHERE se.id_paciente = pac.id
+                            AND spe.id_educador = %s
+                            AND spe.estado != 'eliminado'
+                    )
+                )
+            ORDER BY p.nombre, p.apellido
+            """
+
+            pacientes = DataBaseHandle.getRecords(query, (centro_id, personal_id, personal_id))
+
+            if pacientes is not None:
+                # Formatear los datos para mantener compatibilidad con el frontend
+                for paciente in pacientes:
+                    # Temporarily commented out especialidad logic
+                    if False:  # paciente['especialidad_id']:
+                        paciente['especialidades'] = [{
+                            'id': paciente['especialidad_id'],
+                            'nombre': paciente['especialidad_nombre'],
+                            'area': paciente['especialidad_area'],
+                            'estado_tratamiento': paciente['estado_tratamiento'],
+                            'fecha_inicio': paciente['fecha_inicio_tratamiento'],
+                            'fecha_fin': paciente['fecha_fin_tratamiento']
+                        }]
+                        paciente['total_especialidades'] = 1
+                        paciente['especialidades_activas'] = 1 if paciente['estado_tratamiento'] == 'activo' else 0
+                    else:
+                        paciente['especialidades'] = []
+                        paciente['total_especialidades'] = 0
+                        paciente['especialidades_activas'] = 0
+
+                HandleLogs.write_log(f"PacienteComponent.get_pacientes_asignados_personal - {len(pacientes)} pacientes encontrados para personal {personal_id} en centro {centro_id}")
+                return internal_response(True, pacientes, "Pacientes asignados obtenidos correctamente")
+            else:
+                HandleLogs.write_error("PacienteComponent.get_pacientes_asignados_personal - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_pacientes_asignados_personal - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 

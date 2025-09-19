@@ -309,3 +309,32 @@ class ChatService:
         except Exception as e:
             HandleLogs.write_error(f"Error en validar_permisos_chat: {str(e)}")
             return {'success': False, 'message': 'Error interno del servidor'}
+
+    @staticmethod
+    def obtener_conteo_mensajes_no_leidos(usuario_autenticado):
+        """
+        Obtener el conteo de mensajes no leídos para el usuario
+        """
+        try:
+            if not usuario_autenticado:
+                return {'success': False, 'message': 'Usuario no autenticado'}
+
+            id_usuario = usuario_autenticado.get('id')
+            if not id_usuario:
+                return {'success': False, 'message': 'ID de usuario inválido'}
+
+            # Obtener conteo desde el componente
+            resultado = ChatComponent.obtener_conteo_mensajes_no_leidos(id_usuario)
+
+            if resultado['success']:
+                return {
+                    'success': True,
+                    'count': resultado['count'],
+                    'message': 'Conteo obtenido correctamente'
+                }
+            else:
+                return resultado
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en obtener_conteo_mensajes_no_leidos: {str(e)}")
+            return {'success': False, 'message': 'Error interno del servidor'}

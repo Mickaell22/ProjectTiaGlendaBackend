@@ -1606,3 +1606,299 @@ class SesionTerapiaComponent:
             return result.get('max_numero', 0) if result else 0
         except Exception:
             return 0
+
+    @staticmethod
+    def get_sesiones_by_centro(centro_id):
+        """Obtener todas las sesiones de terapia de un centro específico"""
+        try:
+            query = """
+                SELECT
+                    st.id,
+                    st.codigo_sesion,
+                    st.titulo,
+                    st.objetivo_general,
+                    st.id_terapeuta as terapeuta_id,
+                    CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
+                    st.id_especialidad as especialidad_id,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    st.fecha_inicio,
+                    st.fecha_fin,
+                    st.dias_semana,
+                    st.hora_inicio,
+                    st.hora_fin,
+                    st.duracion_minutos,
+                    st.numero_sesiones_contratadas,
+                    st.costo_total,
+                    st.costo_sesion as costo_por_sesion,
+                    st.meses_contrato,
+                    st.tipo_sesion,
+                    st.estado,
+                    st.fecha_creacion,
+                    st.fecha_modificacion,
+                    COUNT(DISTINCT sp.id_paciente) as total_pacientes,
+                    COUNT(DISTINCT cs.id) as sesiones_programadas,
+                    COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.id_cronograma END) as sesiones_realizadas
+                FROM sesion_terapia st
+                JOIN personal per ON st.id_terapeuta = per.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
+                JOIN especialidad e ON st.id_especialidad = e.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
+                LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
+                WHERE st.estado != 'eliminado' AND st.id_centro = %s
+                GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
+                        st.id_terapeuta, p_ter.nombre, p_ter.apellido,
+                        st.id_especialidad, e.nombre, e.area,
+                        st.fecha_inicio, st.fecha_fin, st.dias_semana,
+                        st.hora_inicio, st.hora_fin, st.duracion_minutos,
+                        st.numero_sesiones_contratadas, st.costo_total, st.costo_sesion,
+                        st.meses_contrato, st.tipo_sesion, st.estado,
+                        st.fecha_creacion, st.fecha_modificacion
+                ORDER BY st.fecha_creacion DESC
+            """
+
+            result = DataBaseHandle.getRecords(query, (centro_id,))
+
+            if result is not None:
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_sesiones_by_centro - {len(result)} sesiones encontradas para centro {centro_id}")
+                return result
+            else:
+                HandleLogs.write_error("SesionTerapiaComponent.get_sesiones_by_centro - Error en consulta")
+                return []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_sesiones_by_centro - Error: {str(e)}")
+            return []
+
+    @staticmethod
+    def get_sesiones_by_terapeuta(terapeuta_id, centro_id):
+        """Obtener sesiones de terapia asignadas a un terapeuta específico"""
+        try:
+            query = """
+                SELECT
+                    st.id,
+                    st.codigo_sesion,
+                    st.titulo,
+                    st.objetivo_general,
+                    st.id_terapeuta as terapeuta_id,
+                    CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
+                    st.id_especialidad as especialidad_id,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    st.fecha_inicio,
+                    st.fecha_fin,
+                    st.dias_semana,
+                    st.hora_inicio,
+                    st.hora_fin,
+                    st.duracion_minutos,
+                    st.numero_sesiones_contratadas,
+                    st.costo_total,
+                    st.costo_sesion as costo_por_sesion,
+                    st.meses_contrato,
+                    st.tipo_sesion,
+                    st.estado,
+                    st.fecha_creacion,
+                    st.fecha_modificacion,
+                    COUNT(DISTINCT sp.id_paciente) as total_pacientes,
+                    COUNT(DISTINCT cs.id) as sesiones_programadas,
+                    COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.id_cronograma END) as sesiones_realizadas
+                FROM sesion_terapia st
+                JOIN personal per ON st.id_terapeuta = per.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
+                JOIN especialidad e ON st.id_especialidad = e.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
+                LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
+                WHERE st.estado != 'eliminado'
+                    AND st.id_terapeuta = %s
+                    AND st.id_centro = %s
+                GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
+                        st.id_terapeuta, p_ter.nombre, p_ter.apellido,
+                        st.id_especialidad, e.nombre, e.area,
+                        st.fecha_inicio, st.fecha_fin, st.dias_semana,
+                        st.hora_inicio, st.hora_fin, st.duracion_minutos,
+                        st.numero_sesiones_contratadas, st.costo_total, st.costo_sesion,
+                        st.meses_contrato, st.tipo_sesion, st.estado,
+                        st.fecha_creacion, st.fecha_modificacion
+                ORDER BY st.fecha_creacion DESC
+            """
+
+            result = DataBaseHandle.getRecords(query, (terapeuta_id, centro_id))
+
+            if result is not None:
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_sesiones_by_terapeuta - {len(result)} sesiones encontradas para terapeuta {terapeuta_id} en centro {centro_id}")
+                return result
+            else:
+                HandleLogs.write_error("SesionTerapiaComponent.get_sesiones_by_terapeuta - Error en consulta")
+                return []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_sesiones_by_terapeuta - Error: {str(e)}")
+            return []
+
+    @staticmethod
+    def get_terapeutas_disponibles_by_centro(centro_id):
+        """Obtener terapeutas disponibles filtrados por centro específico"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaComponent.get_terapeutas_disponibles_by_centro - Iniciando para centro {centro_id}")
+
+            query = """
+            SELECT DISTINCT
+                p.id,
+                p.id_persona,
+                CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
+                pe.nombre,
+                pe.apellido,
+                pe.cedula,
+                pe.telefono,
+                pe.correo,
+                p.cargo as titulo_profesional,
+                p.cargo,
+                p.estado,
+                p.id_centro,
+                c.nombre as centro_nombre,
+                u.id as usuario_id,
+                r.nombre as rol_usuario,
+                -- Especialidad principal
+                e.id as especialidad_id,
+                e.nombre as especialidad_nombre
+            FROM personal p
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
+            LEFT JOIN centros c ON p.id_centro = c.id
+            INNER JOIN personal_especialidades pes ON p.id = pes.id_personal
+            INNER JOIN especialidad e ON pes.id_especialidad = e.id
+            WHERE p.estado = 'activo'
+            AND pes.estado = 'activo'
+            AND e.area = 'Especialidad terapéutica'
+            AND p.id_centro = %s
+            ORDER BY pe.nombre, pe.apellido
+            """
+
+            result = DataBaseHandle.getRecords(query, (centro_id,))
+
+            if result:
+                terapeutas = []
+                if isinstance(result, dict):
+                    result = [result]
+
+                for persona in result:
+                    terapeuta = {
+                        'id': persona['id'],
+                        'id_persona': persona['id_persona'],
+                        'nombre_completo': persona['nombre_completo'],
+                        'nombre': persona['nombre'],
+                        'apellido': persona['apellido'],
+                        'cedula': persona['cedula'],
+                        'telefono': persona['telefono'],
+                        'correo': persona['correo'],
+                        'titulo_profesional': persona['titulo_profesional'],
+                        'cargo': persona['cargo'],
+                        'estado': persona['estado'],
+                        'id_centro': persona['id_centro'],
+                        'centro_nombre': persona['centro_nombre'],
+                        'usuario_id': persona['usuario_id'],
+                        'rol_usuario': persona['rol_usuario'],
+                        'especialidad_id': persona['especialidad_id'],
+                        'especialidad_nombre': persona['especialidad_nombre']
+                    }
+                    terapeutas.append(terapeuta)
+
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_terapeutas_disponibles_by_centro - {len(terapeutas)} terapeutas encontrados para centro {centro_id}")
+                return terapeutas
+            else:
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_terapeutas_disponibles_by_centro - No se encontraron terapeutas para centro {centro_id}")
+                return []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_terapeutas_disponibles_by_centro - Error: {str(e)}")
+            raise Exception(f"Error al obtener terapeutas del centro: {str(e)}")
+
+    @staticmethod
+    def get_pacientes_disponibles_by_centro(centro_id):
+        """Obtener pacientes disponibles filtrados por centro específico"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaComponent.get_pacientes_disponibles_by_centro - Iniciando para centro {centro_id}")
+
+            query = """
+            SELECT DISTINCT
+                pac.id,
+                pac.id_persona,
+                pac.fecha_ingreso,
+                pac.estado_tratamiento,
+                pac.observaciones,
+                pac.estado,
+                pac.id_centro,
+                -- Información del paciente (persona)
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
+                p.fecha_nacimiento,
+                -- Información del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor,
+                -- Información del centro
+                c.nombre as centro_nombre
+            FROM paciente pac
+            INNER JOIN persona p ON pac.id_persona = p.id
+            INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
+            LEFT JOIN centros c ON pac.id_centro = c.id
+            WHERE pac.estado = 'activo'
+            AND pac.id_centro = %s
+            ORDER BY p.nombre, p.apellido
+            """
+
+            result = DataBaseHandle.getRecords(query, (centro_id,))
+
+            if result:
+                pacientes = []
+                if isinstance(result, dict):
+                    result = [result]
+
+                for paciente_data in result:
+                    paciente = {
+                        'id': paciente_data['id'],
+                        'id_persona': paciente_data['id_persona'],
+                        'nombre_completo': paciente_data['nombre_completo'],
+                        'nombre': paciente_data['nombre'],
+                        'apellido': paciente_data['apellido'],
+                        'cedula': paciente_data['cedula'],
+                        'telefono': paciente_data['telefono'],
+                        'correo': paciente_data['correo'],
+                        'direccion': paciente_data['direccion'],
+                        'fecha_nacimiento': paciente_data['fecha_nacimiento'].isoformat() if paciente_data['fecha_nacimiento'] else None,
+                        'fecha_ingreso': paciente_data['fecha_ingreso'].isoformat() if paciente_data['fecha_ingreso'] else None,
+                        'estado_tratamiento': paciente_data['estado_tratamiento'],
+                        'observaciones': paciente_data['observaciones'],
+                        'estado': paciente_data['estado'],
+                        'id_centro': paciente_data['id_centro'],
+                        'centro_nombre': paciente_data['centro_nombre'],
+                        'tutor': {
+                            'id': paciente_data['tutor_id'],
+                            'parentesco': paciente_data['parentesco'],
+                            'nombre_completo': paciente_data['nombre_tutor'],
+                            'telefono': paciente_data['telefono_tutor'],
+                            'correo': paciente_data['correo_tutor']
+                        }
+                    }
+                    pacientes.append(paciente)
+
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_pacientes_disponibles_by_centro - {len(pacientes)} pacientes encontrados para centro {centro_id}")
+                return pacientes
+            else:
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_pacientes_disponibles_by_centro - No se encontraron pacientes para centro {centro_id}")
+                return []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_pacientes_disponibles_by_centro - Error: {str(e)}")
+            raise Exception(f"Error al obtener pacientes del centro: {str(e)}")

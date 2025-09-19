@@ -3,6 +3,29 @@
 -- Archivo: 02_datos_completos.sql
 -- Descripción: Inserción completa de datos iniciales para ambos centros
 -- =============================================
+--
+-- 🔑 CREDENCIALES PARA PRUEBAS (password: admin123 para todos):
+--
+-- 👨‍💼 ADMINISTRADORES:
+--   • admin.norte  (María González)   - Centro Norte
+--   • admin.sur    (Carlos Rodríguez) - Centro Sur
+--
+-- 🩺 TERAPEUTAS:
+--   • terapeuta.ana          (Ana Martínez)    - Centro Norte - Terapia del Lenguaje
+--   • fisioterapeuta.luis    (Luis Pérez)      - Centro Norte - Fisioterapia
+--   • terapeuta.laura        (Laura Mendoza)   - Centro Sur   - Terapia del Lenguaje
+--   • terapeuta.diego        (Diego Vargas)    - Centro Sur   - Terapia Ocupacional
+--
+-- 👩‍🏫 PEDAGOGOS:
+--   • pedagoga.carmen        (Carmen Flores)   - Centro Norte - Educación Especial
+--   • pedagogo.sandra        (Sandra López)    - Centro Sur   - Educación Especial
+--   • pedagogo.miguel        (Miguel Torres)   - Centro Sur   - Desarrollo Cognitivo
+--
+-- 📊 DISTRIBUCIÓN DE DATOS PARA PRUEBAS RBAC:
+--   Centro Norte: 3 pacientes, 3 personal (2 terapeutas + 1 pedagoga)
+--   Centro Sur:   2 pacientes, 4 personal (2 terapeutas + 2 pedagogos)
+--
+-- =============================================
 
 -- =============================================
 -- 1. CENTROS DE ATENCIÓN
@@ -48,17 +71,20 @@ INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fech
 -- Personal Centro Norte
 INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado) VALUES
 ('Ana', 'Martínez', '1234567892', '0987654323', 'ana.martinez@centrotiaglenda.com', 'Av. Norte #789', '1990-03-10', 'activo'),
-('Luis', 'Pérez', '1234567893', '0987654324', 'luis.perez@centrotiaglenda.com', 'Calle Norte #012', '1988-11-25', 'activo');
+('Luis', 'Pérez', '1234567893', '0987654324', 'luis.perez@centrotiaglenda.com', 'Calle Norte #012', '1988-11-25', 'activo'),
+('Carmen', 'Flores', '1234567906', '0987654333', 'carmen.flores@centrotiaglenda.com', 'Av. Norte #345', '1987-08-14', 'activo');
 
 -- Tutores Centro Norte
 INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado) VALUES
 ('Carmen', 'Vásquez', '1234567896', '0987654327', 'carmen.vasquez@gmail.com', 'Av. Amazonas #901', '1978-04-12', 'activo'),
-('Roberto', 'Jiménez', '1234567897', '0987654328', 'roberto.jimenez@gmail.com', 'Calle Pichincha #234', '1975-09-30', 'activo');
+('Roberto', 'Jiménez', '1234567897', '0987654328', 'roberto.jimenez@gmail.com', 'Calle Pichincha #234', '1975-09-30', 'activo'),
+('María Elena', 'Vega', '1234567908', '0987654335', 'maria.vega@gmail.com', 'Av. Norte #567', '1981-12-05', 'activo');
 
 -- Pacientes Centro Norte
 INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado) VALUES
 ('Sebastián', 'Vásquez', '1234567900', '0987654327', NULL, 'Av. Amazonas #901', '2018-06-15', 'activo'), -- 6 años
-('Valentina', 'Jiménez', '1234567901', '0987654328', NULL, 'Calle Pichincha #234', '2017-03-08', 'activo'); -- 7 años
+('Valentina', 'Jiménez', '1234567901', '0987654328', NULL, 'Calle Pichincha #234', '2017-03-08', 'activo'), -- 7 años
+('Ana Sofía', 'Rodríguez Vega', '1234567907', '0987654334', NULL, 'Av. Norte #567', '2016-10-22', 'activo'); -- 8 años
 
 -- =============================================
 -- 5. PERSONAS - CENTRO SUR
@@ -71,7 +97,9 @@ INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fech
 -- Personal Centro Sur
 INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado) VALUES
 ('Sandra', 'López', '1234567894', '0987654325', 'sandra.lopez@centrotiaglenda.com', 'Av. Sur #345', '1987-12-03', 'activo'),
-('Miguel', 'Torres', '1234567895', '0987654326', 'miguel.torres@centrotiaglenda.com', 'Calle Sur #678', '1985-07-18', 'activo');
+('Miguel', 'Torres', '1234567895', '0987654326', 'miguel.torres@centrotiaglenda.com', 'Calle Sur #678', '1985-07-18', 'activo'),
+('Laura', 'Mendoza', '1234567904', '0987654331', 'laura.mendoza@centrotiaglenda.com', 'Av. Sur #789', '1989-04-15', 'activo'),
+('Diego', 'Vargas', '1234567905', '0987654332', 'diego.vargas@centrotiaglenda.com', 'Calle Sur #012', '1986-09-22', 'activo');
 
 -- Tutores Centro Sur
 INSERT INTO persona (nombre, apellido, cedula, telefono, correo, direccion, fecha_nacimiento, estado) VALUES
@@ -102,23 +130,35 @@ INSERT INTO usuario (usuario, contrasenia, estado, id_persona, id_rol, id_centro
 -- Personal Centro Norte
 INSERT INTO usuario (usuario, contrasenia, estado, id_persona, id_rol, id_centro, fecha_ultimo_acceso) VALUES
 ('terapeuta.ana', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
-    (SELECT id FROM persona WHERE cedula = '1234567892'), 
-    (SELECT id FROM rol WHERE nombre = 'Terapeuta'), 
+    (SELECT id FROM persona WHERE cedula = '1234567892'),
+    (SELECT id FROM rol WHERE nombre = 'Terapeuta'),
     (SELECT id FROM centros WHERE codigo = 'NORTE'), NULL), -- password: admin123
 ('fisioterapeuta.luis', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
-    (SELECT id FROM persona WHERE cedula = '1234567893'), 
-    (SELECT id FROM rol WHERE nombre = 'Terapeuta'), 
+    (SELECT id FROM persona WHERE cedula = '1234567893'),
+    (SELECT id FROM rol WHERE nombre = 'Terapeuta'),
+    (SELECT id FROM centros WHERE codigo = 'NORTE'), NULL), -- password: admin123
+('pedagoga.carmen', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
+    (SELECT id FROM persona WHERE cedula = '1234567906'),
+    (SELECT id FROM rol WHERE nombre = 'Pedagógico'),
     (SELECT id FROM centros WHERE codigo = 'NORTE'), NULL); -- password: admin123
 
 -- Personal Centro Sur
 INSERT INTO usuario (usuario, contrasenia, estado, id_persona, id_rol, id_centro, fecha_ultimo_acceso) VALUES
 ('pedagogo.sandra', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
-    (SELECT id FROM persona WHERE cedula = '1234567894'), 
-    (SELECT id FROM rol WHERE nombre = 'Pedagógico'), 
+    (SELECT id FROM persona WHERE cedula = '1234567894'),
+    (SELECT id FROM rol WHERE nombre = 'Pedagógico'),
     (SELECT id FROM centros WHERE codigo = 'SUR'), NULL), -- password: admin123
 ('pedagogo.miguel', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
-    (SELECT id FROM persona WHERE cedula = '1234567895'), 
-    (SELECT id FROM rol WHERE nombre = 'Pedagógico'), 
+    (SELECT id FROM persona WHERE cedula = '1234567895'),
+    (SELECT id FROM rol WHERE nombre = 'Pedagógico'),
+    (SELECT id FROM centros WHERE codigo = 'SUR'), NULL), -- password: admin123
+('terapeuta.laura', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
+    (SELECT id FROM persona WHERE cedula = '1234567904'),
+    (SELECT id FROM rol WHERE nombre = 'Terapeuta'),
+    (SELECT id FROM centros WHERE codigo = 'SUR'), NULL), -- password: admin123
+('terapeuta.diego', '$2b$12$otmv88HeRL46p1eAltu5m.jQ11VLmL.jTo3Z4sqliPn05ljJ46/U6', 'activo',
+    (SELECT id FROM persona WHERE cedula = '1234567905'),
+    (SELECT id FROM rol WHERE nombre = 'Terapeuta'),
     (SELECT id FROM centros WHERE codigo = 'SUR'), NULL); -- password: admin123
 
 -- =============================================
@@ -127,25 +167,37 @@ INSERT INTO usuario (usuario, contrasenia, estado, id_persona, id_rol, id_centro
 
 -- Personal Centro Norte
 INSERT INTO personal (id_persona, id_especialidad, id_centro, fecha_ingreso, cargo, estado) VALUES
-((SELECT id FROM persona WHERE cedula = '1234567892'), 
- (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'), 
- (SELECT id FROM centros WHERE codigo = 'NORTE'), 
+((SELECT id FROM persona WHERE cedula = '1234567892'),
+ (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
+ (SELECT id FROM centros WHERE codigo = 'NORTE'),
  '2024-01-01', 'Licenciada en Terapia del Lenguaje', 'activo'), -- Ana Martínez
-((SELECT id FROM persona WHERE cedula = '1234567893'), 
- (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'), 
- (SELECT id FROM centros WHERE codigo = 'NORTE'), 
- '2024-01-01', 'Licenciado en Fisioterapia', 'activo'); -- Luis Pérez
+((SELECT id FROM persona WHERE cedula = '1234567893'),
+ (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'),
+ (SELECT id FROM centros WHERE codigo = 'NORTE'),
+ '2024-01-01', 'Licenciado en Fisioterapia', 'activo'), -- Luis Pérez
+((SELECT id FROM persona WHERE cedula = '1234567906'),
+ (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
+ (SELECT id FROM centros WHERE codigo = 'NORTE'),
+ '2024-01-01', 'Licenciada en Educación Especial', 'activo'); -- Carmen Flores
 
 -- Personal Centro Sur
 INSERT INTO personal (id_persona, id_especialidad, id_centro, fecha_ingreso, cargo, estado) VALUES
-((SELECT id FROM persona WHERE cedula = '1234567894'), 
- (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'), 
- (SELECT id FROM centros WHERE codigo = 'SUR'), 
+((SELECT id FROM persona WHERE cedula = '1234567894'),
+ (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
+ (SELECT id FROM centros WHERE codigo = 'SUR'),
  '2024-01-01', 'Licenciada en Educación Especial', 'activo'), -- Sandra López
-((SELECT id FROM persona WHERE cedula = '1234567895'), 
- (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo'), 
- (SELECT id FROM centros WHERE codigo = 'SUR'), 
- '2024-01-01', 'Licenciado en Psicología Educativa', 'activo'); -- Miguel Torres
+((SELECT id FROM persona WHERE cedula = '1234567895'),
+ (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo'),
+ (SELECT id FROM centros WHERE codigo = 'SUR'),
+ '2024-01-01', 'Licenciado en Psicología Educativa', 'activo'), -- Miguel Torres
+((SELECT id FROM persona WHERE cedula = '1234567904'),
+ (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
+ (SELECT id FROM centros WHERE codigo = 'SUR'),
+ '2024-01-01', 'Licenciada en Terapia del Lenguaje', 'activo'), -- Laura Mendoza
+((SELECT id FROM persona WHERE cedula = '1234567905'),
+ (SELECT id FROM especialidad WHERE nombre = 'Terapia Ocupacional'),
+ (SELECT id FROM centros WHERE codigo = 'SUR'),
+ '2024-01-01', 'Licenciado en Terapia Ocupacional', 'activo'); -- Diego Vargas
 
 -- =============================================
 -- 8. ESPECIALIDADES DEL PERSONAL
@@ -159,9 +211,15 @@ INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal)
 
 -- Centro Norte - Luis Pérez (Fisioterapia)
 INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal) VALUES
-((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567893')), 
- (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'), 
+((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567893')),
+ (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'),
  TRUE); -- Fisioterapia
+
+-- Centro Norte - Carmen Flores (Educación Especial)
+INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal) VALUES
+((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567906')),
+ (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
+ TRUE); -- Educación Especial
 
 -- Centro Norte - Especialidades adicionales (Fase 2)
 INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal, fecha_asignacion, observaciones, usuario_creacion) VALUES
@@ -172,15 +230,27 @@ INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal,
 
 -- Centro Sur - Sandra López (Educación Especial)
 INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal) VALUES
-((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567894')), 
- (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'), 
+((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567894')),
+ (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
  TRUE); -- Educación Especial
 
 -- Centro Sur - Miguel Torres (Desarrollo Cognitivo)
 INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal) VALUES
-((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567895')), 
- (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo'), 
+((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567895')),
+ (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo'),
  TRUE); -- Desarrollo Cognitivo
+
+-- Centro Sur - Laura Mendoza (Terapia del Lenguaje)
+INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal) VALUES
+((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567904')),
+ (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
+ TRUE); -- Terapia del Lenguaje
+
+-- Centro Sur - Diego Vargas (Terapia Ocupacional)
+INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal) VALUES
+((SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567905')),
+ (SELECT id FROM especialidad WHERE nombre = 'Terapia Ocupacional'),
+ TRUE); -- Terapia Ocupacional
 
 -- Centro Sur - Especialidades adicionales (Fase 2)
 INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal, fecha_asignacion, observaciones, usuario_creacion) VALUES
@@ -200,7 +270,8 @@ INSERT INTO personal_especialidades (id_personal, id_especialidad, es_principal,
 -- Centro Norte
 INSERT INTO tutor (id_persona, parentesco, estado) VALUES
 ((SELECT id FROM persona WHERE cedula = '1234567896'), 'madre', 'activo'),
-((SELECT id FROM persona WHERE cedula = '1234567897'), 'padre', 'activo');
+((SELECT id FROM persona WHERE cedula = '1234567897'), 'padre', 'activo'),
+((SELECT id FROM persona WHERE cedula = '1234567908'), 'madre', 'activo');
 
 -- Centro Sur
 INSERT INTO tutor (id_persona, parentesco, estado) VALUES
@@ -213,15 +284,20 @@ INSERT INTO tutor (id_persona, parentesco, estado) VALUES
 
 -- Centro Norte
 INSERT INTO paciente (id_persona, id_tutor, id_centro, fecha_ingreso, motivo_consulta, observaciones, estado) VALUES
-((SELECT id FROM persona WHERE cedula = '1234567900'), 
+((SELECT id FROM persona WHERE cedula = '1234567900'),
  (SELECT id FROM tutor WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567896')), -- Carmen (madre)
- (SELECT id FROM centros WHERE codigo = 'NORTE'), 
+ (SELECT id FROM centros WHERE codigo = 'NORTE'),
  '2024-01-15', 'Dificultades en el lenguaje expresivo', 'Paciente colaborador, motivado por actividades lúdicas', 'activo'),
 
-((SELECT id FROM persona WHERE cedula = '1234567901'), 
+((SELECT id FROM persona WHERE cedula = '1234567901'),
  (SELECT id FROM tutor WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567897')), -- Roberto (padre)
- (SELECT id FROM centros WHERE codigo = 'NORTE'), 
- '2024-01-20', 'Desarrollo motor fino', 'Niña muy activa, responde bien a rutinas estructuradas', 'activo');
+ (SELECT id FROM centros WHERE codigo = 'NORTE'),
+ '2024-01-20', 'Desarrollo motor fino', 'Niña muy activa, responde bien a rutinas estructuradas', 'activo'),
+
+((SELECT id FROM persona WHERE cedula = '1234567907'),
+ (SELECT id FROM tutor WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567908')), -- María Elena (madre)
+ (SELECT id FROM centros WHERE codigo = 'NORTE'),
+ '2024-02-10', 'Apoyo académico en lectoescritura', 'Estudiante dedicada, necesita refuerzo en comprensión lectora', 'activo');
 
 -- Centro Sur
 INSERT INTO paciente (id_persona, id_tutor, id_centro, fecha_ingreso, motivo_consulta, observaciones, estado) VALUES
@@ -248,7 +324,13 @@ INSERT INTO paciente_especialidades (id_paciente, id_especialidad, es_principal)
 -- Centro Norte - Valentina (Fisioterapia)
 INSERT INTO paciente_especialidades (id_paciente, id_especialidad, es_principal) VALUES
 ((SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567901')), -- Valentina
- (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'), 
+ (SELECT id FROM especialidad WHERE nombre = 'Fisioterapia'),
+ TRUE);
+
+-- Centro Norte - Ana Sofía (Educación Especial)
+INSERT INTO paciente_especialidades (id_paciente, id_especialidad, es_principal) VALUES
+((SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567907')), -- Ana Sofía
+ (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
  TRUE);
 
 -- Centro Sur - Mateo (Educación Especial)
@@ -289,7 +371,7 @@ INSERT INTO sesion_terapia (
 
 -- Sesión de Fisioterapia - Centro Norte
 INSERT INTO sesion_terapia (
-    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad, 
+    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad,
     fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
     numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
     tipo_sesion, estado, id_centro, usuario_creacion
@@ -302,14 +384,73 @@ INSERT INTO sesion_terapia (
     '2025-01-20', '2025-07-20',
     ARRAY['martes', 'jueves'], '09:00', '09:45', 45,
     16, 6, 30000.00, 480000.00,
-    'individual', 'en_curso', 
+    'individual', 'en_curso',
     (SELECT id FROM centros WHERE codigo = 'NORTE'),
     (SELECT id FROM usuario WHERE usuario = 'admin.norte')
+);
+
+-- Sesión de Terapia del Lenguaje - Centro Sur
+INSERT INTO sesion_terapia (
+    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad,
+    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
+    numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
+    tipo_sesion, estado, id_centro, usuario_creacion
+) VALUES (
+    'ST-2025-0003',
+    'Terapia del Lenguaje Centro Sur',
+    'Desarrollar habilidades de comunicación oral y comprensión mediante actividades interactivas y material visual',
+    (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567904')), -- Laura Mendoza
+    (SELECT id FROM especialidad WHERE nombre = 'Terapia del Lenguaje'),
+    '2025-02-01', '2025-08-01',
+    ARRAY['lunes', 'miercoles'], '14:00', '14:45', 45,
+    20, 6, 25000.00, 500000.00,
+    'individual', 'planificada',
+    (SELECT id FROM centros WHERE codigo = 'SUR'),
+    (SELECT id FROM usuario WHERE usuario = 'admin.sur')
+);
+
+-- Sesión de Terapia Ocupacional - Centro Sur
+INSERT INTO sesion_terapia (
+    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad,
+    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
+    numero_sesiones_contratadas, meses_contrato, costo_sesion, costo_total,
+    tipo_sesion, estado, id_centro, usuario_creacion
+) VALUES (
+    'ST-2025-0004',
+    'Terapia Ocupacional Centro Sur',
+    'Mejorar la independencia funcional y habilidades de la vida diaria mediante actividades terapéuticas estructuradas',
+    (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567905')), -- Diego Vargas
+    (SELECT id FROM especialidad WHERE nombre = 'Terapia Ocupacional'),
+    '2025-02-03', '2025-09-03',
+    ARRAY['martes', 'viernes'], '15:00', '15:45', 45,
+    18, 7, 28000.00, 504000.00,
+    'individual', 'planificada',
+    (SELECT id FROM centros WHERE codigo = 'SUR'),
+    (SELECT id FROM usuario WHERE usuario = 'admin.sur')
 );
 
 -- =============================================
 -- 13. SESIONES PEDAGÓGICAS
 -- =============================================
+
+-- Sesión de Educación Especial - Centro Norte
+INSERT INTO sesion_pedagogica (
+    codigo_sesion, id_educador, id_especialidad, nombre_clase, descripcion,
+    fecha_inicio, fecha_fin, nivel_academico, grado_escolar, materia,
+    competencias_objetivo, metodologia_ensenanza, duracion_minutos,
+    frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
+    capacidad_maxima, estado, id_centro
+) VALUES (
+    'SP-2025-0003',
+    (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567906')), -- Carmen Flores
+    (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
+    'Apoyo en Lectoescritura Norte', 'Desarrollo de habilidades de lectura y escritura para estudiantes del Centro Norte',
+    '2025-01-08', '2025-07-08', 'primaria', '2do', 'Lenguaje',
+    'Comprensión lectora, escritura creativa, vocabulario básico',
+    'Método multisensorial con apoyo visual y actividades lúdicas', 60,
+    2, ARRAY['martes', 'jueves'], '08:00', '09:00', 'Aula Norte 1',
+    4, 'en_curso', (SELECT id FROM centros WHERE codigo = 'NORTE')
+);
 
 -- Sesión de Educación Especial - Centro Sur
 INSERT INTO sesion_pedagogica (
@@ -319,7 +460,7 @@ INSERT INTO sesion_pedagogica (
     frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
     capacidad_maxima, estado, id_centro
 ) VALUES (
-    'SP-2025-0001',
+    'SP-2025-0004',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567894')), -- Sandra López
     (SELECT id FROM especialidad WHERE nombre = 'Educación Especial'),
     'Lectoescritura Inicial', 'Desarrollo de habilidades básicas de lectura y escritura',
@@ -338,7 +479,7 @@ INSERT INTO sesion_pedagogica (
     frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
     capacidad_maxima, estado, id_centro
 ) VALUES (
-    'SP-2025-0002',
+    'SP-2025-0005',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567895')), -- Miguel Torres
     (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo'),
     'Matemáticas Básicas', 'Refuerzo en operaciones matemáticas fundamentales',
@@ -365,11 +506,15 @@ INSERT INTO sesion_paciente (id_sesion, id_paciente, fecha_inscripcion, estado, 
 
 -- Inscripciones en Sesiones Pedagógicas
 INSERT INTO sesion_estudiante (id_sesion, id_paciente, fecha_inscripcion, nivel_actual, adaptaciones_requeridas, estado, observaciones) VALUES
-((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0001'),
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0003'),
+ (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567907')), -- Ana Sofía
+ '2025-01-08', '2do grado', 'Refuerzo visual, tiempo adicional para lectura', 'activo', 'Estudiante motivada, le gustan las actividades grupales'),
+
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0004'),
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567902')), -- Mateo
  '2025-01-10', 'pre-lectura', 'Material visual ampliado, tiempo adicional', 'activo', 'Responde bien a estímulos visuales'),
 
-((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0002'),
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0005'),
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567903')), -- Isabella
  '2025-01-15', '3er grado', 'Explicaciones paso a paso, ejercicios graduales', 'activo', 'Estudiante persistente, necesita refuerzo positivo');
 
@@ -407,9 +552,9 @@ FROM (
 WHERE EXTRACT(dow FROM fecha_gen) IN (1, 3) -- lunes=1, miércoles=3
 LIMIT 24;
 
--- Cronograma para ST-2025-0002 (16 sesiones, martes y jueves)  
+-- Cronograma para ST-2025-0002 (16 sesiones, martes y jueves)
 INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
-SELECT 
+SELECT
     (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0002'),
     ROW_NUMBER() OVER (ORDER BY fecha_gen),
     fecha_gen::date,
@@ -427,10 +572,71 @@ FROM (
 WHERE EXTRACT(dow FROM fecha_gen) IN (2, 4) -- martes=2, jueves=4
 LIMIT 16;
 
--- Cronograma para SP-2025-0001 (Lectoescritura, lunes, miércoles, viernes)
+-- Cronograma para ST-2025-0003 (20 sesiones, lunes y miércoles) - Centro Sur
+INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
+SELECT
+    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0003'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '14:00'::time,
+    '14:45'::time,
+    'programada',
+    (SELECT id FROM usuario WHERE usuario = 'admin.sur')
+FROM (
+    SELECT generate_series(
+        '2025-02-01'::date,
+        '2025-08-01'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (1, 3) -- lunes=1, miércoles=3
+LIMIT 20;
+
+-- Cronograma para ST-2025-0004 (18 sesiones, martes y viernes) - Centro Sur
+INSERT INTO cronograma_sesiones (id_sesion, numero_sesion_semanal, fecha_programada, hora_inicio, hora_fin, estado, usuario_creacion)
+SELECT
+    (SELECT id FROM sesion_terapia WHERE codigo_sesion = 'ST-2025-0004'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '15:00'::time,
+    '15:45'::time,
+    'programada',
+    (SELECT id FROM usuario WHERE usuario = 'admin.sur')
+FROM (
+    SELECT generate_series(
+        '2025-02-03'::date,
+        '2025-09-03'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (2, 5) -- martes=2, viernes=5
+LIMIT 18;
+
+-- Cronograma para SP-2025-0003 (Apoyo en Lectoescritura Norte, martes y jueves)
 INSERT INTO cronograma_clases (id_sesion, numero_clase_semanal, fecha_programada, hora_inicio, hora_fin, estado, tema_clase, usuario_creacion)
-SELECT 
-    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0001'),
+SELECT
+    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0003'),
+    ROW_NUMBER() OVER (ORDER BY fecha_gen),
+    fecha_gen::date,
+    '08:00'::time,
+    '09:00'::time,
+    'programada',
+    'Desarrollo de habilidades de lectura y escritura',
+    (SELECT id FROM usuario WHERE usuario = 'admin.norte')
+FROM (
+    SELECT generate_series(
+        '2025-01-08'::date,
+        '2025-07-08'::date,
+        '1 day'::interval
+    ) AS fecha_gen
+) t
+WHERE EXTRACT(dow FROM fecha_gen) IN (2, 4) -- martes=2, jueves=4
+LIMIT 48; -- 2 clases por semana durante 6 meses
+
+-- Cronograma para SP-2025-0004 (Lectoescritura Inicial Centro Sur, lunes, miércoles, viernes)
+INSERT INTO cronograma_clases (id_sesion, numero_clase_semanal, fecha_programada, hora_inicio, hora_fin, estado, tema_clase, usuario_creacion)
+SELECT
+    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0004'),
     ROW_NUMBER() OVER (ORDER BY fecha_gen),
     fecha_gen::date,
     '14:00'::time,
@@ -446,12 +652,12 @@ FROM (
     ) AS fecha_gen
 ) t
 WHERE EXTRACT(dow FROM fecha_gen) IN (1, 3, 5) -- lunes=1, miércoles=3, viernes=5
-LIMIT 72; -- 3 clases por semana durante 7 meses
+LIMIT 84; -- 3 clases por semana durante 7 meses
 
--- Cronograma para SP-2025-0002 (Matemáticas, martes y jueves)
+-- Cronograma para SP-2025-0005 (Matemáticas Básicas Centro Sur, martes y jueves)
 INSERT INTO cronograma_clases (id_sesion, numero_clase_semanal, fecha_programada, hora_inicio, hora_fin, estado, tema_clase, usuario_creacion)
-SELECT 
-    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0002'),
+SELECT
+    (SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0005'),
     ROW_NUMBER() OVER (ORDER BY fecha_gen),
     fecha_gen::date,
     '15:00'::time,
@@ -516,32 +722,50 @@ WHERE st.codigo_sesion = 'ST-2025-0002'
 AND cs.fecha_programada <= CURRENT_DATE
 LIMIT 4;
 
--- Asistencias Sesión Pedagógica SP-2025-0001 (Mateo)
+-- Asistencias Sesión Pedagógica SP-2025-0003 (Ana Sofía - Centro Norte)
 INSERT INTO asistencia_clases (
     id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
     estado_asistencia, observaciones_educador, participacion_clase,
     comprension_tema, actividades_completadas, calificacion_clase
 )
-SELECT 
+SELECT
     cc.id,
-    (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567902')),
-    true, '14:00', '15:00', 'presente',
+    (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567907')),
+    true, '08:00', '09:00', 'presente',
     'Excelente participación en actividades de lectura',
     'buena', 'buena', true, 8
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
-WHERE sp.codigo_sesion = 'SP-2025-0001'
+WHERE sp.codigo_sesion = 'SP-2025-0003'
 AND cc.fecha_programada <= CURRENT_DATE
 LIMIT 6;
 
--- Asistencias Sesión Pedagógica SP-2025-0002 (Isabella - Matemáticas)
+-- Asistencias Sesión Pedagógica SP-2025-0004 (Mateo - Centro Sur)
+INSERT INTO asistencia_clases (
+    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    estado_asistencia, observaciones_educador, participacion_clase,
+    comprension_tema, actividades_completadas, calificacion_clase
+)
+SELECT
+    cc.id,
+    (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567902')),
+    true, '14:00', '15:00', 'presente',
+    'Responde bien a estímulos visuales en lectoescritura',
+    'buena', 'buena', true, 7
+FROM cronograma_clases cc
+JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
+WHERE sp.codigo_sesion = 'SP-2025-0004'
+AND cc.fecha_programada <= CURRENT_DATE
+LIMIT 5;
+
+-- Asistencias Sesión Pedagógica SP-2025-0005 (Isabella - Matemáticas Centro Sur)
 INSERT INTO asistencia_clases (
     id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
     estado_asistencia, observaciones_educador, participacion_clase,
     comprension_tema, actividades_completadas, calificacion_clase,
     evaluacion_comportamiento
 )
-SELECT 
+SELECT
     cc.id,
     (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567903')),
     true, '15:00', '16:00', 'presente',
@@ -549,7 +773,7 @@ SELECT
     'excelente', 'buena', true, 9, 'excelente'
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
-WHERE sp.codigo_sesion = 'SP-2025-0002'
+WHERE sp.codigo_sesion = 'SP-2025-0005'
 AND cc.fecha_programada <= CURRENT_DATE
 LIMIT 5;
 
@@ -590,7 +814,7 @@ INSERT INTO observaciones_sesiones (
  'progreso', 'academico', 'medio',
  (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567900'))),
 
-((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0001'),
+((SELECT id FROM sesion_pedagogica WHERE codigo_sesion = 'SP-2025-0004'),
  'pedagogica',
  (SELECT id FROM usuario WHERE usuario = 'pedagogo.sandra'),
  'Mateo necesita más tiempo para procesar las instrucciones. Considerar pausas más largas entre actividades.',

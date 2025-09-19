@@ -13,11 +13,47 @@ class SesionTerapiaService:
 
     @staticmethod
     def get_sesiones():
-        """Obtener todas las sesiones de terapia"""
+        """Obtener sesiones de terapia filtradas según rol y centro del usuario"""
         try:
             HandleLogs.write_log("SesionTerapiaService.get_sesiones - Iniciando")
 
-            sesiones = SesionTerapiaComponent.get_sesiones()
+            # Obtener información del usuario actual
+            current_user = getattr(request, 'current_user', {})
+            user_role = current_user.get('rol', '').lower()
+            user_centro_id = current_user.get('id_centro')
+            personal_id = current_user.get('personal_id')
+
+            # Filtrado basado en rol
+            if user_role == 'administrador':
+                # Administradores ven todas las sesiones de su centro
+                if user_centro_id:
+                    sesiones = SesionTerapiaComponent.get_sesiones_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - Admin obteniendo sesiones del centro {user_centro_id}")
+                else:
+                    # Fallback si no tiene centro asignado
+                    sesiones = SesionTerapiaComponent.get_sesiones()
+                    HandleLogs.write_log("SesionTerapiaService.get_sesiones - Admin obteniendo todas las sesiones (sin centro)")
+            elif user_role in ['terapeuta', 'pedagógico', 'pedagogo']:
+                # Terapeutas ven solo sus sesiones
+                if personal_id and user_centro_id:
+                    sesiones = SesionTerapiaComponent.get_sesiones_by_terapeuta(personal_id, user_centro_id)
+                    HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - {user_role} obteniendo sesiones asignadas (personal_id: {personal_id}, centro: {user_centro_id})")
+                else:
+                    # Si no tiene personal_id, mostrar sesiones del centro
+                    if user_centro_id:
+                        sesiones = SesionTerapiaComponent.get_sesiones_by_centro(user_centro_id)
+                        HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - {user_role} obteniendo sesiones del centro {user_centro_id} (fallback)")
+                    else:
+                        sesiones = []
+                        HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - {user_role} sin centro asignado - lista vacía")
+            else:
+                # Otros roles - acceso limitado solo a su centro
+                if user_centro_id:
+                    sesiones = SesionTerapiaComponent.get_sesiones_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - Rol {user_role} obteniendo sesiones del centro {user_centro_id}")
+                else:
+                    sesiones = []
+                    HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - Rol {user_role} sin centro - lista vacía")
 
             if sesiones:
                 # Formatear datos para respuesta
@@ -384,11 +420,20 @@ class SesionTerapiaService:
 
     @staticmethod
     def get_terapeutas_disponibles():
-        """Obtener terapeutas disponibles para asignar a sesiones"""
+        """Obtener terapeutas disponibles para asignar a sesiones (filtrados por centro del usuario)"""
         try:
             HandleLogs.write_log("SesionTerapiaService.get_terapeutas_disponibles - Iniciando")
 
-            terapeutas = SesionTerapiaComponent.get_terapeutas_disponibles()
+            # Obtener información del usuario actual para filtrado por centro
+            current_user = getattr(request, 'current_user', {})
+            user_centro_id = current_user.get('id_centro')
+
+            if user_centro_id:
+                terapeutas = SesionTerapiaComponent.get_terapeutas_disponibles_by_centro(user_centro_id)
+                HandleLogs.write_log(f"SesionTerapiaService.get_terapeutas_disponibles - Filtrando por centro {user_centro_id}")
+            else:
+                terapeutas = SesionTerapiaComponent.get_terapeutas_disponibles()
+                HandleLogs.write_log("SesionTerapiaService.get_terapeutas_disponibles - Sin filtro de centro")
 
             HandleLogs.write_log(
                 f"SesionTerapiaService.get_terapeutas_disponibles - {len(terapeutas) if terapeutas else 0} terapeutas disponibles")
@@ -400,11 +445,20 @@ class SesionTerapiaService:
 
     @staticmethod
     def get_pacientes_disponibles():
-        """Obtener pacientes disponibles para asignar a sesiones"""
+        """Obtener pacientes disponibles para asignar a sesiones (filtrados por centro del usuario)"""
         try:
             HandleLogs.write_log("SesionTerapiaService.get_pacientes_disponibles - Iniciando")
 
-            pacientes = SesionTerapiaComponent.get_pacientes_disponibles()
+            # Obtener información del usuario actual para filtrado por centro
+            current_user = getattr(request, 'current_user', {})
+            user_centro_id = current_user.get('id_centro')
+
+            if user_centro_id:
+                pacientes = SesionTerapiaComponent.get_pacientes_disponibles_by_centro(user_centro_id)
+                HandleLogs.write_log(f"SesionTerapiaService.get_pacientes_disponibles - Filtrando por centro {user_centro_id}")
+            else:
+                pacientes = SesionTerapiaComponent.get_pacientes_disponibles()
+                HandleLogs.write_log("SesionTerapiaService.get_pacientes_disponibles - Sin filtro de centro")
 
             HandleLogs.write_log(
                 f"SesionTerapiaService.get_pacientes_disponibles - {len(pacientes) if pacientes else 0} pacientes disponibles")

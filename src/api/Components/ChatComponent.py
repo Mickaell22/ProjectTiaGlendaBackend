@@ -426,3 +426,38 @@ class ChatComponent:
         except Exception as e:
             HandleLogs.write_error(f"Error en buscar_mensajes: {str(e)}")
             return {'success': False, 'message': f'Error interno: {str(e)}'}
+
+    @staticmethod
+    def obtener_conteo_mensajes_no_leidos(id_usuario):
+        """
+        Obtener el conteo de mensajes no leídos para un usuario
+        """
+        try:
+            from src.utils.database.connection_db import DataBaseHandle as db
+
+            # Query para contar mensajes no leídos
+            query = """
+                SELECT COUNT(*) as count
+                FROM mensaje_chat mc
+                WHERE mc.id_destinatario = %s
+                AND mc.leido = false
+                AND mc.estado = 'activo'
+            """
+
+            resultado = db.getRecords(query, (id_usuario,), size=1)
+
+            if resultado:
+                count = resultado.get('count', 0)
+                return {
+                    'success': True,
+                    'count': count
+                }
+            else:
+                return {
+                    'success': True,
+                    'count': 0
+                }
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en obtener_conteo_mensajes_no_leidos: {str(e)}")
+            return {'success': False, 'message': f'Error interno: {str(e)}'}

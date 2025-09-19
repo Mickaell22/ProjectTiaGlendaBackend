@@ -411,3 +411,114 @@ class TutorComponent:
         except Exception as e:
             HandleLogs.write_error(f"TutorComponent.get_personas_disponibles_para_tutor - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_tutores_by_centro(centro_id):
+        """Obtener tutores filtrados por centro (basado en los pacientes que atienden)"""
+        try:
+            query = """
+            SELECT DISTINCT
+                t.id,
+                p.nombre,
+                p.apellido,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.cedula,
+                p.telefono,
+                p.correo as email,
+                p.direccion,
+                t.parentesco,
+                t.ocupacion,
+                t.direccion_empresa,
+                t.telefono_empresa,
+                t.nombre_empresa,
+                t.estado,
+                t.fecha_creacion,
+                t.fecha_modificacion,
+                COUNT(pac.id) as total_pacientes,
+                COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
+            FROM tutor t
+            INNER JOIN persona p ON t.id_persona = p.id
+            LEFT JOIN paciente pac ON t.id = pac.id_tutor AND pac.id_centro = %s
+            WHERE EXISTS (
+                SELECT 1 FROM paciente pac2
+                WHERE pac2.id_tutor = t.id AND pac2.id_centro = %s
+            )
+            GROUP BY t.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
+                     p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
+                     t.telefono_empresa, t.nombre_empresa, t.estado,
+                     t.fecha_creacion, t.fecha_modificacion
+            ORDER BY p.nombre, p.apellido
+            """
+
+            tutores = DataBaseHandle.getRecords(query, (centro_id, centro_id))
+
+            if tutores is not None:
+                HandleLogs.write_log(f"TutorComponent.get_tutores_by_centro - {len(tutores)} tutores encontrados para centro {centro_id}")
+                return internal_response(True, tutores, "Tutores del centro obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"TutorComponent.get_tutores_by_centro - Error en consulta para centro {centro_id}")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"TutorComponent.get_tutores_by_centro - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_tutores_by_personal(personal_id, centro_id):
+        """Obtener tutores de pacientes asignados a un personal específico"""
+        try:
+            query = """
+            SELECT DISTINCT
+                t.id,
+                p.nombre,
+                p.apellido,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.cedula,
+                p.telefono,
+                p.correo as email,
+                p.direccion,
+                t.parentesco,
+                t.ocupacion,
+                t.direccion_empresa,
+                t.telefono_empresa,
+                t.nombre_empresa,
+                t.estado,
+                t.fecha_creacion,
+                t.fecha_modificacion,
+                COUNT(pac.id) as total_pacientes,
+                COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
+            FROM tutor t
+            INNER JOIN persona p ON t.id_persona = p.id
+            LEFT JOIN paciente pac ON t.id = pac.id_tutor
+            WHERE EXISTS (
+                SELECT 1 FROM sesion_terapia st
+                INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
+                WHERE sp.id_paciente = pac.id
+                AND st.id_terapeuta = %s
+                AND st.id_centro = %s
+                UNION
+                SELECT 1 FROM sesion_pedagogica sped
+                INNER JOIN sesion_estudiante se ON sped.id = se.id_sesion
+                WHERE se.id_paciente = pac.id
+                AND sped.id_educador = %s
+                AND sped.id_centro = %s
+            )
+            GROUP BY t.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
+                     p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
+                     t.telefono_empresa, t.nombre_empresa, t.estado,
+                     t.fecha_creacion, t.fecha_modificacion
+            ORDER BY p.nombre, p.apellido
+            """
+
+            tutores = DataBaseHandle.getRecords(query, (personal_id, centro_id, personal_id, centro_id))
+
+            if tutores is not None:
+                HandleLogs.write_log(f"TutorComponent.get_tutores_by_personal - {len(tutores)} tutores encontrados para personal {personal_id} en centro {centro_id}")
+                return internal_response(True, tutores, "Tutores del personal obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"TutorComponent.get_tutores_by_personal - Error en consulta para personal {personal_id}")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"TutorComponent.get_tutores_by_personal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")

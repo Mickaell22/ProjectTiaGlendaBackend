@@ -787,3 +787,71 @@ class PersonalComponent:
         except Exception as e:
             HandleLogs.write_error(f"PersonalComponent.get_especialidades_disponibles - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_personal_by_area_and_centro(area, centro_id):
+        """Obtener personal por área y centro específico"""
+        try:
+            HandleLogs.write_log(f"PersonalComponent.get_personal_by_area_and_centro - Área: {area}, Centro: {centro_id}")
+
+            query = """
+            SELECT DISTINCT
+                p.id,
+                p.id_persona,
+                p.cargo,
+                p.estado,
+                p.id_centro,
+                -- Información personal
+                CONCAT(pe.nombre, ' ', pe.apellido) as nombre_completo,
+                pe.nombre,
+                pe.apellido,
+                pe.cedula,
+                pe.telefono,
+                pe.correo,
+                pe.direccion,
+                pe.fecha_nacimiento,
+                -- Información del centro
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                -- Información de usuario si existe
+                u.id as usuario_id,
+                u.usuario as username,
+                r.nombre as rol_nombre,
+                -- Información de especialidades
+                STRING_AGG(DISTINCT e.nombre, ', ') as especialidades,
+                COUNT(DISTINCT e.id) as total_especialidades
+            FROM personal p
+            INNER JOIN persona pe ON p.id_persona = pe.id
+            LEFT JOIN centros c ON p.id_centro = c.id
+            LEFT JOIN usuario u ON pe.id = u.id_persona
+            LEFT JOIN rol r ON u.id_rol = r.id
+            LEFT JOIN personal_especialidades pes ON p.id = pes.id_personal AND pes.estado = 'activo'
+            LEFT JOIN especialidad e ON pes.id_especialidad = e.id
+            WHERE p.estado = 'activo'
+            AND p.id_centro = %s
+            AND LOWER(e.area) LIKE LOWER(%s)
+            GROUP BY p.id, p.id_persona, p.cargo, p.estado, p.id_centro,
+                     pe.nombre, pe.apellido, pe.cedula, pe.telefono, pe.correo,
+                     pe.direccion, pe.fecha_nacimiento, c.nombre, c.codigo,
+                     u.id, u.usuario, r.nombre
+            ORDER BY pe.nombre, pe.apellido
+            """
+
+            area_pattern = f'%{area}%'
+            result = DataBaseHandle.getRecords(query, (centro_id, area_pattern))
+
+            if result is not None:
+                # Formatear fechas para JSON serialization
+                for personal in result:
+                    if personal.get('fecha_nacimiento'):
+                        personal['fecha_nacimiento'] = personal['fecha_nacimiento'].isoformat()
+
+                HandleLogs.write_log(f"PersonalComponent.get_personal_by_area_and_centro - {len(result)} registros encontrados para área '{area}' en centro {centro_id}")
+                return internal_response(True, result, "Personal por área y centro obtenido correctamente")
+            else:
+                HandleLogs.write_error(f"PersonalComponent.get_personal_by_area_and_centro - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.get_personal_by_area_and_centro - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")

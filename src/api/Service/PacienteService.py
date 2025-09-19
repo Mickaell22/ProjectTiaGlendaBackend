@@ -14,11 +14,47 @@ class PacienteService:
 
     @staticmethod
     def get_pacientes():
-        """Obtener lista de todos los pacientes"""
+        """Obtener lista de pacientes filtrados según rol y centro del usuario"""
         try:
             HandleLogs.write_log("PacienteService.get_pacientes - Iniciando")
 
-            result = PacienteComponent.get_all_pacientes()
+            # Obtener información del usuario actual
+            current_user = getattr(request, 'current_user', {})
+            user_role = current_user.get('rol', '').lower()
+            user_centro_id = current_user.get('id_centro')
+            personal_id = current_user.get('personal_id')
+
+            # Filtrado basado en rol
+            if user_role == 'administrador':
+                # Administradores ven todos los pacientes de su centro
+                if user_centro_id:
+                    result = PacienteComponent.get_all_pacientes_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"PacienteService.get_pacientes - Admin obteniendo pacientes del centro {user_centro_id}")
+                else:
+                    # Fallback si no tiene centro asignado
+                    result = PacienteComponent.get_all_pacientes()
+                    HandleLogs.write_log("PacienteService.get_pacientes - Admin obteniendo todos los pacientes (sin centro)")
+            elif user_role in ['terapeuta', 'pedagógico', 'pedagogo']:
+                # Terapeutas y pedagogos ven solo pacientes de sesiones donde están asignados
+                if personal_id and user_centro_id:
+                    result = PacienteComponent.get_pacientes_asignados_personal(personal_id, user_centro_id)
+                    HandleLogs.write_log(f"PacienteService.get_pacientes - {user_role} obteniendo pacientes asignados (personal_id: {personal_id}, centro: {user_centro_id})")
+                else:
+                    # Si no tiene personal_id, mostrar pacientes del centro
+                    if user_centro_id:
+                        result = PacienteComponent.get_all_pacientes_by_centro(user_centro_id)
+                        HandleLogs.write_log(f"PacienteService.get_pacientes - {user_role} obteniendo pacientes del centro {user_centro_id} (fallback)")
+                    else:
+                        result = {'success': True, 'data': []}
+                        HandleLogs.write_log(f"PacienteService.get_pacientes - {user_role} sin centro asignado - lista vacía")
+            else:
+                # Otros roles - acceso limitado solo a su centro
+                if user_centro_id:
+                    result = PacienteComponent.get_all_pacientes_by_centro(user_centro_id)
+                    HandleLogs.write_log(f"PacienteService.get_pacientes - Rol {user_role} obteniendo pacientes del centro {user_centro_id}")
+                else:
+                    result = {'success': True, 'data': []}
+                    HandleLogs.write_log(f"PacienteService.get_pacientes - Rol {user_role} sin centro - lista vacía")
 
             if result['success']:
                 HandleLogs.write_log("PacienteService.get_pacientes - Pacientes obtenidos exitosamente")
