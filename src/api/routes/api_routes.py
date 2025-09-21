@@ -1671,7 +1671,7 @@ def register_routes(app):
                         })
                     
                     except Exception as person_error:
-                        print(f"Error creating patient for persona {persona_id}: {person_error}")
+                        HandleLogs.write_error(f"Error creating patient for persona {persona_id}: {person_error}")
                         continue
                 
                 return response_success({
@@ -1861,7 +1861,7 @@ def register_routes(app):
                                 })
                     
                     except Exception as person_error:
-                        print(f"Error creating patient for {persona_data['nombre']}: {person_error}")
+                        HandleLogs.write_error(f"Error creating patient for {persona_data['nombre']}: {person_error}")
                         continue
                 
                 return response_success({
@@ -3480,6 +3480,126 @@ def register_routes(app):
                     
             except Exception as e:
                 HandleLogs.write_error(f"Error en get_mis_estudiantes: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        # ========= NUEVOS ENDPOINTS DE DASHBOARD POR ROL =========
+
+        @app.route('/api/dashboard/admin', methods=['GET'])
+        @token_required
+        @admin_required
+        def get_dashboard_admin():
+            """Dashboard completo para administradores"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_dashboard_admin()
+
+                return response_success(resultado, "Dashboard admin obtenido exitosamente")
+
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_dashboard_admin: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/therapist', methods=['GET'])
+        @token_required
+        def get_dashboard_therapist():
+            """Dashboard específico para terapeutas"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from flask import request
+
+                # Verificar que el usuario es terapeuta específicamente
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo terapeutas pueden acceder a esta información", 403)
+
+                # Verificar que el personal es realmente terapeuta
+                from src.api.Components.PersonalComponent import PersonalComponent
+                personal_component = PersonalComponent()
+                personal_info = personal_component.getPersonal(request.current_user.personal_id)
+
+                if not personal_info or personal_info.get('rol') != 'Terapeuta':
+                    return response_error("Solo terapeutas pueden acceder a esta información", 403)
+
+                personal_id = request.current_user.personal_id
+
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_dashboard_therapist(personal_id)
+
+                return response_success(resultado, "Dashboard terapeuta obtenido exitosamente")
+
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_dashboard_therapist: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/dashboard/pedagogue', methods=['GET'])
+        @token_required
+        def get_dashboard_pedagogue():
+            """Dashboard específico para pedagogos"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from flask import request
+
+                # Verificar que el usuario es pedagogo específicamente
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo pedagogos pueden acceder a esta información", 403)
+
+                # Verificar que el personal es realmente pedagogo
+                from src.api.Components.PersonalComponent import PersonalComponent
+                personal_component = PersonalComponent()
+                personal_info = personal_component.getPersonal(request.current_user.personal_id)
+
+                if not personal_info or personal_info.get('rol') != 'Pedagogo':
+                    return response_error("Solo pedagogos pueden acceder a esta información", 403)
+
+                personal_id = request.current_user.personal_id
+
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_dashboard_pedagogue(personal_id)
+
+                return response_success(resultado, "Dashboard pedagogo obtenido exitosamente")
+
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_dashboard_pedagogue: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/stats/general', methods=['GET'])
+        @token_required
+        def get_stats_general():
+            """Estadísticas generales del sistema"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_stats_general()
+
+                return response_success(resultado, "Estadísticas generales obtenidas exitosamente")
+
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_stats_general: {str(e)}")
+                return response_error("Error interno del servidor", 500)
+
+        @app.route('/api/agenda/personal', methods=['GET'])
+        @token_required
+        def get_agenda_personal():
+            """Agenda personal para una fecha específica"""
+            try:
+                from src.api.Service.DashboardService import DashboardService
+                from flask import request
+
+                # Verificar que el usuario es personal (tiene personal_id)
+                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                    return response_error("Solo personal puede acceder a esta información", 403)
+
+                fecha = request.args.get('fecha')  # Formato: YYYY-MM-DD
+
+                dashboard_service = DashboardService()
+                resultado = dashboard_service.get_agenda_personal(request.current_user.personal_id, fecha)
+
+                return response_success(resultado, "Agenda personal obtenida exitosamente")
+
+            except Exception as e:
+                HandleLogs.write_error(f"Error en get_agenda_personal: {str(e)}")
                 return response_error("Error interno del servidor", 500)
 
     # ============================================

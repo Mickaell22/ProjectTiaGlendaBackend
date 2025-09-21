@@ -47,7 +47,8 @@ def get_config():
             default_config['db_user'] = parsed.username
             default_config['db_pass'] = parsed.password
         except Exception as e:
-            print(f"Error parsing DATABASE_URL: {e}")
+            # No podemos usar HandleLogs aquí por dependencia circular
+            pass
 
     # Las variables de entorno tienen prioridad
     env_mapping = {

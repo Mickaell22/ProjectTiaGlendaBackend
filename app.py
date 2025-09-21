@@ -34,7 +34,6 @@ if os.getenv('RAILWAY_ENVIRONMENT'):
         'https://*.up.railway.app'
     ])
 
-print(f"CORS configurado para orígenes: {cors_origins}")
 
 CORS(app, 
      origins=cors_origins,

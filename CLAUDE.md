@@ -74,6 +74,8 @@ The project follows a 3-layer architecture:
 - **Logging**: Comprehensive logging system with daily log files in src/utils/general/LOGS/
 - **Security**: Password hashing, JWT tokens, input validation
 - **Testing**: Advanced test runner with progress bars, colored output, and detailed statistics
+- **Dashboard**: Role-based dashboard system with admin, therapist, and pedagogue views
+- **Multi-Center Configuration**: Support for multiple healthcare centers with isolation
 
 ## Configuration
 
@@ -101,6 +103,8 @@ Key environment variables:
 - `/api/roles`: Role management
 - `/api/sesiones-terapia`: Therapy session management with cronograma generation
 - `/api/sesiones-pedagogicas`: Pedagogical session management with class scheduling
+- `/api/dashboard/*`: Dashboard endpoints with role-based data (admin, therapist, pedagogue views)
+- `/api/centros-disponibles`: Available centers configuration
 - `/docs/`: Swagger UI documentation
 - `/health`: Application health endpoint
 
@@ -259,6 +263,15 @@ The pedagogical sessions (`/api/sesiones-pedagogicas`) module includes:
 - Database initialization scripts are located in `src/utils/database/`:
   - `01_estructura_tablas.sql`: Complete database schema
   - `02_datos_iniciales.sql`: Initial/seed data
+
+### Dashboard System
+The dashboard module provides role-based analytics and data visualization:
+- **Admin Dashboard**: System-wide statistics, user management metrics, global overview
+- **Therapist Dashboard**: Personal therapy sessions, patient progress, attendance metrics
+- **Pedagogue Dashboard**: Educational sessions, student management, class attendance
+- **Components**: Located in `src/api/Components/DashboardComponent.py`
+- **Services**: Business logic in `src/api/Service/DashboardService.py`
+- **Endpoints**: Multiple specialized endpoints under `/api/dashboard/*` pattern
 
 ## Project File Organization
 

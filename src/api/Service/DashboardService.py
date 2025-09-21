@@ -169,3 +169,53 @@ class DashboardService:
         except Exception as e:
             self.logger.error(f"Error en DashboardService.get_mis_estudiantes: {e}")
             raise
+
+    def get_dashboard_admin(self):
+        """
+        Obtiene dashboard completo para administradores
+        """
+        try:
+            return self.dashboard_component.get_dashboard_admin()
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_dashboard_admin: {e}")
+            raise
+
+    def get_dashboard_therapist(self, id_personal):
+        """
+        Obtiene dashboard específico para terapeutas
+        """
+        try:
+            return self.dashboard_component.get_dashboard_therapist(id_personal)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_dashboard_therapist: {e}")
+            raise
+
+    def get_dashboard_pedagogue(self, id_personal):
+        """
+        Obtiene dashboard específico para pedagogos
+        """
+        try:
+            return self.dashboard_component.get_dashboard_pedagogue(id_personal)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_dashboard_pedagogue: {e}")
+            raise
+
+    def get_stats_general(self):
+        """
+        Obtiene estadísticas generales del sistema
+        """
+        try:
+            return self.dashboard_component.get_stats_general()
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_stats_general: {e}")
+            raise
+
+    def get_agenda_personal(self, id_personal, fecha=None):
+        """
+        Obtiene agenda personal para una fecha específica
+        """
+        try:
+            return self.dashboard_component.get_agenda_personal(id_personal, fecha)
+        except Exception as e:
+            self.logger.error(f"Error en DashboardService.get_agenda_personal: {e}")
+            raise
