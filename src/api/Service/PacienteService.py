@@ -306,8 +306,9 @@ class PacienteService:
             fecha_vencimiento = request.form.get('fecha_vencimiento')
 
             # Validar tipo de documento
-            tipos_validos = ['general', 'historia_clinica', 'examenes_medicos', 'consentimientos', 
-                           'reportes_terapia', 'evaluaciones', 'otros']
+            tipos_validos = ['historia_clinica', 'evaluacion_inicial', 'informe_progreso', 'alta_medica',
+                           'consentimiento_informado', 'autorizacion_tratamiento', 'cedula_paciente',
+                           'cedula_tutor', 'otros']
             if tipo_documento not in tipos_validos:
                 return response_error(f"Tipo de documento inválido. Debe ser uno de: {', '.join(tipos_validos)}", 400)
 
@@ -340,6 +341,8 @@ class PacienteService:
                 'descripcion': descripcion if descripcion else None,
                 'usuario_creacion': current_user_id
             }
+
+            HandleLogs.write_log(f"PacienteService.upload_documento - Datos preparados: {documento_data}")
 
             documento_data = DataUtils.prepare_create_data(documento_data, current_user_id)
 

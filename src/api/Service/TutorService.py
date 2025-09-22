@@ -21,14 +21,9 @@ class TutorService:
 
             # Filtrado basado en rol
             if user_role == 'administrador':
-                # Administradores ven todos los tutores de su centro
-                if user_centro_id:
-                    result = TutorComponent.get_tutores_by_centro(user_centro_id)
-                    HandleLogs.write_log(f"TutorService.get_tutores - Admin obteniendo tutores del centro {user_centro_id}")
-                else:
-                    # Fallback si no tiene centro asignado
-                    result = TutorComponent.get_all_tutores()
-                    HandleLogs.write_log("TutorService.get_tutores - Admin obteniendo todos los tutores (sin centro)")
+                # Administradores ven todos los tutores (sin filtrar por centro)
+                result = TutorComponent.get_all_tutores()
+                HandleLogs.write_log("TutorService.get_tutores - Admin obteniendo todos los tutores")
             elif user_role in ['terapeuta', 'pedagógico', 'pedagogo']:
                 # Terapeutas y pedagogos ven solo tutores de pacientes de sus sesiones
                 if personal_id and user_centro_id:

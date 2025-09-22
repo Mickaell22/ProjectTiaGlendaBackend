@@ -394,6 +394,13 @@ def register_routes(app):
         from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
         return DocumentoPersonalService.subir_documento()
 
+    @app.route('/api/personal/<int:personal_id>/documentos/<int:documento_id>', methods=['DELETE'])
+    @token_required
+    def eliminar_documento_personal_por_personal(personal_id, documento_id):
+        """Eliminar documento de un miembro del personal"""
+        from src.api.Service.DocumentoPersonalService import DocumentoPersonalService
+        return DocumentoPersonalService.eliminar_documento(documento_id)
+
     @app.route('/api/documentos-personal/<int:documento_id>', methods=['GET'])
     @token_required
     def get_documento_personal(documento_id):

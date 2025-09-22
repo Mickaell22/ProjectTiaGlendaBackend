@@ -16,8 +16,8 @@ class DocumentoPersonalService:
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
     
     TIPOS_DOCUMENTO_VALIDOS = [
-        'cedula', 'curriculum', 'titulo', 'certificado', 
-        'contrato', 'foto', 'otro'
+        'cedula', 'curriculum', 'titulo_profesional', 'certificacion', 'contrato',
+        'acuerdo_confidencialidad', 'referencias', 'antecedentes_penales', 'record_policial', 'otros'
     ]
 
     @staticmethod
