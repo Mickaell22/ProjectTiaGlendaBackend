@@ -27,11 +27,10 @@ railway_domain = os.getenv('RAILWAY_STATIC_URL')
 if railway_domain:
     cors_origins.append(f"https://{railway_domain}")
 
-# Si estamos en Railway, permitir cualquier subdominio de railway.app
+# Si estamos en Railway, agregar dominios específicos
 if os.getenv('RAILWAY_ENVIRONMENT'):
     cors_origins.extend([
-        'https://*.railway.app',
-        'https://*.up.railway.app'
+        'https://projecttiaglendafrontend-k.up.railway.app'
     ])
 
 
