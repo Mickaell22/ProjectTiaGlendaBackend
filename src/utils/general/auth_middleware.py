@@ -206,3 +206,104 @@ def admin_required(f):
             return response_error("Error verificando permisos", 500)
 
     return decorated_function
+
+
+def therapist_required(f):
+    """Decorador para requerir rol de terapeuta"""
+
+    @wraps(f)
+    @token_required
+    def decorated_function(*args, **kwargs):
+        try:
+            user = request.current_user
+
+            if user['rol'].lower() not in ['terapeuta', 'pedagógico', 'pedagogo']:
+                HandleLogs.write_log(
+                    f"auth_middleware.therapist_required - Acceso denegado para usuario: {user['usuario']} con rol: {user['rol']}")
+                return response_error("Acceso denegado. Se requieren permisos de terapeuta o pedagogo", 403)
+
+            return f(*args, **kwargs)
+
+        except Exception as e:
+            HandleLogs.write_error(f"auth_middleware.therapist_required - Error: {str(e)}")
+            return response_error("Error verificando permisos", 500)
+
+    return decorated_function
+
+
+def therapist_or_admin_required(f):
+    """Decorador para requerir rol de terapeuta o administrador"""
+
+    @wraps(f)
+    @token_required
+    def decorated_function(*args, **kwargs):
+        try:
+            user = request.current_user
+
+            allowed_roles = ['administrador', 'terapeuta', 'pedagógico', 'pedagogo']
+            if user['rol'].lower() not in allowed_roles:
+                HandleLogs.write_log(
+                    f"auth_middleware.therapist_or_admin_required - Acceso denegado para usuario: {user['usuario']} con rol: {user['rol']}")
+                return response_error("Acceso denegado. Se requieren permisos de administrador o terapeuta", 403)
+
+            return f(*args, **kwargs)
+
+        except Exception as e:
+            HandleLogs.write_error(f"auth_middleware.therapist_or_admin_required - Error: {str(e)}")
+            return response_error("Error verificando permisos", 500)
+
+    return decorated_function
+
+
+def session_owner_required(f):
+    """Decorador para verificar que el usuario sea propietario de la sesión o administrador"""
+
+    @wraps(f)
+    @token_required
+    def decorated_function(*args, **kwargs):
+        try:
+            user = request.current_user
+
+            # Administradores tienen acceso completo
+            if user['rol'].lower() == 'administrador':
+                return f(*args, **kwargs)
+
+            # Para terapeutas, verificar que sean propietarios de la sesión
+            if user['rol'].lower() in ['terapeuta', 'pedagógico', 'pedagogo']:
+                # Obtener sesion_id de los argumentos
+                sesion_id = None
+                if 'sesion_id' in kwargs:
+                    sesion_id = kwargs['sesion_id']
+                elif args:
+                    # Asumir que el primer argumento es sesion_id en rutas que lo usan
+                    sesion_id = args[0]
+
+                if not sesion_id:
+                    HandleLogs.write_error(f"auth_middleware.session_owner_required - No se pudo obtener sesion_id")
+                    return response_error("Error verificando permisos de sesión", 500)
+
+                # Verificar que el usuario sea el terapeuta asignado a la sesión
+                try:
+                    from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
+                    sesion = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
+
+                    if not sesion:
+                        return response_error("Sesión no encontrada", 404)
+
+                    personal_id = user.get('personal_id')
+                    if not personal_id or sesion.get('terapeuta_id') != personal_id:
+                        HandleLogs.write_log(
+                            f"auth_middleware.session_owner_required - Usuario {user['usuario']} no es propietario de sesión {sesion_id}")
+                        return response_error("No tiene permisos para acceder a esta sesión", 403)
+
+                except Exception as verify_err:
+                    HandleLogs.write_error(f"auth_middleware.session_owner_required - Error verificando propietario: {str(verify_err)}")
+                    return response_error("Error verificando permisos de sesión", 500)
+
+            return f(*args, **kwargs)
+
+        except Exception as e:
+            HandleLogs.write_error(f"auth_middleware.session_owner_required - Error: {str(e)}")
+            return response_error("Error verificando permisos", 500)
+
+    return decorated_function

@@ -47,24 +47,31 @@ class PacienteComponent:
             pacientes = DataBaseHandle.getRecords(query)
 
             if pacientes is not None:
-                # Formatear los datos para mantener compatibilidad con el frontend
+                # Cargar especialidades para cada paciente
                 for paciente in pacientes:
-                    # Temporarily commented out especialidad logic
-                    if False:  # paciente['especialidad_id']:
-                        paciente['especialidades'] = [{
-                            'id': paciente['especialidad_id'],
-                            'nombre': paciente['especialidad_nombre'],
-                            'area': paciente['especialidad_area'],
-                            'estado_tratamiento': paciente['estado_tratamiento'],
-                            'fecha_inicio': paciente['fecha_inicio_tratamiento'],
-                            'fecha_fin': paciente['fecha_fin_tratamiento']
-                        }]
-                        paciente['total_especialidades'] = 1
-                        paciente['especialidades_activas'] = 1 if paciente['estado_tratamiento'] == 'activo' else 0
+                    especialidades_result = PacienteComponent.get_especialidades_paciente(paciente['id'])
+                    if especialidades_result['success'] and especialidades_result['data']:
+                        paciente['especialidades'] = especialidades_result['data']
+                        paciente['total_especialidades'] = len(especialidades_result['data'])
+                        paciente['especialidades_activas'] = len([e for e in especialidades_result['data'] if e.get('estado') == 'activo'])
+
+                        # Encontrar especialidad principal para compatibilidad
+                        especialidad_principal = next((e for e in especialidades_result['data'] if e.get('es_principal')), None)
+                        if especialidad_principal:
+                            paciente['especialidad_id'] = especialidad_principal['id_especialidad']
+                            paciente['especialidad_nombre'] = especialidad_principal['especialidad_nombre']
+                            paciente['especialidad_area'] = especialidad_principal['especialidad_area']
+                            paciente['fecha_inicio_tratamiento'] = especialidad_principal['fecha_inicio_tratamiento']
+                            paciente['fecha_fin_tratamiento'] = especialidad_principal['fecha_fin_tratamiento']
                     else:
                         paciente['especialidades'] = []
                         paciente['total_especialidades'] = 0
                         paciente['especialidades_activas'] = 0
+                        paciente['especialidad_id'] = None
+                        paciente['especialidad_nombre'] = None
+                        paciente['especialidad_area'] = None
+                        paciente['fecha_inicio_tratamiento'] = None
+                        paciente['fecha_fin_tratamiento'] = None
 
                 HandleLogs.write_log(f"PacienteComponent.get_all_pacientes - {len(pacientes)} pacientes encontrados")
                 return internal_response(True, pacientes, "Pacientes obtenidos correctamente")
@@ -117,10 +124,30 @@ class PacienteComponent:
             paciente = DataBaseHandle.getRecords(query_paciente, (paciente_id,), size=1)
 
             if paciente:
-                # Formatear especialidades para mantener compatibilidad con el frontend
-                paciente['especialidades'] = []
-                paciente['total_especialidades'] = 0
-                paciente['especialidades_activas'] = 0
+                # Cargar especialidades del paciente
+                especialidades_result = PacienteComponent.get_especialidades_paciente(paciente_id)
+                if especialidades_result['success'] and especialidades_result['data']:
+                    paciente['especialidades'] = especialidades_result['data']
+                    paciente['total_especialidades'] = len(especialidades_result['data'])
+                    paciente['especialidades_activas'] = len([e for e in especialidades_result['data'] if e.get('estado') == 'activo'])
+
+                    # Encontrar especialidad principal para compatibilidad
+                    especialidad_principal = next((e for e in especialidades_result['data'] if e.get('es_principal')), None)
+                    if especialidad_principal:
+                        paciente['especialidad_id'] = especialidad_principal['id_especialidad']
+                        paciente['especialidad_nombre'] = especialidad_principal['especialidad_nombre']
+                        paciente['especialidad_area'] = especialidad_principal['especialidad_area']
+                        paciente['fecha_inicio_tratamiento'] = especialidad_principal['fecha_inicio_tratamiento']
+                        paciente['fecha_fin_tratamiento'] = especialidad_principal['fecha_fin_tratamiento']
+                else:
+                    paciente['especialidades'] = []
+                    paciente['total_especialidades'] = 0
+                    paciente['especialidades_activas'] = 0
+                    paciente['especialidad_id'] = None
+                    paciente['especialidad_nombre'] = None
+                    paciente['especialidad_area'] = None
+                    paciente['fecha_inicio_tratamiento'] = None
+                    paciente['fecha_fin_tratamiento'] = None
 
                 HandleLogs.write_log(f"PacienteComponent.get_paciente_by_id - Paciente {paciente_id} encontrado")
                 return internal_response(True, paciente, "Paciente encontrado")
@@ -898,25 +925,25 @@ class PacienteComponent:
     def get_especialidades_paciente(paciente_id):
         """Obtener todas las especialidades de un paciente"""
         try:
+            HandleLogs.write_log(f"PacienteComponent.get_especialidades_paciente - Iniciando para paciente {paciente_id}")
+
             query = """
-            SELECT 
+            SELECT
                 pe.id,
                 pe.id_especialidad,
                 e.nombre as especialidad_nombre,
-                e.descripcion as especialidad_area,
+                e.area as especialidad_area,
+                pe.es_principal,
+                pe.prioridad,
                 pe.fecha_asignacion,
                 pe.fecha_inicio_tratamiento,
                 pe.fecha_fin_tratamiento,
-                pe.estado_pausa,
-                pe.fecha_inicio_pausa_esp,
-                pe.fecha_fin_pausa_esp,
-                pe.motivo_pausa_esp,
                 pe.observaciones,
                 pe.estado
             FROM paciente_especialidades pe
             INNER JOIN especialidad e ON pe.id_especialidad = e.id
-            WHERE pe.id_paciente = %s AND pe.estado != 'eliminado'
-            ORDER BY e.descripcion, e.nombre
+            WHERE pe.id_paciente = %s
+            ORDER BY e.nombre
             """
 
             especialidades = DataBaseHandle.getRecords(query, (paciente_id,))
@@ -925,7 +952,7 @@ class PacienteComponent:
                 HandleLogs.write_log(f"PacienteComponent.get_especialidades_paciente - {len(especialidades)} especialidades encontradas para paciente {paciente_id}")
                 return internal_response(True, especialidades, "Especialidades del paciente obtenidas correctamente")
             else:
-                HandleLogs.write_error("PacienteComponent.get_especialidades_paciente - Error en consulta")
+                HandleLogs.write_error(f"PacienteComponent.get_especialidades_paciente - Consulta retornó None para paciente {paciente_id}")
                 return internal_response(False, None, "Error ejecutando consulta")
 
         except Exception as e:

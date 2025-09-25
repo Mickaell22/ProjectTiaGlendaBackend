@@ -79,10 +79,9 @@ class SesionTerapiaComponent:
                     st.hora_inicio,
                     st.hora_fin,
                     st.duracion_minutos,
-                    st.costo_sesion,
+                    st.costo_sesion as costo_por_sesion,
                     st.numero_sesiones_contratadas,
                     st.costo_total,
-                    st.costo_sesion as costo_por_sesion,
                     st.meses_contrato,
                     st.tipo_sesion,
                     st.estado,
@@ -115,17 +114,17 @@ class SesionTerapiaComponent:
 
     @staticmethod
     def create_sesion(sesion_data):
-        """Crear una nueva sesión de terapia"""
+        """Crear una nueva sesión de terapia - VERSIÓN CORREGIDA SIN RACE CONDITION"""
         try:
-            # Insertar con codigo_sesion NULL para que el trigger lo genere automáticamente
+            # CORRECCIÓN: Usar INSERT RETURNING directamente para evitar race condition
             query = """
                 INSERT INTO sesion_terapia (
-                    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad, 
-                    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos, 
-                    numero_sesiones_contratadas, meses_contrato, costo_sesion, 
+                    codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad,
+                    fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
+                    numero_sesiones_contratadas, meses_contrato, costo_sesion,
                     tipo_sesion, estado, id_centro, usuario_creacion
                 ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, codigo_sesion
+                RETURNING id, codigo_sesion, costo_total
             """
 
             params = (
@@ -148,45 +147,31 @@ class SesionTerapiaComponent:
                 sesion_data['usuario_creacion']
             )
 
-            # Usar ExecuteNonQuery para el INSERT y luego buscar la sesión creada
-            insert_query = query.replace("RETURNING id, codigo_sesion", "")
-            
-            # Ejecutar el INSERT
-            result = DataBaseHandle.ExecuteNonQuery(insert_query, params)
-            
+            # Usar getRecords con INSERT RETURNING para obtener datos atomicamente
+            result = DataBaseHandle.getRecords(query, params, size=1)
+
             if result:
-                # Buscar la sesión recién creada por titulo y id_terapeuta
-                select_query = """
-                    SELECT id, codigo_sesion 
-                    FROM sesion_terapia 
-                    WHERE titulo = %s AND id_terapeuta = %s 
-                    ORDER BY fecha_creacion DESC 
-                    LIMIT 1
-                """
-                select_params = (sesion_data['titulo'], sesion_data['terapeuta_id'])
-                result = DataBaseHandle.getRecords(select_query, select_params, size=1)
-                
-                if result:
-                    sesion_id = result['id']
-                    codigo_sesion = result.get('codigo_sesion', f"ST-TEMP-{sesion_id}")
-                    HandleLogs.write_log(f"SesionTerapiaComponent.create_sesion - Sesión creada con ID: {sesion_id}, Código: {codigo_sesion}")
-                    
-                    # Generar cronograma automáticamente
-                    try:
-                        SesionTerapiaComponent.generar_cronograma(sesion_id)
-                        HandleLogs.write_log(f"SesionTerapiaComponent.create_sesion - Cronograma generado para sesión {sesion_id}")
-                    except Exception as cronograma_error:
-                        HandleLogs.write_error(f"SesionTerapiaComponent.create_sesion - Error generando cronograma: {str(cronograma_error)}")
-                        # No fallar el método completo si falla el cronograma
-                    
-                    return {
-                        'id': sesion_id,
-                        'codigo_sesion': codigo_sesion
-                    }
-                else:
-                    raise Exception("No se pudo recuperar la sesión creada")
+                sesion_id = result['id']
+                codigo_sesion = result.get('codigo_sesion', f"ST-TEMP-{sesion_id}")
+                costo_total = result.get('costo_total', 0)
+
+                HandleLogs.write_log(f"SesionTerapiaComponent.create_sesion - Sesión creada con ID: {sesion_id}, Código: {codigo_sesion}, Costo Total: {costo_total}")
+
+                # Generar cronograma automáticamente
+                try:
+                    SesionTerapiaComponent.generar_cronograma(sesion_id)
+                    HandleLogs.write_log(f"SesionTerapiaComponent.create_sesion - Cronograma generado para sesión {sesion_id}")
+                except Exception as cronograma_error:
+                    HandleLogs.write_error(f"SesionTerapiaComponent.create_sesion - Error generando cronograma: {str(cronograma_error)}")
+                    # No fallar el método completo si falla el cronograma
+
+                return {
+                    'id': sesion_id,
+                    'codigo_sesion': codigo_sesion,
+                    'costo_total': float(costo_total) if costo_total else 0.0
+                }
             else:
-                HandleLogs.write_error("SesionTerapiaComponent.create_sesion - ExecuteNonQuery falló")
+                HandleLogs.write_error("SesionTerapiaComponent.create_sesion - No se pudo obtener result de INSERT RETURNING")
                 raise Exception("No se pudo crear la sesión")
 
         except Exception as e:
@@ -253,20 +238,20 @@ class SesionTerapiaComponent:
 
     @staticmethod
     def generar_cronograma(sesion_id):
-        """Generar cronograma automático para una sesión - VERSIÓN MEJORADA"""
+        """Generar cronograma automático para una sesión - VERSIÓN CORREGIDA Y MEJORADA"""
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
-                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, duracion_minutos, 
-                       numero_sesiones_contratadas, usuario_creacion
-                FROM sesion_terapia 
+                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, duracion_minutos,
+                       numero_sesiones_contratadas, meses_contrato, usuario_creacion
+                FROM sesion_terapia
                 WHERE id = %s
             """
             sesion_data = DataBaseHandle.getRecords(sesion_query, (sesion_id,), size=1)
-            
+
             if not sesion_data:
                 raise Exception(f"Sesión {sesion_id} no encontrada")
-            
+
             # Validar datos requeridos
             if not sesion_data['fecha_inicio']:
                 raise Exception("La fecha de inicio es requerida")
@@ -274,121 +259,121 @@ class SesionTerapiaComponent:
                 raise Exception("Los días de la semana son requeridos")
             if not sesion_data['numero_sesiones_contratadas'] or sesion_data['numero_sesiones_contratadas'] <= 0:
                 raise Exception("El número de sesiones contratadas debe ser mayor a 0")
-            
+
             # Limpiar cronograma existente
             delete_query = "DELETE FROM cronograma_sesiones WHERE id_sesion = %s"
             DataBaseHandle.ExecuteNonQuery(delete_query, (sesion_id,))
-            
+
             # Generar cronograma programáticamente
             from datetime import datetime, timedelta
-            
+
             fecha_inicio = sesion_data['fecha_inicio']
             fecha_fin = sesion_data['fecha_fin']
-            
-            # Handle dias_semana - could be string or array from database
+
+            # MEJORA: Procesamiento robusto de dias_semana
             dias_semana_raw = sesion_data['dias_semana']
             if isinstance(dias_semana_raw, str):
-                # Remove array brackets if present and clean
                 dias_semana_str = dias_semana_raw.strip('{}').strip()
             elif isinstance(dias_semana_raw, list):
-                # Join list elements
                 dias_semana_str = ','.join(dias_semana_raw)
             else:
                 dias_semana_str = str(dias_semana_raw).strip('{}').strip()
-                
+
             hora_inicio = sesion_data['hora_inicio']
             max_sesiones = sesion_data['numero_sesiones_contratadas']
-            
-            # Mapeo de días (asegurar consistencia)
+            meses_contrato = sesion_data.get('meses_contrato', 3)
+
+            # CORRECCIÓN: Mapeo simplificado de días
             dias_map = {
                 'lunes': 0, 'martes': 1, 'miercoles': 2, 'miércoles': 2,
                 'jueves': 3, 'viernes': 4, 'sabado': 5, 'sábado': 5, 'domingo': 6
             }
-            
-            # Procesar días de la semana con mejor validación
+
+            # Procesar días de la semana
             dias_semana_list = [dia.strip().lower() for dia in dias_semana_str.split(',') if dia.strip()]
             dias_numeros = []
-            
+
             for dia in dias_semana_list:
                 if dia in dias_map:
                     dias_numeros.append(dias_map[dia])
                 else:
                     HandleLogs.write_error(f"Día de semana no reconocido: {dia}")
-            
+
             if not dias_numeros:
                 raise Exception(f"No se pudieron procesar los días de la semana: {dias_semana_str}")
-            
+
             # Remover duplicados y ordenar
             dias_numeros = sorted(list(set(dias_numeros)))
-            
-            # Calcular fecha límite inteligente SIEMPRE
-            # Calcular fecha mínima necesaria para generar todas las sesiones
+
+            # CORRECCIÓN: Calcular fecha límite sin modificar automáticamente
             dias_por_semana = len(dias_numeros)
-            semanas_necesarias = (max_sesiones // dias_por_semana) + 2  # +2 para cubrir sesiones parciales
-            fecha_minima_necesaria = fecha_inicio + timedelta(weeks=semanas_necesarias + 4)  # +4 semanas de margen
-            
-            # Si fecha_fin existe pero es muy restrictiva, expandirla
-            if fecha_fin and fecha_fin < fecha_minima_necesaria:
-                HandleLogs.write_log(f"SesionTerapiaComponent.generar_cronograma - Fecha fin original ({fecha_fin}) muy restrictiva, expandiendo a {fecha_minima_necesaria}")
-                fecha_fin = fecha_minima_necesaria
-            elif not fecha_fin:
-                fecha_fin = fecha_minima_necesaria
-            
+            semanas_necesarias = (max_sesiones + dias_por_semana - 1) // dias_por_semana  # Ceil division
+
+            # Usar meses_contrato si fecha_fin no está definida
+            if not fecha_fin:
+                fecha_fin_calculada = fecha_inicio + timedelta(weeks=semanas_necesarias + 2)  # +2 semanas margen
+                fecha_fin_por_meses = fecha_inicio + timedelta(days=meses_contrato * 30)  # Aproximado
+                fecha_fin = max(fecha_fin_calculada, fecha_fin_por_meses)
+                HandleLogs.write_log(f"Fecha fin calculada automáticamente: {fecha_fin} (basado en {semanas_necesarias} semanas y {meses_contrato} meses)")
+
+            # CORRECCIÓN: Validar si la fecha fin es suficiente ANTES de generar
+            fecha_minima_necesaria = fecha_inicio + timedelta(weeks=semanas_necesarias + 1)
+            if fecha_fin < fecha_minima_necesaria:
+                raise Exception(f"La fecha fin ({fecha_fin}) es insuficiente para generar {max_sesiones} sesiones. Se necesita hasta {fecha_minima_necesaria}. ¿Desea extender la fecha fin?")
+
             # Generar cronograma de manera eficiente
             fecha_actual = fecha_inicio
-            numero_sesion_semanal = 1
             sesiones_creadas = 0
-            intentos_max = max_sesiones * 20  # Margen más amplio: 20 intentos por sesión requerida
-            intentos = 0
-            
-            HandleLogs.write_log(f"SesionTerapiaComponent.generar_cronograma - Iniciando generación: {max_sesiones} sesiones desde {fecha_inicio} hasta {fecha_fin}, días: {dias_numeros}")
-            
-            while sesiones_creadas < max_sesiones and fecha_actual <= fecha_fin and intentos < intentos_max:
+            semana_actual = 1
+
+            HandleLogs.write_log(f"Iniciando generación: {max_sesiones} sesiones desde {fecha_inicio} hasta {fecha_fin}, días: {dias_numeros}")
+
+            # MEJORA: Algoritmo más eficiente que busca solo días válidos
+            while sesiones_creadas < max_sesiones and fecha_actual <= fecha_fin:
                 dia_semana = fecha_actual.weekday()  # 0=lunes, 6=domingo
-                intentos += 1
-                
+
                 if dia_semana in dias_numeros:
                     # Insertar sesión en cronograma
                     insert_query = """
                         INSERT INTO cronograma_sesiones (
-                            id_sesion, numero_sesion_semanal, fecha_programada, 
+                            id_sesion, semana_numero, numero_sesion_semanal, fecha_programada,
                             hora_inicio, hora_fin, estado, usuario_creacion
-                        ) VALUES (%s, %s, %s, %s, %s, 'programada', %s)
+                        ) VALUES (%s, %s, %s, %s, %s, %s, 'programada', %s)
                     """
-                    # Calculate hora_fin based on duration
-                    from datetime import timedelta
-                    hora_fin = (datetime.combine(fecha_actual, hora_inicio) + timedelta(minutes=sesion_data.get('duracion_minutos', 45))).time()
-                    params = (sesion_id, numero_sesion_semanal, fecha_actual, hora_inicio, hora_fin, sesion_data['usuario_creacion'])
+
+                    # Calcular hora_fin basada en duración
+                    hora_fin = (datetime.combine(fecha_actual, hora_inicio) +
+                               timedelta(minutes=sesion_data.get('duracion_minutos', 45))).time()
+
+                    numero_en_semana = dias_numeros.index(dia_semana) + 1
+
+                    params = (sesion_id, semana_actual, numero_en_semana, fecha_actual,
+                             hora_inicio, hora_fin, sesion_data['usuario_creacion'])
                     DataBaseHandle.ExecuteNonQuery(insert_query, params)
-                    
-                    numero_sesion_semanal += 1
+
                     sesiones_creadas += 1
-                    
+
                     # Log progreso cada 10 sesiones
                     if sesiones_creadas % 10 == 0:
                         HandleLogs.write_log(f"Cronograma sesión {sesion_id}: {sesiones_creadas}/{max_sesiones} generadas")
-                
+
                 fecha_actual += timedelta(days=1)
-            
+
+                # Incrementar semana cuando sea lunes
+                if fecha_actual.weekday() == 0:
+                    semana_actual += 1
+
             # Validar resultados
             if sesiones_creadas == 0:
                 raise Exception("No se pudieron generar sesiones. Verificar fechas y días de la semana.")
-            
-            # Información detallada sobre finalización del bucle
+
+            # MEJORA: Reporte más detallado
             if sesiones_creadas < max_sesiones:
-                razon_termino = ""
-                if fecha_actual > fecha_fin:
-                    razon_termino = f"Se alcanzó la fecha límite ({fecha_fin})"
-                elif intentos >= intentos_max:
-                    razon_termino = f"Se alcanzó el límite de intentos ({intentos_max})"
-                else:
-                    razon_termino = "Razón desconocida"
-                    
-                HandleLogs.write_error(
-                    f"Advertencia: Solo se generaron {sesiones_creadas} de {max_sesiones} sesiones solicitadas. {razon_termino}. Intentos: {intentos}, Fecha actual: {fecha_actual}")
-            
+                HandleLogs.write_log(
+                    f"ADVERTENCIA: Solo se generaron {sesiones_creadas} de {max_sesiones} sesiones solicitadas. Última fecha procesada: {fecha_actual}")
+
             HandleLogs.write_log(
-                f"SesionTerapiaComponent.generar_cronograma - {sesiones_creadas} sesiones programadas para sesión {sesion_id}")
+                f"Cronograma generado exitosamente: {sesiones_creadas} sesiones para sesión {sesion_id}")
             return True
 
         except Exception as e:

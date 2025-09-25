@@ -129,8 +129,34 @@ class PacienteService:
             result = PacienteComponent.create_paciente(paciente_data)
 
             if result['success']:
-                HandleLogs.write_log("PacienteService.create_paciente - Paciente creado exitosamente")
-                return response_inserted(result['data'], "Paciente creado exitosamente")
+                paciente_id = result['data']['id']
+                HandleLogs.write_log(f"PacienteService.create_paciente - Paciente creado con ID: {paciente_id}")
+
+                # Si hay especialidades múltiples en el payload, procesarlas
+                especialidades = data.get('especialidades', [])
+                if especialidades:
+                    HandleLogs.write_log(f"PacienteService.create_paciente - Procesando {len(especialidades)} especialidades adicionales")
+
+                    for especialidad in especialidades:
+                        # Solo agregar especialidades que no sean la principal (que ya se creó)
+                        if not especialidad.get('es_principal'):
+                            especialidad_result = PacienteComponent.agregar_especialidad_paciente(
+                                paciente_id=paciente_id,
+                                especialidad_id=especialidad['id_especialidad'],
+                                fecha_inicio_tratamiento=especialidad.get('fecha_inicio_tratamiento'),
+                                observaciones=especialidad.get('observaciones'),
+                                usuario_id=current_user_id
+                            )
+
+                            if not especialidad_result['success']:
+                                HandleLogs.write_error(f"PacienteService.create_paciente - Error agregando especialidad {especialidad['id_especialidad']}: {especialidad_result['message']}")
+
+                # Obtener el paciente completo con todas sus especialidades
+                paciente_completo = PacienteComponent.get_paciente_by_id(paciente_id)
+                if paciente_completo['success']:
+                    return response_inserted(paciente_completo['data'], "Paciente creado exitosamente")
+                else:
+                    return response_inserted(result['data'], "Paciente creado exitosamente")
             else:
                 HandleLogs.write_error(f"PacienteService.create_paciente - Error: {result['message']}")
                 return response_error(result['message'], 400)

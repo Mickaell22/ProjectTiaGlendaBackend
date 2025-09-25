@@ -4,6 +4,7 @@ from flask import request, jsonify, g
 from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
 from src.utils.general.response import response_success, response_error
 from src.utils.general.logs import HandleLogs
+from src.utils.general.date_helpers import DateHelpers
 from datetime import datetime, date, time, timedelta
 import re
 
@@ -69,7 +70,7 @@ class SesionTerapiaService:
                                 'paciente_id': paciente['paciente_id'],
                                 'paciente_nombre': paciente['paciente_nombre'],
                                 'paciente_cedula': paciente['paciente_cedula'],
-                                'fecha_asignacion': paciente['fecha_asignacion'].isoformat() if paciente.get('fecha_asignacion') else None
+                                'fecha_asignacion': DateHelpers.serialize_date(paciente.get('fecha_asignacion'))
                             })
                     
                     # Determinar tipo de sesión basado en número de pacientes
@@ -218,12 +219,27 @@ class SesionTerapiaService:
             # Preparar datos para inserción
             hora_inicio = datetime.strptime(data['hora_inicio'], '%H:%M').time()
             duracion_minutos = data.get('duracion_minutos', 45)
-            
+
             # Calcular hora_fin basándose en hora_inicio + duración
             dt_inicio = datetime.combine(datetime.today(), hora_inicio)
             dt_fin = dt_inicio + timedelta(minutes=duracion_minutos)
             hora_fin = dt_fin.time()
-            
+
+            # CORRECCIÓN: Lógica de cálculo de costos corregida
+            numero_sesiones_contratadas = data.get('numero_sesiones_contratadas', 20)
+
+            # Prioridad: Si viene costo_por_sesion, usarlo; si no, calcular de costo_total
+            if data.get('costo_por_sesion'):
+                costo_por_sesion = float(data['costo_por_sesion'])
+                costo_total_calculado = costo_por_sesion * numero_sesiones_contratadas
+            elif data.get('costo_total'):
+                costo_total_calculado = float(data['costo_total'])
+                costo_por_sesion = costo_total_calculado / numero_sesiones_contratadas
+            else:
+                # Valores por defecto
+                costo_por_sesion = 25000.0
+                costo_total_calculado = costo_por_sesion * numero_sesiones_contratadas
+
             sesion_data = {
                 'titulo': data['titulo'].strip(),
                 'objetivo_general': data.get('objetivo_general', ''),
@@ -235,10 +251,10 @@ class SesionTerapiaService:
                 'hora_inicio': hora_inicio,
                 'hora_fin': hora_fin,
                 'duracion_minutos': duracion_minutos,
-                'numero_sesiones_contratadas': data.get('numero_sesiones_contratadas', 20),
+                'numero_sesiones_contratadas': numero_sesiones_contratadas,
                 'meses_contrato': data.get('meses_contrato', 3),
-                'costo_total': data.get('costo_total', 500000.0),
-                'costo_sesion': data.get('costo_total', 500000.0) / data.get('numero_sesiones_contratadas', 20),
+                'costo_total': costo_total_calculado,  # CORREGIDO: Calculado correctamente
+                'costo_sesion': costo_por_sesion,      # CORREGIDO: Lógica consistente
                 'tipo_sesion': data.get('tipo_sesion', 'individual'),
                 'estado': data.get('estado', 'planificada'),
                 'id_centro': current_user.get('centro', {}).get('id', 1),
@@ -635,14 +651,30 @@ class SesionTerapiaService:
             # Preparar datos para actualización
             hora_inicio = datetime.strptime(data['hora_inicio'], '%H:%M').time()
             duracion_minutos = data.get('duracion_minutos', 45)
-            
+
             # Calcular hora_fin basándose en hora_inicio + duración
             dt_inicio = datetime.combine(datetime.today(), hora_inicio)
             dt_fin = dt_inicio + timedelta(minutes=duracion_minutos)
             hora_fin = dt_fin.time()
-            
+
+            # CORRECCIÓN: Lógica de cálculo de costos corregida también en update
+            numero_sesiones_contratadas = data.get('numero_sesiones_contratadas', 20)
+
+            # Prioridad: Si viene costo_por_sesion, usarlo; si no, calcular de costo_total
+            if data.get('costo_por_sesion'):
+                costo_por_sesion = float(data['costo_por_sesion'])
+                costo_total_calculado = costo_por_sesion * numero_sesiones_contratadas
+            elif data.get('costo_total'):
+                costo_total_calculado = float(data['costo_total'])
+                costo_por_sesion = costo_total_calculado / numero_sesiones_contratadas
+            else:
+                # Mantener valores existentes o usar defaults
+                costo_por_sesion = 25000.0
+                costo_total_calculado = costo_por_sesion * numero_sesiones_contratadas
+
             sesion_data = {
                 'titulo': data['titulo'].strip(),
+                'objetivo_general': data.get('objetivo_general', ''),  # Agregado campo faltante
                 'terapeuta_id': data['terapeuta_id'],
                 'especialidad_id': data['especialidad_id'],
                 'fecha_inicio': datetime.strptime(data['fecha_inicio'], '%Y-%m-%d').date(),
@@ -651,9 +683,11 @@ class SesionTerapiaService:
                 'hora_inicio': hora_inicio,
                 'hora_fin': hora_fin,
                 'duracion_minutos': duracion_minutos,
-                'numero_sesiones_contratadas': data['numero_sesiones_contratadas'],
-                'costo_total': float(data['costo_total']),
-                'meses_contrato': data.get('meses_contrato'),
+                'numero_sesiones_contratadas': numero_sesiones_contratadas,
+                'costo_total': costo_total_calculado,  # CORREGIDO: Calculado correctamente
+                'costo_sesion': costo_por_sesion,      # CORREGIDO: Lógica consistente
+                'meses_contrato': data.get('meses_contrato', 3),
+                'tipo_sesion': data.get('tipo_sesion', 'individual'),  # Agregado campo faltante
                 'estado': data.get('estado', 'en_curso'),
                 'usuario_modificacion': current_user['id']
             }
