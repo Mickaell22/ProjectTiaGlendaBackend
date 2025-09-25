@@ -23,17 +23,14 @@ class SesionPedagogicaComponent:
                 HandleLogs.write_log("SesionPedagogicaComponent.get_sesiones - No sessions found in database")
                 return []
             
-            # Query with correct student count calculation
+            # Query simplificada con solo campos esenciales
             query = """
-                SELECT 
+                SELECT
                     sp.id,
                     sp.codigo_sesion,
                     sp.nombre_clase as titulo,
                     sp.id_educador as pedagogo_id,
-                    'Pedagogo ID: ' || sp.id_educador as pedagogo_nombre,
                     sp.id_especialidad as especialidad_id,
-                    'Especialidad ID: ' || sp.id_especialidad as especialidad_nombre,
-                    'Área pedagógica' as especialidad_area,
                     sp.fecha_inicio,
                     sp.fecha_fin,
                     sp.dias_semana,
@@ -42,25 +39,21 @@ class SesionPedagogicaComponent:
                     COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
                     sp.nivel_academico,
                     sp.capacidad_maxima,
-                    'presencial' as modalidad,
-                    0 as costo_total,
-                    0 as costo_por_clase,
-                    '' as periodo_academico,
+                    COALESCE(sp.costo_total, 0) as costo_total,
+                    COALESCE(sp.costo_por_clase, 0) as costo_por_clase,
+                    COALESCE(sp.periodo_academico, '') as periodo_academico,
                     sp.estado,
-                    '' as observaciones,
                     sp.fecha_creacion,
-                    sp.fecha_modificacion,
                     COALESCE(COUNT(DISTINCT se.id_paciente), 0) as total_estudiantes,
                     COALESCE(COUNT(DISTINCT cc.id), 0) as clases_programadas,
-                    COALESCE(COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END), 0) as clases_realizadas,
-                    0 as promedio_notas,
-                    0 as promedio_asistencia
+                    COALESCE(COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END), 0) as clases_realizadas
                 FROM sesion_pedagogica sp
                 LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
                 LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
                 GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.id_educador, sp.id_especialidad,
                          sp.fecha_inicio, sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.duracion_minutos,
-                         sp.nivel_academico, sp.capacidad_maxima, sp.estado, sp.fecha_creacion, sp.fecha_modificacion
+                         sp.numero_clases_programadas, sp.nivel_academico, sp.capacidad_maxima,
+                         sp.costo_total, sp.costo_por_clase, sp.periodo_academico, sp.estado, sp.fecha_creacion
                 ORDER BY sp.fecha_creacion DESC
             """
 
@@ -205,10 +198,11 @@ class SesionPedagogicaComponent:
             insert_query = """
                 INSERT INTO sesion_pedagogica (
                     codigo_sesion, nombre_clase, id_educador, id_especialidad, fecha_inicio, fecha_fin,
-                    dias_semana, hora_inicio, duracion_minutos, nivel_academico, 
-                    capacidad_maxima, estado, id_centro, usuario_creacion
+                    dias_semana, hora_inicio, duracion_minutos, nivel_academico,
+                    capacidad_maxima, costo_total, costo_por_clase, periodo_academico,
+                    estado, id_centro, usuario_creacion
                 ) VALUES (
-                    NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
             """
 
@@ -223,6 +217,9 @@ class SesionPedagogicaComponent:
                 sesion_data.get('duracion_minutos', 60),
                 sesion_data.get('nivel_academico', 'primaria'),
                 sesion_data.get('capacidad_maxima', 10),
+                sesion_data.get('costo_total', 0),
+                sesion_data.get('costo_por_clase', 0),
+                sesion_data.get('periodo_academico', ''),
                 sesion_data.get('estado', 'en_curso'),  # Estado por defecto correcto
                 sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
@@ -281,6 +278,9 @@ class SesionPedagogicaComponent:
                     duracion_minutos = %s,
                     nivel_academico = %s,
                     capacidad_maxima = %s,
+                    costo_total = %s,
+                    costo_por_clase = %s,
+                    periodo_academico = %s,
                     estado = %s,
                     usuario_modificacion = %s
                 WHERE id = %s
@@ -297,6 +297,9 @@ class SesionPedagogicaComponent:
                 sesion_data.get('duracion_minutos', 60),
                 sesion_data.get('nivel_academico'),
                 sesion_data.get('capacidad_maxima'),
+                sesion_data.get('costo_total', 0),
+                sesion_data.get('costo_por_clase', 0),
+                sesion_data.get('periodo_academico', ''),
                 sesion_data.get('estado'),
                 sesion_data['usuario_modificacion'],
                 sesion_id
