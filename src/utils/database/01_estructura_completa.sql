@@ -8,6 +8,15 @@
 -- CONFIGURACIÓN INICIAL
 -- =============================================
 
+-- Configurar esquema por defecto
+SET search_path TO public;
+
+-- Crear esquema public si no existe
+CREATE SCHEMA IF NOT EXISTS public;
+
+-- Asegurar permisos en esquema public
+GRANT ALL ON SCHEMA public TO public;
+
 -- Eliminar tablas existentes en orden correcto (si existen)
 DROP TABLE IF EXISTS asistencia_clases CASCADE;
 DROP TABLE IF EXISTS cronograma_clases CASCADE;

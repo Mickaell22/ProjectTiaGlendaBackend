@@ -855,3 +855,22 @@ class PacienteService:
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.reactivar_paciente_general - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def get_pacientes_pausados():
+        """Obtener lista de pacientes pausados (general y por especialidad)"""
+        try:
+            HandleLogs.write_log("PacienteService.get_pacientes_pausados - Iniciando")
+
+            result = PacienteComponent.get_pacientes_pausados()
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_pacientes_pausados - Pacientes pausados obtenidos exitosamente")
+                return response_success(result['data'], result['message'])
+            else:
+                HandleLogs.write_error(f"PacienteService.get_pacientes_pausados - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_pacientes_pausados - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)

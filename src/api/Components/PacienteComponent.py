@@ -864,21 +864,32 @@ class PacienteComponent:
     def pausar_especialidad_paciente(paciente_id, especialidad_id, fecha_inicio_pausa, fecha_fin_pausa=None, motivo_pausa=None, observaciones_pausa=None, usuario_id=None):
         """Pausar una especialidad específica de un paciente"""
         try:
+            # First find the paciente_especialidades record
+            query_find = """
+            SELECT id FROM paciente_especialidades
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
+            """
+
+            pe_record = DataBaseHandle.getRecords(query_find, (paciente_id, especialidad_id), size=1)
+
+            if not pe_record:
+                HandleLogs.write_error(f"PacienteComponent.pausar_especialidad_paciente - No se encontró relación activa entre paciente {paciente_id} y especialidad {especialidad_id}")
+                return internal_response(False, None, "No se encontró la relación entre paciente y especialidad")
+
             query_update = """
-            UPDATE paciente_especialidades 
-            SET estado_tratamiento = 'pausado',
-                fecha_inicio_pausa = %s,
-                fecha_fin_pausa = %s,
-                motivo_pausa = %s,
-                observaciones_pausa = %s,
+            UPDATE paciente_especialidades
+            SET estado_pausa = 'pausado_especialidad',
+                fecha_inicio_pausa_esp = %s,
+                fecha_fin_pausa_esp = %s,
+                motivo_pausa_esp = %s,
                 usuario_modificacion = %s,
                 fecha_modificacion = CURRENT_TIMESTAMP
-            WHERE paciente_id = %s AND especialidad_id = %s AND estado = 'activo'
+            WHERE id = %s
             """
-            
+
             success = DataBaseHandle.ExecuteNonQuery(
-                query_update, 
-                (fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, observaciones_pausa, usuario_id, paciente_id, especialidad_id)
+                query_update,
+                (fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, usuario_id, pe_record['id'])
             )
             
             if success:
@@ -896,19 +907,30 @@ class PacienteComponent:
     def reactivar_especialidad_paciente(paciente_id, especialidad_id, usuario_id=None):
         """Reactivar una especialidad pausada de un paciente"""
         try:
+            # First find the paciente_especialidades record
+            query_find = """
+            SELECT id FROM paciente_especialidades
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
+            """
+
+            pe_record = DataBaseHandle.getRecords(query_find, (paciente_id, especialidad_id), size=1)
+
+            if not pe_record:
+                HandleLogs.write_error(f"PacienteComponent.reactivar_especialidad_paciente - No se encontró relación activa entre paciente {paciente_id} y especialidad {especialidad_id}")
+                return internal_response(False, None, "No se encontró la relación entre paciente y especialidad")
+
             query_update = """
-            UPDATE paciente_especialidades 
-            SET estado_tratamiento = 'activo',
-                fecha_inicio_pausa = NULL,
-                fecha_fin_pausa = NULL,
-                motivo_pausa = NULL,
-                observaciones_pausa = NULL,
+            UPDATE paciente_especialidades
+            SET estado_pausa = 'activo',
+                fecha_inicio_pausa_esp = NULL,
+                fecha_fin_pausa_esp = NULL,
+                motivo_pausa_esp = NULL,
                 usuario_modificacion = %s,
                 fecha_modificacion = CURRENT_TIMESTAMP
-            WHERE paciente_id = %s AND especialidad_id = %s AND estado = 'activo'
+            WHERE id = %s
             """
-            
-            success = DataBaseHandle.ExecuteNonQuery(query_update, (usuario_id, paciente_id, especialidad_id))
+
+            success = DataBaseHandle.ExecuteNonQuery(query_update, (usuario_id, pe_record['id']))
             
             if success:
                 HandleLogs.write_log(f"PacienteComponent.reactivar_especialidad_paciente - Especialidad {especialidad_id} reactivada para paciente {paciente_id}")
@@ -939,7 +961,11 @@ class PacienteComponent:
                 pe.fecha_inicio_tratamiento,
                 pe.fecha_fin_tratamiento,
                 pe.observaciones,
-                pe.estado
+                pe.estado,
+                pe.estado_pausa,
+                pe.fecha_inicio_pausa_esp,
+                pe.fecha_fin_pausa_esp,
+                pe.motivo_pausa_esp
             FROM paciente_especialidades pe
             INNER JOIN especialidad e ON pe.id_especialidad = e.id
             WHERE pe.id_paciente = %s
@@ -986,20 +1012,18 @@ class PacienteComponent:
         """Pausar todas las especialidades de un paciente (pausa general)"""
         try:
             query_update = """
-            UPDATE paciente 
-            SET estado = 'pausado',
-                fecha_inicio_pausa_general = %s,
-                fecha_fin_pausa_general = %s,
-                motivo_pausa_general = %s,
-                observaciones_pausa_general = %s,
+            UPDATE paciente
+            SET fecha_inicio_pausa = %s,
+                fecha_fin_pausa = %s,
+                motivo_pausa = %s,
                 usuario_modificacion = %s,
                 fecha_modificacion = CURRENT_TIMESTAMP
             WHERE id = %s
             """
             
             success = DataBaseHandle.ExecuteNonQuery(
-                query_update, 
-                (fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, observaciones_pausa, usuario_id, paciente_id)
+                query_update,
+                (fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, usuario_id, paciente_id)
             )
             
             if success:
@@ -1018,12 +1042,10 @@ class PacienteComponent:
         """Reactivar un paciente pausado generalmente"""
         try:
             query_update = """
-            UPDATE paciente 
-            SET estado = 'activo',
-                fecha_inicio_pausa_general = NULL,
-                fecha_fin_pausa_general = NULL,
-                motivo_pausa_general = NULL,
-                observaciones_pausa_general = NULL,
+            UPDATE paciente
+            SET fecha_inicio_pausa = NULL,
+                fecha_fin_pausa = NULL,
+                motivo_pausa = NULL,
                 usuario_modificacion = %s,
                 fecha_modificacion = CURRENT_TIMESTAMP
             WHERE id = %s
@@ -1040,6 +1062,136 @@ class PacienteComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.reactivar_paciente_general - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def get_pacientes_pausados():
+        """Obtener lista de pacientes pausados (general y por especialidad)"""
+        try:
+            HandleLogs.write_log("PacienteComponent.get_pacientes_pausados - Iniciando")
+
+            # Pacientes pausados generalmente
+            query_general = """
+            SELECT
+                pac.id,
+                pac.fecha_ingreso,
+                pac.estado_tratamiento,
+                pac.observaciones,
+                pac.estado,
+                pac.fecha_inicio_pausa,
+                pac.fecha_fin_pausa,
+                pac.motivo_pausa,
+                NULL as observaciones_pausa_general,
+                pac.fecha_creacion,
+                pac.fecha_modificacion,
+                -- Información del paciente (persona)
+                p.id as persona_id,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
+                p.fecha_nacimiento,
+                -- Información del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor,
+                -- Tipo de pausa
+                'general' as tipo_pausa,
+                NULL as especialidad_id,
+                NULL as especialidad_nombre
+            FROM paciente pac
+            INNER JOIN persona p ON pac.id_persona = p.id
+            INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
+            WHERE pac.fecha_inicio_pausa IS NOT NULL AND pac.estado != 'eliminado'
+
+            UNION ALL
+
+            -- Pacientes con especialidades pausadas
+            SELECT
+                pac.id,
+                pac.fecha_ingreso,
+                pac.estado_tratamiento,
+                pac.observaciones,
+                pac.estado,
+                pe.fecha_inicio_pausa_esp as fecha_inicio_pausa,
+                pe.fecha_fin_pausa_esp as fecha_fin_pausa,
+                pe.motivo_pausa_esp as motivo_pausa,
+                NULL as observaciones_pausa_general,
+                pac.fecha_creacion,
+                pac.fecha_modificacion,
+                -- Información del paciente (persona)
+                p.id as persona_id,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
+                p.fecha_nacimiento,
+                -- Información del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor,
+                -- Tipo de pausa
+                'especialidad' as tipo_pausa,
+                pe.id_especialidad as especialidad_id,
+                e.nombre as especialidad_nombre
+            FROM paciente pac
+            INNER JOIN persona p ON pac.id_persona = p.id
+            INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
+            INNER JOIN paciente_especialidades pe ON pac.id = pe.id_paciente
+            INNER JOIN especialidad e ON pe.id_especialidad = e.id
+            WHERE pe.estado_pausa IN ('pausado_especialidad', 'pausado_general')
+                AND pac.estado != 'eliminado'
+                AND pe.estado != 'eliminado'
+
+            ORDER BY nombre_completo, tipo_pausa
+            """
+
+            pacientes_pausados = DataBaseHandle.getRecords(query_general)
+
+            if pacientes_pausados is not None:
+                # Obtener estadísticas de pausas
+                query_stats = """
+                SELECT
+                    COUNT(CASE WHEN pac.fecha_inicio_pausa IS NOT NULL THEN 1 END) as pausas_generales,
+                    COUNT(CASE WHEN pe.estado_pausa IN ('pausado_especialidad', 'pausado_general') THEN 1 END) as pausas_especialidades,
+                    COUNT(DISTINCT pac.id) as total_pacientes_afectados
+                FROM paciente pac
+                LEFT JOIN paciente_especialidades pe ON pac.id = pe.id_paciente AND pe.estado_pausa IN ('pausado_especialidad', 'pausado_general')
+                WHERE (pac.fecha_inicio_pausa IS NOT NULL OR pe.estado_pausa IN ('pausado_especialidad', 'pausado_general'))
+                    AND pac.estado != 'eliminado'
+                """
+
+                estadisticas = DataBaseHandle.getRecords(query_stats, size=1)
+
+                resultado = {
+                    "pacientes": pacientes_pausados,
+                    "estadisticas": estadisticas if estadisticas else {
+                        "pausas_generales": 0,
+                        "pausas_especialidades": 0,
+                        "total_pacientes_afectados": 0
+                    }
+                }
+
+                HandleLogs.write_log(f"PacienteComponent.get_pacientes_pausados - {len(pacientes_pausados)} registros de pausas encontrados")
+                return internal_response(True, resultado, "Pacientes pausados obtenidos correctamente")
+            else:
+                HandleLogs.write_error("PacienteComponent.get_pacientes_pausados - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_pacientes_pausados - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
