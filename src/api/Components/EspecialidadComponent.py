@@ -6,29 +6,57 @@ from src.utils.general.response import internal_response
 class EspecialidadComponent:
 
     @staticmethod
-    def get_all_especialidades():
-        """Obtener todas las especialidades"""
+    def get_all_especialidades(id_centro=None):
+        """Obtener todas las especialidades, opcionalmente filtradas por centro"""
         try:
-            query = """
-            SELECT 
-                e.id,
-                e.nombre,
-                e.area,
-                e.estado,
-                e.fecha_creacion,
-                e.fecha_modificacion,
-                COUNT(pe.id) as personal_asignado
-            FROM especialidad e
-            LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
-            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
-            ORDER BY e.area, e.nombre
-            """
+            if id_centro:
+                query = """
+                SELECT
+                    e.id,
+                    e.nombre,
+                    e.area,
+                    e.estado,
+                    e.id_centro,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    e.fecha_creacion,
+                    e.fecha_modificacion,
+                    COUNT(pe.id) as personal_asignado
+                FROM especialidad e
+                LEFT JOIN centros c ON e.id_centro = c.id
+                LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
+                WHERE e.id_centro = %s
+                GROUP BY e.id, e.nombre, e.area, e.estado, e.id_centro, c.nombre, c.codigo, e.fecha_creacion, e.fecha_modificacion
+                ORDER BY e.area, e.nombre
+                """
+                params = (id_centro,)
+            else:
+                query = """
+                SELECT
+                    e.id,
+                    e.nombre,
+                    e.area,
+                    e.estado,
+                    e.id_centro,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    e.fecha_creacion,
+                    e.fecha_modificacion,
+                    COUNT(pe.id) as personal_asignado
+                FROM especialidad e
+                LEFT JOIN centros c ON e.id_centro = c.id
+                LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
+                GROUP BY e.id, e.nombre, e.area, e.estado, e.id_centro, c.nombre, c.codigo, e.fecha_creacion, e.fecha_modificacion
+                ORDER BY c.nombre, e.area, e.nombre
+                """
+                params = ()
 
-            especialidades = DataBaseHandle.getRecords(query)
+            especialidades = DataBaseHandle.getRecords(query, params)
 
             if especialidades is not None:
-                HandleLogs.write_log(f"EspecialidadComponent.get_all_especialidades - {len(especialidades)} especialidades encontradas")
-                return internal_response(True, especialidades, "Especialidades obtenidas correctamente")
+                centro_info = f" del centro {id_centro}" if id_centro else ""
+                HandleLogs.write_log(f"EspecialidadComponent.get_all_especialidades - {len(especialidades)} especialidades{centro_info} encontradas")
+                return internal_response(True, especialidades, f"Especialidades{centro_info} obtenidas correctamente")
             else:
                 HandleLogs.write_error("EspecialidadComponent.get_all_especialidades - Error en consulta")
                 return internal_response(False, None, "Error ejecutando consulta")
@@ -38,30 +66,58 @@ class EspecialidadComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def get_especialidades_by_area(area):
-        """Obtener especialidades por área específica"""
+    def get_especialidades_by_area(area, id_centro=None):
+        """Obtener especialidades por área específica, opcionalmente filtradas por centro"""
         try:
-            query = """
-            SELECT 
-                e.id,
-                e.nombre,
-                e.area,
-                e.estado,
-                e.fecha_creacion,
-                e.fecha_modificacion,
-                COUNT(pe.id) as personal_asignado
-            FROM especialidad e
-            LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
-            WHERE e.area = %s AND e.estado = 'activo'
-            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
-            ORDER BY e.nombre
-            """
+            if id_centro:
+                query = """
+                SELECT
+                    e.id,
+                    e.nombre,
+                    e.area,
+                    e.estado,
+                    e.id_centro,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    e.fecha_creacion,
+                    e.fecha_modificacion,
+                    COUNT(pe.id) as personal_asignado
+                FROM especialidad e
+                LEFT JOIN centros c ON e.id_centro = c.id
+                LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
+                WHERE e.area = %s AND e.estado = 'activo' AND e.id_centro = %s
+                GROUP BY e.id, e.nombre, e.area, e.estado, e.id_centro, c.nombre, c.codigo, e.fecha_creacion, e.fecha_modificacion
+                ORDER BY e.nombre
+                """
+                params = (area, id_centro)
+            else:
+                query = """
+                SELECT
+                    e.id,
+                    e.nombre,
+                    e.area,
+                    e.estado,
+                    e.id_centro,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo,
+                    e.fecha_creacion,
+                    e.fecha_modificacion,
+                    COUNT(pe.id) as personal_asignado
+                FROM especialidad e
+                LEFT JOIN centros c ON e.id_centro = c.id
+                LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
+                WHERE e.area = %s AND e.estado = 'activo'
+                GROUP BY e.id, e.nombre, e.area, e.estado, e.id_centro, c.nombre, c.codigo, e.fecha_creacion, e.fecha_modificacion
+                ORDER BY c.nombre, e.nombre
+                """
+                params = (area,)
 
-            especialidades = DataBaseHandle.getRecords(query, (area,))
+            especialidades = DataBaseHandle.getRecords(query, params)
 
             if especialidades is not None:
-                HandleLogs.write_log(f"EspecialidadComponent.get_especialidades_by_area - {len(especialidades)} especialidades de área {area} encontradas")
-                return internal_response(True, especialidades, f"Especialidades de {area} obtenidas correctamente")
+                centro_info = f" del centro {id_centro}" if id_centro else ""
+                HandleLogs.write_log(f"EspecialidadComponent.get_especialidades_by_area - {len(especialidades)} especialidades de área {area}{centro_info} encontradas")
+                return internal_response(True, especialidades, f"Especialidades de {area}{centro_info} obtenidas correctamente")
             else:
                 HandleLogs.write_error(f"EspecialidadComponent.get_especialidades_by_area - Error en consulta para área {area}")
                 return internal_response(False, None, "Error ejecutando consulta")
@@ -106,15 +162,15 @@ class EspecialidadComponent:
     def create_especialidad(data):
         """Crear una nueva especialidad"""
         try:
-            # Verificar si el nombre ya existe en la misma área
-            nombre_check = EspecialidadComponent.check_nombre_exists(data['nombre'], data['area'])
+            # Verificar si el nombre ya existe en la misma área y centro
+            nombre_check = EspecialidadComponent.check_nombre_exists(data['nombre'], data['area'], data['id_centro'])
             if nombre_check['success'] and nombre_check['data']:
-                return internal_response(False, None, f"Ya existe una especialidad con ese nombre en el área {data['area']}")
+                return internal_response(False, None, f"Ya existe una especialidad con ese nombre en el área {data['area']} para este centro")
 
             # Insertar nueva especialidad
             insert_query = """
-                INSERT INTO especialidad (nombre, area, estado, usuario_creacion)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO especialidad (nombre, area, estado, id_centro, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s)
                 RETURNING id
                 """
 
@@ -122,6 +178,7 @@ class EspecialidadComponent:
                 data['nombre'].strip(),
                 data['area'],
                 data.get('estado', 'activo'),
+                data['id_centro'],
                 data.get('usuario_creacion', 1)
             )
 
@@ -151,19 +208,19 @@ class EspecialidadComponent:
             if not existing:
                 return internal_response(False, None, "Especialidad no encontrada")
 
-            # Verificar nombre duplicado en la misma área (excluyendo la especialidad actual)
-            if 'nombre' in data and 'area' in data:
+            # Verificar nombre duplicado en la misma área y centro (excluyendo la especialidad actual)
+            if 'nombre' in data and 'area' in data and 'id_centro' in data:
                 nombre_check = EspecialidadComponent.check_nombre_exists(
-                    data['nombre'], data['area'], exclude_id=especialidad_id
+                    data['nombre'], data['area'], data['id_centro'], exclude_id=especialidad_id
                 )
                 if nombre_check['success'] and nombre_check['data']:
-                    return internal_response(False, None, f"Ya existe una especialidad con ese nombre en el área {data['area']}")
+                    return internal_response(False, None, f"Ya existe una especialidad con ese nombre en el área {data['area']} para este centro")
 
             # Construir query de actualización dinámicamente
             update_fields = []
             params = []
 
-            allowed_fields = ['nombre', 'area', 'estado', 'usuario_modificacion']
+            allowed_fields = ['nombre', 'area', 'estado', 'id_centro', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
@@ -253,15 +310,15 @@ class EspecialidadComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def check_nombre_exists(nombre, area, exclude_id=None):
-        """Verificar si un nombre de especialidad ya existe en la misma área"""
+    def check_nombre_exists(nombre, area, id_centro, exclude_id=None):
+        """Verificar si un nombre de especialidad ya existe en la misma área y centro"""
         try:
             if exclude_id:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id != %s"
-                params = (nombre, area, exclude_id)
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id_centro = %s AND id != %s"
+                params = (nombre, area, id_centro, exclude_id)
             else:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s"
-                params = (nombre, area)
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id_centro = %s"
+                params = (nombre, area, id_centro)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
             return internal_response(True, existing is not None, "Consulta ejecutada")
@@ -431,24 +488,43 @@ class EspecialidadComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def get_especialidades_activas():
-        """Obtener solo especialidades activas (útil para combos/selects)"""
+    def get_especialidades_activas(id_centro=None):
+        """Obtener solo especialidades activas (útil para combos/selects), opcionalmente filtradas por centro"""
         try:
-            query = """
-            SELECT 
-                id,
-                nombre,
-                area
-            FROM especialidad
-            WHERE estado = 'activo'
-            ORDER BY area, nombre
-            """
+            if id_centro:
+                query = """
+                SELECT
+                    id,
+                    nombre,
+                    area,
+                    id_centro
+                FROM especialidad
+                WHERE estado = 'activo' AND id_centro = %s
+                ORDER BY area, nombre
+                """
+                params = (id_centro,)
+            else:
+                query = """
+                SELECT
+                    e.id,
+                    e.nombre,
+                    e.area,
+                    e.id_centro,
+                    c.nombre as centro_nombre,
+                    c.codigo as centro_codigo
+                FROM especialidad e
+                LEFT JOIN centros c ON e.id_centro = c.id
+                WHERE e.estado = 'activo'
+                ORDER BY c.nombre, e.area, e.nombre
+                """
+                params = ()
 
-            especialidades = DataBaseHandle.getRecords(query)
+            especialidades = DataBaseHandle.getRecords(query, params)
 
             if especialidades is not None:
-                HandleLogs.write_log(f"EspecialidadComponent.get_especialidades_activas - {len(especialidades)} especialidades activas encontradas")
-                return internal_response(True, especialidades, "Especialidades activas obtenidas")
+                centro_info = f" del centro {id_centro}" if id_centro else ""
+                HandleLogs.write_log(f"EspecialidadComponent.get_especialidades_activas - {len(especialidades)} especialidades activas{centro_info} encontradas")
+                return internal_response(True, especialidades, f"Especialidades activas{centro_info} obtenidas")
             else:
                 HandleLogs.write_error("EspecialidadComponent.get_especialidades_activas - Error en consulta")
                 return internal_response(False, None, "Error ejecutando consulta")

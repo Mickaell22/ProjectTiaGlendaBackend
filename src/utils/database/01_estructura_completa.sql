@@ -109,13 +109,17 @@ CREATE TABLE persona (
 -- 4. TABLA: ESPECIALIDAD (Catálogo de especialidades)
 CREATE TABLE especialidad (
     id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
     area VARCHAR(100) NOT NULL CHECK (area IN ('Especialidad terapéutica', 'Especialidad pedagógica')),
     estado VARCHAR(10) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo')),
+    id_centro INTEGER NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usuario_creacion INTEGER,
-    usuario_modificacion INTEGER
+    usuario_modificacion INTEGER,
+
+    FOREIGN KEY (id_centro) REFERENCES centros(id) ON DELETE RESTRICT,
+    UNIQUE (nombre, id_centro)  -- Permitir mismas especialidades en diferentes centros
 );
 
 -- 5. TABLA: USUARIO (Credenciales del sistema)
@@ -746,6 +750,7 @@ CREATE INDEX IF NOT EXISTS idx_persona_cedula ON persona(cedula);
 CREATE INDEX IF NOT EXISTS idx_usuario_usuario ON usuario(usuario);
 CREATE INDEX IF NOT EXISTS idx_usuario_centro ON usuario(id_centro);
 CREATE INDEX IF NOT EXISTS idx_especialidad_nombre ON especialidad(nombre);
+CREATE INDEX IF NOT EXISTS idx_especialidad_centro ON especialidad(id_centro);
 
 -- Índices para personal
 CREATE INDEX IF NOT EXISTS idx_personal_persona ON personal(id_persona);

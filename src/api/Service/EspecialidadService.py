@@ -9,15 +9,19 @@ class EspecialidadService:
 
     @staticmethod
     def get_especialidades():
-        """Obtener lista de todas las especialidades"""
+        """Obtener lista de todas las especialidades, opcionalmente filtradas por centro"""
         try:
             HandleLogs.write_log("EspecialidadService.get_especialidades - Iniciando")
 
-            result = EspecialidadComponent.get_all_especialidades()
+            # Obtener parámetro de centro de la query string
+            id_centro = request.args.get('centro', type=int)
+
+            result = EspecialidadComponent.get_all_especialidades(id_centro)
 
             if result['success']:
-                HandleLogs.write_log("EspecialidadService.get_especialidades - Especialidades obtenidas exitosamente")
-                return response_success(result['data'], "Lista de especialidades obtenida correctamente")
+                centro_info = f" del centro {id_centro}" if id_centro else ""
+                HandleLogs.write_log(f"EspecialidadService.get_especialidades - Especialidades{centro_info} obtenidas exitosamente")
+                return response_success(result['data'], f"Lista de especialidades{centro_info} obtenida correctamente")
             else:
                 HandleLogs.write_error(f"EspecialidadService.get_especialidades - Error: {result['message']}")
                 return response_error("Error obteniendo especialidades", 500)
@@ -28,7 +32,7 @@ class EspecialidadService:
 
     @staticmethod
     def get_especialidades_by_area(area):
-        """Obtener especialidades por área específica"""
+        """Obtener especialidades por área específica, opcionalmente filtradas por centro"""
         try:
             HandleLogs.write_log(f"EspecialidadService.get_especialidades_by_area - Área: {area}")
 
@@ -37,11 +41,15 @@ class EspecialidadService:
             if area not in valid_areas:
                 return response_error(f"Área invalida. Debe ser una de: {', '.join(valid_areas)}", 400)
 
-            result = EspecialidadComponent.get_especialidades_by_area(area)
+            # Obtener parámetro de centro de la query string
+            id_centro = request.args.get('centro', type=int)
+
+            result = EspecialidadComponent.get_especialidades_by_area(area, id_centro)
 
             if result['success']:
-                HandleLogs.write_log(f"EspecialidadService.get_especialidades_by_area - Especialidades de {area} obtenidas")
-                return response_success(result['data'], f"Especialidades de {area} obtenidas correctamente")
+                centro_info = f" del centro {id_centro}" if id_centro else ""
+                HandleLogs.write_log(f"EspecialidadService.get_especialidades_by_area - Especialidades de {area}{centro_info} obtenidas")
+                return response_success(result['data'], f"Especialidades de {area}{centro_info} obtenidas correctamente")
             else:
                 HandleLogs.write_error(f"EspecialidadService.get_especialidades_by_area - Error: {result['message']}")
                 return response_error("Error obteniendo especialidades", 500)
@@ -91,6 +99,7 @@ class EspecialidadService:
             especialidad_data = {
                 'nombre': data['nombre'].strip(),
                 'area': data['area'],
+                'id_centro': data['id_centro'],  # Requerido para nuevas especialidades
                 'estado': data.get('estado', 'activo'),
                 'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
             }
@@ -163,15 +172,19 @@ class EspecialidadService:
 
     @staticmethod
     def get_especialidades_activas():
-        """Obtener especialidades activas (para combos/selects)"""
+        """Obtener especialidades activas (para combos/selects), opcionalmente filtradas por centro"""
         try:
             HandleLogs.write_log("EspecialidadService.get_especialidades_activas - Iniciando")
 
-            result = EspecialidadComponent.get_especialidades_activas()
+            # Obtener parámetro de centro de la query string
+            id_centro = request.args.get('centro', type=int)
+
+            result = EspecialidadComponent.get_especialidades_activas(id_centro)
 
             if result['success']:
-                HandleLogs.write_log("EspecialidadService.get_especialidades_activas - Especialidades activas obtenidas")
-                return response_success(result['data'], "Especialidades activas obtenidas correctamente")
+                centro_info = f" del centro {id_centro}" if id_centro else ""
+                HandleLogs.write_log(f"EspecialidadService.get_especialidades_activas - Especialidades activas{centro_info} obtenidas")
+                return response_success(result['data'], f"Especialidades activas{centro_info} obtenidas correctamente")
             else:
                 HandleLogs.write_error(f"EspecialidadService.get_especialidades_activas - Error: {result['message']}")
                 return response_error("Error obteniendo especialidades activas", 500)
