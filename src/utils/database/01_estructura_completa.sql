@@ -500,14 +500,15 @@ CREATE TABLE sesion_pedagogica (
     descripcion TEXT,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE,
-    
+
     -- Configuración académica
     nivel_academico VARCHAR(50), -- preescolar, primaria, secundaria
     grado_escolar VARCHAR(20),
     materia VARCHAR(100),
     competencias_objetivo TEXT,
     metodologia_ensenanza TEXT,
-    
+    adaptacion_curricular TEXT, -- Campo agregado para adaptaciones curriculares específicas
+
     -- Programación
     duracion_minutos INTEGER DEFAULT 60 CHECK (duracion_minutos > 0),
     frecuencia_semanal INTEGER DEFAULT 2 CHECK (frecuencia_semanal > 0 AND frecuencia_semanal <= 7),
@@ -517,19 +518,19 @@ CREATE TABLE sesion_pedagogica (
     hora_fin TIME DEFAULT '10:00',
     aula VARCHAR(50),
     capacidad_maxima INTEGER DEFAULT 8 CHECK (capacidad_maxima > 0),
-    
+
     -- Control de estado
-    estado VARCHAR(20) DEFAULT 'planificada' CHECK (estado IN 
+    estado VARCHAR(20) DEFAULT 'planificada' CHECK (estado IN
         ('planificada', 'en_curso', 'pausada', 'finalizada', 'cancelada')),
     motivo_finalizacion TEXT,
     fecha_finalizacion_real DATE,
-    
+
     id_centro INTEGER NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usuario_creacion INTEGER,
     usuario_modificacion INTEGER,
-    
+
     FOREIGN KEY (id_educador) REFERENCES personal(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_especialidad) REFERENCES especialidad(id) ON DELETE RESTRICT,
     FOREIGN KEY (id_centro) REFERENCES centros(id) ON DELETE RESTRICT

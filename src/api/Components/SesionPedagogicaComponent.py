@@ -200,9 +200,9 @@ class SesionPedagogicaComponent:
                     codigo_sesion, nombre_clase, id_educador, id_especialidad, fecha_inicio, fecha_fin,
                     dias_semana, hora_inicio, duracion_minutos, nivel_academico,
                     capacidad_maxima, costo_total, costo_por_clase, periodo_academico,
-                    estado, id_centro, usuario_creacion
+                    adaptacion_curricular, estado, id_centro, usuario_creacion
                 ) VALUES (
-                    NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
             """
 
@@ -220,6 +220,7 @@ class SesionPedagogicaComponent:
                 sesion_data.get('costo_total', 0),
                 sesion_data.get('costo_por_clase', 0),
                 sesion_data.get('periodo_academico', ''),
+                sesion_data.get('adaptacion_curricular', ''),  # Nuevo campo para adaptaciones curriculares
                 sesion_data.get('estado', 'en_curso'),  # Estado por defecto correcto
                 sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
@@ -281,6 +282,7 @@ class SesionPedagogicaComponent:
                     costo_total = %s,
                     costo_por_clase = %s,
                     periodo_academico = %s,
+                    adaptacion_curricular = %s,
                     estado = %s,
                     usuario_modificacion = %s
                 WHERE id = %s
@@ -300,6 +302,7 @@ class SesionPedagogicaComponent:
                 sesion_data.get('costo_total', 0),
                 sesion_data.get('costo_por_clase', 0),
                 sesion_data.get('periodo_academico', ''),
+                sesion_data.get('adaptacion_curricular', ''),  # Incluir adaptacion_curricular en UPDATE
                 sesion_data.get('estado'),
                 sesion_data['usuario_modificacion'],
                 sesion_id

@@ -84,6 +84,7 @@ class SesionPedagogicaService:
                         'costo_total': float(sesion.get('costo_total', 0)),
                         'costo_por_clase': float(sesion.get('costo_por_clase', 0)),
                         'periodo_academico': sesion.get('periodo_academico', ''),
+                        'adaptacion_curricular': sesion.get('adaptacion_curricular', ''),
                         'estado': sesion['estado'],
                         'observaciones': sesion.get('observaciones', ''),
                         'estadisticas': {
@@ -218,6 +219,7 @@ class SesionPedagogicaService:
                     'costo_total': float(sesion.get('costo_total', 0)),
                     'costo_por_clase': float(sesion.get('costo_por_clase', 0)),
                     'periodo_academico': sesion.get('periodo_academico', ''),
+                    'adaptacion_curricular': sesion.get('adaptacion_curricular', ''),
                     'estado': sesion['estado'],
                     'observaciones': sesion.get('observaciones', ''),
                     'fecha_creacion': sesion['fecha_creacion'].isoformat() if sesion['fecha_creacion'] else None,
@@ -377,6 +379,7 @@ class SesionPedagogicaService:
                 'duracion_minutos': data.get('duracion_minutos', sesion_existente['duracion_minutos']),
                 'nivel_academico': data.get('nivel_academico', sesion_existente['nivel_academico']),
                 'capacidad_maxima': data.get('capacidad_maxima', sesion_existente['capacidad_maxima']),
+                'adaptacion_curricular': data.get('adaptacion_curricular', sesion_existente.get('adaptacion_curricular', '')),
                 'estado': data.get('estado', sesion_existente['estado']),
                 'usuario_modificacion': data['usuario_modificacion']
             }
