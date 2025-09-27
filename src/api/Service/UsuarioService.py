@@ -187,42 +187,53 @@ class UsuarioService:
         """Cambiar contraseña de usuario"""
         try:
             HandleLogs.write_log(f"UsuarioService.change_password - ID: {usuario_id}")
-            
+            HandleLogs.write_log(f"Datos recibidos en password_data: {password_data}")
+
             if not usuario_id or usuario_id <= 0:
                 return response_error("ID de usuario invalido", 400)
-            
+
             # Validar datos de entrada
             if not password_data:
+                HandleLogs.write_error("No se recibió password_data")
                 return response_error("Datos de contraseña requeridos", 400)
-            
+
             nueva_contrasenia = password_data.get('nueva_contrasenia')
             confirmar_contrasenia = password_data.get('confirmar_contrasenia')
-            
+
+            HandleLogs.write_log(
+                f"nueva_contrasenia: {nueva_contrasenia}, confirmar_contrasenia: {confirmar_contrasenia}")
+
             if not nueva_contrasenia:
+                HandleLogs.write_error("No se recibió nueva_contrasenia")
                 return response_error("Nueva contraseña requerida", 400)
-            
+
             if not confirmar_contrasenia:
+                HandleLogs.write_error("No se recibió confirmar_contrasenia")
                 return response_error("Confirmación de contraseña requerida", 400)
-            
+
             if nueva_contrasenia != confirmar_contrasenia:
+                HandleLogs.write_error("Las contraseñas no coinciden")
                 return response_error("Las contraseñas no coinciden", 400)
-            
+
             # Validar fortaleza de contraseña
             from src.utils.general.validators import Validators
             password_validation = Validators.validate_password(nueva_contrasenia)
+            HandleLogs.write_log(f"Resultado validación: {password_validation}")
             if not password_validation['valid']:
+                HandleLogs.write_error(f"Validación fallida: {password_validation['message']}")
                 return response_error(password_validation['message'], 400)
-            
+
             # Cambiar contraseña
             result = UsuarioComponent.change_password(usuario_id, nueva_contrasenia)
-            
+            HandleLogs.write_log(f"Resultado cambio: {result}")
+
             if result['success']:
                 HandleLogs.write_log(f"UsuarioService.change_password - Contraseña cambiada para usuario {usuario_id}")
                 return response_success(None, "Contraseña actualizada exitosamente")
             else:
                 HandleLogs.write_error(f"UsuarioService.change_password - Error: {result['message']}")
                 return response_error(result['message'], 400)
-                
+
         except Exception as e:
             HandleLogs.write_error(f"UsuarioService.change_password - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
