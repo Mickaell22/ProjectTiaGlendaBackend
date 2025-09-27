@@ -32,27 +32,16 @@ class Validators:
 
     @staticmethod
     def validate_password(password):
-        """Validar contraseña"""
-        errors = []
-
-        if len(password) < 8:
-            errors.append("debe tener al menos 8 caracteres")
-
-        if not re.search(r"[A-Z]", password):
-            errors.append("debe contener al menos una mayuscula")
-
-        if not re.search(r"[a-z]", password):
-            errors.append("debe contener al menos una minuscula")
-
-        if not re.search(r"\d", password):
-            errors.append("debe contener al menos un numero")
-
-        if errors:
+        """Validar contraseña: solo mínimo 6 caracteres"""
+        if not password or len(password) < 6:
             return {
                 'valid': False,
-                'message': f"Contrasena invalida: {', '.join(errors)}"
+                'message': 'La contraseña debe tener al menos 6 caracteres.'
             }
-        return {'valid': True, 'message': 'Contrasena valida'}
+        return {
+            'valid': True,
+            'message': 'Contraseña válida.'
+        }
 
     @staticmethod
     def validate_username(username):
