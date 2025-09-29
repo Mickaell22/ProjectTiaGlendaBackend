@@ -29,6 +29,12 @@ def register_routes(app):
         from src.api.Service.SesionTerapiaService import SesionTerapiaService
         return SesionTerapiaService.ver_sesion_publica(token)
 
+    @app.route('/api/sesion-pedagogica-publica/<string:token>', methods=['GET'])
+    def ver_sesion_pedagogica_publica(token):
+        """Ver información pública de una sesión pedagógica usando token temporal (NO requiere autenticación)"""
+        from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+        return SesionPedagogicaService.ver_sesion_publica(token)
+
     @app.route('/api/test-db', methods=['GET'])
     def test_database():
         """Endpoint para probar la conexión a la base de datos"""
@@ -1374,6 +1380,31 @@ def register_routes(app):
             """Actualizar asistencia de un estudiante"""
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.actualizar_asistencia(cronograma_id, estudiante_id)
+
+        # ============================================
+        # RUTAS DE ENLACES PÚBLICOS PEDAGÓGICOS
+        # ============================================
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/generar-enlace-publico', methods=['POST'])
+        @token_required
+        def generar_enlace_publico_pedagogico(sesion_id):
+            """Generar enlace público para una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.generar_enlace_publico(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/enlaces-publicos', methods=['GET'])
+        @token_required
+        def obtener_enlaces_publicos_pedagogico(sesion_id):
+            """Obtener enlaces públicos activos para una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.obtener_enlaces_publicos(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/invalidar-enlace-publico/<string:token>', methods=['PUT'])
+        @token_required
+        def invalidar_enlace_publico_pedagogico(token):
+            """Invalidar un enlace público específico de sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.invalidar_enlace_publico(token)
 
         # ============================================
         # DEBUG ENDPOINTS REMOVED FOR SECURITY

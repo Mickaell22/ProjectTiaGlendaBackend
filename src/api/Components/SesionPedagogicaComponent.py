@@ -1396,3 +1396,287 @@ class SesionPedagogicaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.get_sesiones_by_pedagogo - Error: {str(e)}")
             raise Exception(f"Error al obtener sesiones del pedagogo: {str(e)}")
+
+    # ============================================
+    # MÉTODOS DE ENLACES PÚBLICOS PEDAGÓGICOS
+    # ============================================
+
+    @staticmethod
+    def generar_token_publico(enlace_data):
+        """Generar un token público para una sesión pedagógica"""
+        try:
+            import secrets
+            from datetime import datetime, timedelta
+
+            # Generar token único
+            token = secrets.token_urlsafe(64)
+
+            # Calcular fecha de expiración
+            fecha_expiracion = datetime.now() + timedelta(hours=enlace_data['duracion_horas'])
+
+            # Insertar en la base de datos
+            insert_query = """
+                INSERT INTO tokens_publicos_sesion_pedagogica
+                (id_sesion, token, descripcion, fecha_expiracion, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            params = (
+                enlace_data['sesion_id'],
+                token,
+                enlace_data['descripcion'],
+                fecha_expiracion,
+                enlace_data['usuario_creacion']
+            )
+
+            rows_affected = DataBaseHandle.ExecuteNonQuery(insert_query, params)
+            if rows_affected and rows_affected > 0:
+                # Obtener los datos del token creado
+                select_query = """
+                    SELECT token, descripcion, fecha_expiracion, activo
+                    FROM tokens_publicos_sesion_pedagogica
+                    WHERE token = %s
+                """
+                result = DataBaseHandle.getRecords(select_query, (token,))
+
+                if result:
+                    token_data = result[0]
+                    response_data = {
+                        'token': token_data['token'],
+                        'descripcion': token_data['descripcion'],
+                        'duracion_horas': enlace_data['duracion_horas'],
+                        'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
+                        'url_publica': f"/api/sesion-pedagogica-publica/{token_data['token']}"
+                    }
+
+                    HandleLogs.write_log(f"SesionPedagogicaComponent.generar_token_publico - Token generado para sesión {enlace_data['sesion_id']}")
+                    return response_data
+                else:
+                    raise Exception("No se pudo obtener el token generado")
+            else:
+                raise Exception("No se pudo insertar el token en la base de datos")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.generar_token_publico - Error: {str(e)}")
+            raise Exception(f"Error al generar token público: {str(e)}")
+
+    @staticmethod
+    def obtener_tokens_publicos(sesion_id):
+        """Obtener tokens públicos activos para una sesión pedagógica"""
+        try:
+            query = """
+                SELECT
+                    token,
+                    descripcion,
+                    fecha_creacion,
+                    fecha_expiracion,
+                    activo,
+                    CASE
+                        WHEN fecha_expiracion < CURRENT_TIMESTAMP THEN 'expirado'
+                        WHEN activo = false THEN 'inactivo'
+                        ELSE 'vigente'
+                    END as estado
+                FROM tokens_publicos_sesion_pedagogica
+                WHERE id_sesion = %s AND activo = TRUE
+                ORDER BY fecha_creacion DESC
+            """
+            params = (sesion_id,)
+
+            result = DataBaseHandle.getRecords(query, params)
+            if result:
+                # Formatear datos para la respuesta
+                tokens_formateados = []
+                for token in result:
+                    token_data = {
+                        'token': token['token'],
+                        'descripcion': token['descripcion'],
+                        'fecha_creacion': token['fecha_creacion'].isoformat() if isinstance(token['fecha_creacion'], datetime) else str(token['fecha_creacion']),
+                        'fecha_expiracion': token['fecha_expiracion'].isoformat() if isinstance(token['fecha_expiracion'], datetime) else str(token['fecha_expiracion']),
+                        'activo': token['activo'],
+                        'estado': token['estado'],
+                        'url_publica': f"/api/sesion-pedagogica-publica/{token['token']}"
+                    }
+                    tokens_formateados.append(token_data)
+
+                HandleLogs.write_log(f"SesionPedagogicaComponent.obtener_tokens_publicos - {len(tokens_formateados)} tokens encontrados para sesión {sesion_id}")
+                return tokens_formateados
+            else:
+                HandleLogs.write_log(f"SesionPedagogicaComponent.obtener_tokens_publicos - No se encontraron tokens para sesión {sesion_id}")
+                return []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.obtener_tokens_publicos - Error: {str(e)}")
+            return []  # Retornar lista vacía en lugar de lanzar excepción
+
+    @staticmethod
+    def invalidar_token_publico(token, usuario_modificacion):
+        """Invalidar un token público específico"""
+        try:
+            # Primero verificar que el token existe y está activo
+            check_query = """
+                SELECT id, token
+                FROM tokens_publicos_sesion_pedagogica
+                WHERE token = %s AND activo = TRUE
+            """
+            existing_token = DataBaseHandle.getRecords(check_query, (token,))
+
+            if not existing_token:
+                HandleLogs.write_log(f"SesionPedagogicaComponent.invalidar_token_publico - Token no encontrado o ya inactivo: {token[:10]}...")
+                raise Exception("Token no encontrado o ya está inactivo")
+
+            # Usar ExecuteNonQuery para el UPDATE (patrón correcto del proyecto)
+            update_query = """
+                UPDATE tokens_publicos_sesion_pedagogica
+                SET activo = FALSE,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE token = %s AND activo = TRUE
+            """
+            params = (usuario_modificacion, token)
+
+            rows_affected = DataBaseHandle.ExecuteNonQuery(update_query, params)
+            if rows_affected and rows_affected > 0:
+                HandleLogs.write_log(f"SesionPedagogicaComponent.invalidar_token_publico - Token invalidado: {token[:10]}...")
+                return {'success': True, 'message': 'Token invalidado exitosamente'}
+            else:
+                HandleLogs.write_log(f"SesionPedagogicaComponent.invalidar_token_publico - No se pudo invalidar el token: {token[:10]}...")
+                raise Exception("No se pudo invalidar el token")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.invalidar_token_publico - Error: {str(e)}")
+            raise Exception(f"Error al invalidar token: {str(e)}")
+
+    @staticmethod
+    def obtener_sesion_por_token_publico(token):
+        """Obtener información pública de una sesión pedagógica usando un token válido"""
+        try:
+            # Verificar token y obtener información de la sesión
+            query = """
+                SELECT
+                    sp.id as sesion_id,
+                    sp.codigo_sesion,
+                    sp.nombre_clase as titulo,
+                    sp.competencias_objetivo as objetivo_general,
+                    CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    sp.fecha_inicio,
+                    sp.fecha_fin,
+                    sp.dias_semana,
+                    sp.hora_inicio,
+                    sp.hora_fin,
+                    sp.duracion_minutos,
+                    'grupal' as tipo_sesion,
+                    sp.estado,
+                    tps.descripcion as enlace_descripcion,
+                    tps.fecha_expiracion,
+                    COUNT(DISTINCT se.id_paciente) as total_estudiantes,
+                    COUNT(DISTINCT cc.id) as clases_programadas,
+                    COUNT(DISTINCT CASE WHEN ac.asistio = true THEN ac.id_cronograma END) as clases_realizadas,
+                    ROUND(
+                        (COUNT(DISTINCT CASE WHEN ac.asistio = true THEN ac.id_cronograma END) * 100.0) /
+                        NULLIF(COUNT(DISTINCT cc.id), 0), 2
+                    ) as porcentaje_asistencia
+                FROM tokens_publicos_sesion_pedagogica tps
+                JOIN sesion_pedagogica sp ON tps.id_sesion = sp.id
+                JOIN personal per ON sp.id_educador = per.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
+                JOIN especialidad e ON sp.id_especialidad = e.id
+                LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
+                LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
+                LEFT JOIN asistencia_clases ac ON cc.id = ac.id_cronograma
+                WHERE tps.token = %s
+                    AND tps.activo = TRUE
+                    AND tps.fecha_expiracion > CURRENT_TIMESTAMP
+                GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.competencias_objetivo,
+                        p_ped.nombre, p_ped.apellido, e.nombre, e.area, sp.fecha_inicio,
+                        sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.hora_fin,
+                        sp.duracion_minutos, sp.estado, tps.descripcion, tps.fecha_expiracion
+            """
+            params = (token,)
+
+            result = DataBaseHandle.getRecords(query, params)
+            if result:
+                sesion_data = result[0]
+
+                # Obtener cronograma de clases (información pública)
+                cronograma_query = """
+                    SELECT
+                        cc.fecha_programada,
+                        cc.hora_inicio,
+                        cc.hora_fin,
+                        cc.estado,
+                        cc.semana_numero,
+                        cc.numero_clase_semanal,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1 FROM asistencia_clases ac
+                                WHERE ac.id_cronograma = cc.id AND ac.asistio = true
+                            ) THEN 'realizada'
+                            ELSE 'pendiente'
+                        END as estado_asistencia
+                    FROM cronograma_clases cc
+                    WHERE cc.id_sesion = %s
+                    ORDER BY cc.fecha_programada ASC, cc.hora_inicio ASC
+                """
+                cronograma_result = DataBaseHandle.getRecords(cronograma_query, (sesion_data['sesion_id'],))
+
+                # Formatear cronograma
+                cronograma = []
+                if cronograma_result:
+                    for row in cronograma_result:
+                        clase = {
+                            'fecha': row['fecha_programada'].isoformat() if isinstance(row['fecha_programada'], (date, datetime)) else str(row['fecha_programada']),
+                            'hora_inicio': str(row['hora_inicio']) if row['hora_inicio'] else None,
+                            'hora_fin': str(row['hora_fin']) if row['hora_fin'] else None,
+                            'estado': row['estado'],
+                            'estado_asistencia': row['estado_asistencia'],
+                            'semana': row['semana_numero'],
+                            'clase_semanal': row['numero_clase_semanal']
+                        }
+                        cronograma.append(clase)
+
+                # Formatear respuesta pública (sin información sensible)
+                response_data = {
+                    'sesion': {
+                        'titulo': sesion_data['titulo'],
+                        'objetivo_general': sesion_data['objetivo_general'],
+                        'pedagogo': sesion_data['pedagogo_nombre'],
+                        'especialidad': {
+                            'nombre': sesion_data['especialidad_nombre'],
+                            'area': sesion_data['especialidad_area']
+                        },
+                        'periodo': {
+                            'inicio': sesion_data['fecha_inicio'].isoformat() if isinstance(sesion_data['fecha_inicio'], (date, datetime)) else str(sesion_data['fecha_inicio']),
+                            'fin': sesion_data['fecha_fin'].isoformat() if isinstance(sesion_data['fecha_fin'], (date, datetime)) else str(sesion_data['fecha_fin'])
+                        },
+                        'horario': {
+                            'dias': sesion_data['dias_semana'],
+                            'hora_inicio': str(sesion_data['hora_inicio']) if sesion_data['hora_inicio'] else None,
+                            'hora_fin': str(sesion_data['hora_fin']) if sesion_data['hora_fin'] else None,
+                            'duracion_minutos': sesion_data['duracion_minutos']
+                        },
+                        'tipo': sesion_data['tipo_sesion'],
+                        'estado': sesion_data['estado']
+                    },
+                    'estadisticas': {
+                        'total_estudiantes': int(sesion_data['total_estudiantes']) if sesion_data['total_estudiantes'] else 0,
+                        'clases_programadas': int(sesion_data['clases_programadas']) if sesion_data['clases_programadas'] else 0,
+                        'clases_realizadas': int(sesion_data['clases_realizadas']) if sesion_data['clases_realizadas'] else 0,
+                        'porcentaje_asistencia': float(sesion_data['porcentaje_asistencia']) if sesion_data['porcentaje_asistencia'] else 0
+                    },
+                    'cronograma': cronograma,
+                    'enlace_info': {
+                        'descripcion': sesion_data['enlace_descripcion'],
+                        'fecha_expiracion': sesion_data['fecha_expiracion'].isoformat() if isinstance(sesion_data['fecha_expiracion'], datetime) else str(sesion_data['fecha_expiracion'])
+                    }
+                }
+
+                HandleLogs.write_log(f"SesionPedagogicaComponent.obtener_sesion_por_token_publico - Información obtenida para sesión {sesion_data['sesion_id']}")
+                return response_data
+            else:
+                HandleLogs.write_log(f"SesionPedagogicaComponent.obtener_sesion_por_token_publico - Token inválido o expirado: {token[:10]}...")
+                return None
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.obtener_sesion_por_token_publico - Error: {str(e)}")
+            raise Exception(f"Error al obtener sesión por token: {str(e)}")

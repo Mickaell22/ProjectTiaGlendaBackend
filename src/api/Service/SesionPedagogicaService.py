@@ -978,3 +978,128 @@ class SesionPedagogicaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaService.cancelar_clase - Error: {str(e)}")
             return response_error(f"Error al cancelar clase: {str(e)}", 500)
+
+    # ============================================
+    # MÉTODOS DE ENLACES PÚBLICOS PEDAGÓGICOS
+    # ============================================
+
+    @staticmethod
+    def generar_enlace_publico(sesion_id):
+        """Generar un enlace público para una sesión pedagógica"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.generar_enlace_publico - Sesión: {sesion_id}")
+
+            data = request.get_json()
+            current_user = request.current_user
+
+            # Validar ID de sesión
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            # Validar datos de entrada
+            if not data:
+                return response_error("Datos requeridos", 400)
+
+            descripcion = data.get('description', '').strip()
+            duracion_horas = data.get('duration_hours', 168)  # 7 días por defecto
+
+            if not descripcion:
+                return response_error("La descripción es requerida", 400)
+
+            try:
+                duracion_horas = int(duracion_horas)
+                if duracion_horas <= 0:
+                    return response_error("La duración debe ser mayor a 0 horas", 400)
+            except (ValueError, TypeError):
+                return response_error("La duración debe ser un número válido", 400)
+
+            # Preparar datos del enlace
+            enlace_data = {
+                'sesion_id': sesion_id,
+                'descripcion': descripcion,
+                'duracion_horas': duracion_horas,
+                'usuario_creacion': current_user['id']
+            }
+
+            # Generar enlace público
+            result = SesionPedagogicaComponent.generar_token_publico(enlace_data)
+
+            if result:
+                HandleLogs.write_log(f"SesionPedagogicaService.generar_enlace_publico - Enlace generado para sesión {sesion_id}")
+                return response_success(result, "Enlace público generado exitosamente")
+            else:
+                return response_error("No se pudo generar el enlace público", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.generar_enlace_publico - Error: {str(e)}")
+            return response_error(f"Error al generar enlace público: {str(e)}", 500)
+
+    @staticmethod
+    def obtener_enlaces_publicos(sesion_id):
+        """Obtener enlaces públicos activos para una sesión pedagógica"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.obtener_enlaces_publicos - Sesión: {sesion_id}")
+
+            # Validar ID de sesión
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            # Obtener enlaces públicos
+            enlaces = SesionPedagogicaComponent.obtener_tokens_publicos(sesion_id)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.obtener_enlaces_publicos - {len(enlaces)} enlaces encontrados")
+            return response_success({
+                'enlaces': enlaces,
+                'total': len(enlaces)
+            }, "Enlaces públicos obtenidos exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.obtener_enlaces_publicos - Error: {str(e)}")
+            return response_error(f"Error al obtener enlaces públicos: {str(e)}", 500)
+
+    @staticmethod
+    def invalidar_enlace_publico(token):
+        """Invalidar un enlace público específico"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.invalidar_enlace_publico - Token: {token[:10]}...")
+
+            # Validar token
+            if not token or len(token) < 10:
+                return response_error("Token inválido", 400)
+
+            # Obtener el usuario del token JWT
+            current_user = getattr(request, 'current_user', {})
+            usuario_modificacion = current_user.get('id', 1)
+
+            # Invalidar el token
+            result = SesionPedagogicaComponent.invalidar_token_publico(token, usuario_modificacion)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.invalidar_enlace_publico - Token invalidado exitosamente")
+            return response_success(result, "Enlace público invalidado exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.invalidar_enlace_publico - Error: {str(e)}")
+            return response_error(f"Error al invalidar enlace público: {str(e)}", 500)
+
+    @staticmethod
+    def ver_sesion_publica(token):
+        """Ver información pública de una sesión pedagógica usando token (sin autenticación)"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.ver_sesion_publica - Token: {token[:10]}...")
+
+            # Validar token
+            if not token or len(token) < 10:
+                return response_error("Token inválido", 400)
+
+            # Verificar y obtener información de la sesión usando el token
+            result = SesionPedagogicaComponent.obtener_sesion_por_token_publico(token)
+
+            if not result:
+                return response_error("Token inválido o expirado", 401)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.ver_sesion_publica - Información de sesión obtenida exitosamente")
+            return response_success(result, "Información de sesión obtenida exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.ver_sesion_publica - Error: {str(e)}")
+            return response_error(f"Error al obtener información de sesión: {str(e)}", 500)
