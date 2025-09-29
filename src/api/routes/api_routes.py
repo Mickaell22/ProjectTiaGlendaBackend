@@ -23,6 +23,12 @@ def register_routes(app):
             "version": "1.0.0"
         })
 
+    @app.route('/api/sesion-publica/<string:token>', methods=['GET'])
+    def ver_sesion_publica(token):
+        """Ver información pública de una sesión usando token temporal (NO requiere autenticación)"""
+        from src.api.Service.SesionTerapiaService import SesionTerapiaService
+        return SesionTerapiaService.ver_sesion_publica(token)
+
     @app.route('/api/test-db', methods=['GET'])
     def test_database():
         """Endpoint para probar la conexión a la base de datos"""
@@ -1217,6 +1223,31 @@ def register_routes(app):
             """Cancelar una sesión específica del cronograma"""
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.cancelar_sesion_cronograma(cronograma_id)
+
+        # ============================================
+        # RUTAS PARA ENLACES PÚBLICOS DE SESIONES TERAPÉUTICAS
+        # ============================================
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/generar-enlace-publico', methods=['POST'])
+        @token_required
+        def generar_enlace_publico_terapia(sesion_id):
+            """Generar enlace público con token para que padres vean el progreso de la sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.generar_enlace_publico(sesion_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/enlaces-publicos', methods=['GET'])
+        @token_required
+        def obtener_enlaces_publicos_terapia(sesion_id):
+            """Obtener enlaces públicos activos para una sesión"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.obtener_enlaces_publicos(sesion_id)
+
+        @app.route('/api/sesiones-terapia/enlace-publico/<string:token>/invalidar', methods=['DELETE'])
+        @token_required
+        def invalidar_enlace_publico_terapia(token):
+            """Invalidar un enlace público específico"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.invalidar_enlace_publico(token)
 
 
     # ============================================

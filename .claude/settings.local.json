@@ -190,7 +190,11 @@
       "Bash(set FRESH_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluLm5vcnRlIiwicm9sIjoiQWRtaW5pc3RyYWRvciIsImV4cCI6MTc1ODU5Nzc1MiwiaWF0IjoxNzU4NTExMzUyfQ.V9VVHwO7wXwCfXcqSyt0JmMPB87QMO69W_eWvooYJBY)",
       "Bash(railway status:*)",
       "Bash(cd:*)",
-      "Bash(EJECUTAR_COMPLETO.bat)"
+      "Bash(EJECUTAR_COMPLETO.bat)",
+      "Bash(railway environment:*)",
+      "Bash(railway login:*)",
+      "Bash(railway link:*)",
+      "Bash(set:*)"
     ],
     "deny": [],
     "ask": [],

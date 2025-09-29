@@ -1324,7 +1324,122 @@ class SesionTerapiaService:
             
             HandleLogs.write_log(f"SesionTerapiaService.cancelar_sesion_cronograma - Sesión {cronograma_id} cancelada exitosamente")
             return response_success(result, f"Sesión {cronograma_id} cancelada exitosamente")
-            
+
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.cancelar_sesion_cronograma - Error: {str(e)}")
             return response_error(f"Error al cancelar sesión: {str(e)}", 500)
+
+    # ============================================
+    # MÉTODOS PARA ENLACES PÚBLICOS
+    # ============================================
+
+    @staticmethod
+    def generar_enlace_publico(sesion_id):
+        """Generar enlace público con token temporal para que padres vean el progreso"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.generar_enlace_publico - Sesión ID: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            # Verificar que la sesión existe
+            sesion_result = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
+            if not sesion_result or len(sesion_result) == 0:
+                return response_error("Sesión no encontrada", 404)
+
+            # Obtener datos del request
+            data = request.json or {}
+            duracion_horas = data.get('duracion_horas', 168)  # 7 días por defecto
+            descripcion = data.get('descripcion', 'Enlace para padres')
+
+            # Obtener el usuario del token JWT
+            current_user = getattr(request, 'current_user', {})
+            usuario_creacion = current_user.get('id', 1)
+
+            # Generar el token público
+            result = SesionTerapiaComponent.generar_token_publico(
+                sesion_id,
+                duracion_horas,
+                descripcion,
+                usuario_creacion
+            )
+
+            HandleLogs.write_log(f"SesionTerapiaService.generar_enlace_publico - Token generado para sesión {sesion_id}")
+            return response_success(result, "Enlace público generado exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.generar_enlace_publico - Error: {str(e)}")
+            return response_error(f"Error al generar enlace público: {str(e)}", 500)
+
+    @staticmethod
+    def obtener_enlaces_publicos(sesion_id):
+        """Obtener enlaces públicos activos para una sesión"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.obtener_enlaces_publicos - Sesión ID: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesión debe ser un número positivo", 400)
+
+            # Verificar que la sesión existe
+            sesion_result = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
+            if not sesion_result or len(sesion_result) == 0:
+                return response_error("Sesión no encontrada", 404)
+
+            # Obtener enlaces públicos
+            enlaces = SesionTerapiaComponent.obtener_tokens_publicos(sesion_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.obtener_enlaces_publicos - {len(enlaces)} enlaces encontrados para sesión {sesion_id}")
+            return response_success({'enlaces': enlaces, 'total': len(enlaces)}, "Enlaces públicos obtenidos exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.obtener_enlaces_publicos - Error: {str(e)}")
+            return response_error(f"Error al obtener enlaces públicos: {str(e)}", 500)
+
+    @staticmethod
+    def invalidar_enlace_publico(token):
+        """Invalidar un enlace público específico"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.invalidar_enlace_publico - Token: {token[:10]}...")
+
+            # Validar token
+            if not token or len(token) < 10:
+                return response_error("Token inválido", 400)
+
+            # Obtener el usuario del token JWT
+            current_user = getattr(request, 'current_user', {})
+            usuario_modificacion = current_user.get('id', 1)
+
+            # Invalidar el token
+            result = SesionTerapiaComponent.invalidar_token_publico(token, usuario_modificacion)
+
+            HandleLogs.write_log(f"SesionTerapiaService.invalidar_enlace_publico - Token invalidado exitosamente")
+            return response_success(result, "Enlace público invalidado exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.invalidar_enlace_publico - Error: {str(e)}")
+            return response_error(f"Error al invalidar enlace público: {str(e)}", 500)
+
+    @staticmethod
+    def ver_sesion_publica(token):
+        """Ver información pública de una sesión usando token (sin autenticación)"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.ver_sesion_publica - Token: {token[:10]}...")
+
+            # Validar token
+            if not token or len(token) < 10:
+                return response_error("Token inválido", 400)
+
+            # Verificar y obtener información de la sesión usando el token
+            result = SesionTerapiaComponent.obtener_sesion_por_token_publico(token)
+
+            if not result:
+                return response_error("Token inválido o expirado", 401)
+
+            HandleLogs.write_log(f"SesionTerapiaService.ver_sesion_publica - Información de sesión obtenida exitosamente")
+            return response_success(result, "Información de sesión obtenida exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.ver_sesion_publica - Error: {str(e)}")
+            return response_error(f"Error al obtener información de sesión: {str(e)}", 500)

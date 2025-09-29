@@ -1887,3 +1887,323 @@ class SesionTerapiaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.get_pacientes_disponibles_by_centro - Error: {str(e)}")
             raise Exception(f"Error al obtener pacientes del centro: {str(e)}")
+
+    # ============================================
+    # MÉTODOS PARA ENLACES PÚBLICOS
+    # ============================================
+
+    @staticmethod
+    def generar_token_publico(sesion_id, duracion_horas, descripcion, usuario_creacion):
+        """Generar un token público temporal para acceder a información de la sesión"""
+        try:
+            import secrets
+            import string
+            from datetime import datetime, timedelta
+
+            # Generar token seguro
+            alphabet = string.ascii_letters + string.digits
+            token = ''.join(secrets.choice(alphabet) for _ in range(64))
+
+            # Calcular fecha de expiración
+            fecha_expiracion = datetime.now() + timedelta(hours=duracion_horas)
+
+            # Crear la tabla si no existe
+            create_table_query = """
+                CREATE TABLE IF NOT EXISTS tokens_publicos_sesion (
+                    id SERIAL PRIMARY KEY,
+                    token VARCHAR(64) UNIQUE NOT NULL,
+                    id_sesion INTEGER NOT NULL,
+                    descripcion TEXT,
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    fecha_expiracion TIMESTAMP NOT NULL,
+                    activo BOOLEAN DEFAULT TRUE,
+                    usuario_creacion INTEGER,
+                    usuario_modificacion INTEGER,
+                    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (id_sesion) REFERENCES sesion_terapia(id) ON DELETE CASCADE
+                );
+            """
+            DataBaseHandle.ExecuteNonQuery(create_table_query)
+
+            # Insertar el token
+            insert_query = """
+                INSERT INTO tokens_publicos_sesion
+                (token, id_sesion, descripcion, fecha_expiracion, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            params = (token, sesion_id, descripcion, fecha_expiracion, usuario_creacion)
+
+            # Usar ExecuteNonQuery para INSERT y luego SELECT para obtener el registro
+            DataBaseHandle.ExecuteNonQuery(insert_query, params)
+
+            # Obtener el token recién insertado
+            select_query = """
+                SELECT id, token, fecha_expiracion
+                FROM tokens_publicos_sesion
+                WHERE token = %s
+            """
+            result = DataBaseHandle.getRecords(select_query, (token,))
+            if result:
+                token_data = result[0]
+                HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - Token generado con ID: {token_data['id']}")
+
+                return {
+                    'token': token_data['token'],
+                    'url_publica': f"/api/sesion-publica/{token_data['token']}",
+                    'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
+                    'descripcion': descripcion,
+                    'duracion_horas': duracion_horas
+                }
+            else:
+                raise Exception("Error al crear el token en la base de datos")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.generar_token_publico - Error: {str(e)}")
+            raise Exception(f"Error al generar token público: {str(e)}")
+
+    @staticmethod
+    def obtener_tokens_publicos(sesion_id):
+        """Obtener tokens públicos activos para una sesión"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - Iniciando para sesión {sesion_id}")
+
+            query = """
+                SELECT
+                    token,
+                    descripcion,
+                    fecha_creacion,
+                    fecha_expiracion,
+                    activo,
+                    CASE
+                        WHEN fecha_expiracion > CURRENT_TIMESTAMP THEN 'vigente'
+                        ELSE 'expirado'
+                    END as estado
+                FROM tokens_publicos_sesion
+                WHERE id_sesion = %s AND activo = TRUE
+                ORDER BY fecha_creacion DESC
+            """
+            params = (sesion_id,)
+
+            HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - Ejecutando query para sesión {sesion_id}")
+            result = DataBaseHandle.getRecords(query, params)
+            HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - Query ejecutado, result: {result}")
+
+            if result:
+                enlaces = []
+                for i, row in enumerate(result):
+                    try:
+                        # Formatear fechas de manera segura
+                        fecha_creacion_str = str(row['fecha_creacion'])
+                        fecha_expiracion_str = str(row['fecha_expiracion'])
+
+                        # Intentar formato ISO si es datetime
+                        try:
+                            if isinstance(row['fecha_creacion'], datetime):
+                                fecha_creacion_str = row['fecha_creacion'].isoformat()
+                        except:
+                            pass
+
+                        try:
+                            if isinstance(row['fecha_expiracion'], datetime):
+                                fecha_expiracion_str = row['fecha_expiracion'].isoformat()
+                        except:
+                            pass
+
+                        enlace = {
+                            'token': str(row['token']),
+                            'url_publica': f"/api/sesion-publica/{row['token']}",
+                            'descripcion': str(row['descripcion'] or 'Sin descripción'),
+                            'fecha_creacion': fecha_creacion_str,
+                            'fecha_expiracion': fecha_expiracion_str,
+                            'estado': str(row['estado']),
+                            'activo': bool(row['activo'])
+                        }
+                        enlaces.append(enlace)
+                        HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - Procesado enlace {i+1}: {enlace['descripcion']}")
+                    except Exception as row_error:
+                        HandleLogs.write_error(f"SesionTerapiaComponent.obtener_tokens_publicos - Error procesando fila {i}: {str(row_error)}")
+                        continue
+
+                HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - {len(enlaces)} tokens encontrados para sesión {sesion_id}")
+                return enlaces
+            else:
+                HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - No se encontraron tokens para sesión {sesion_id}")
+                return []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.obtener_tokens_publicos - Error: {str(e)}")
+            return []  # Retornar lista vacía en lugar de lanzar excepción
+
+    @staticmethod
+    def invalidar_token_publico(token, usuario_modificacion):
+        """Invalidar un token público específico"""
+        try:
+            # Primero verificar que el token existe y está activo
+            check_query = """
+                SELECT id, token
+                FROM tokens_publicos_sesion
+                WHERE token = %s AND activo = TRUE
+            """
+            existing_token = DataBaseHandle.getRecords(check_query, (token,))
+
+            if not existing_token:
+                HandleLogs.write_log(f"SesionTerapiaComponent.invalidar_token_publico - Token no encontrado o ya inactivo: {token[:10]}...")
+                raise Exception("Token no encontrado o ya está inactivo")
+
+            # Usar ExecuteNonQuery para el UPDATE (patrón correcto del proyecto)
+            update_query = """
+                UPDATE tokens_publicos_sesion
+                SET activo = FALSE,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE token = %s AND activo = TRUE
+            """
+            params = (usuario_modificacion, token)
+
+            rows_affected = DataBaseHandle.ExecuteNonQuery(update_query, params)
+            if rows_affected and rows_affected > 0:
+                HandleLogs.write_log(f"SesionTerapiaComponent.invalidar_token_publico - Token invalidado: {token[:10]}...")
+                return {'success': True, 'message': 'Token invalidado exitosamente'}
+            else:
+                HandleLogs.write_log(f"SesionTerapiaComponent.invalidar_token_publico - No se pudo invalidar el token: {token[:10]}...")
+                raise Exception("No se pudo invalidar el token")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.invalidar_token_publico - Error: {str(e)}")
+            raise Exception(f"Error al invalidar token: {str(e)}")
+
+    @staticmethod
+    def obtener_sesion_por_token_publico(token):
+        """Obtener información pública de una sesión usando un token válido"""
+        try:
+            # Verificar token y obtener información de la sesión
+            query = """
+                SELECT
+                    st.id as sesion_id,
+                    st.codigo_sesion,
+                    st.titulo,
+                    st.objetivo_general,
+                    CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
+                    st.fecha_inicio,
+                    st.fecha_fin,
+                    st.dias_semana,
+                    st.hora_inicio,
+                    st.hora_fin,
+                    st.duracion_minutos,
+                    st.tipo_sesion,
+                    st.estado,
+                    tps.descripcion as enlace_descripcion,
+                    tps.fecha_expiracion,
+                    COUNT(DISTINCT sp.id_paciente) as total_pacientes,
+                    COUNT(DISTINCT cs.id) as sesiones_programadas,
+                    COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.id_cronograma END) as sesiones_realizadas,
+                    ROUND(
+                        (COUNT(DISTINCT CASE WHEN ass.asistio = true THEN ass.id_cronograma END) * 100.0) /
+                        NULLIF(COUNT(DISTINCT cs.id), 0), 2
+                    ) as porcentaje_asistencia
+                FROM tokens_publicos_sesion tps
+                JOIN sesion_terapia st ON tps.id_sesion = st.id
+                JOIN personal per ON st.id_terapeuta = per.id
+                JOIN persona p_ter ON per.id_persona = p_ter.id
+                JOIN especialidad e ON st.id_especialidad = e.id
+                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
+                LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
+                LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
+                WHERE tps.token = %s
+                    AND tps.activo = TRUE
+                    AND tps.fecha_expiracion > CURRENT_TIMESTAMP
+                GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
+                        p_ter.nombre, p_ter.apellido, e.nombre, e.area, st.fecha_inicio,
+                        st.fecha_fin, st.dias_semana, st.hora_inicio, st.hora_fin,
+                        st.duracion_minutos, st.tipo_sesion, st.estado, tps.descripcion, tps.fecha_expiracion
+            """
+            params = (token,)
+
+            result = DataBaseHandle.getRecords(query, params)
+            if result:
+                sesion_data = result[0]
+
+                # Obtener cronograma de sesiones (información pública)
+                cronograma_query = """
+                    SELECT
+                        cs.fecha_programada,
+                        cs.hora_inicio,
+                        cs.hora_fin,
+                        cs.estado,
+                        cs.semana_numero,
+                        cs.numero_sesion_semanal,
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1 FROM asistencia_sesiones ass
+                                WHERE ass.id_cronograma = cs.id AND ass.asistio = true
+                            ) THEN 'realizada'
+                            ELSE 'pendiente'
+                        END as estado_asistencia
+                    FROM cronograma_sesiones cs
+                    WHERE cs.id_sesion = %s
+                    ORDER BY cs.fecha_programada ASC, cs.hora_inicio ASC
+                """
+                cronograma_result = DataBaseHandle.getRecords(cronograma_query, (sesion_data['sesion_id'],))
+
+                # Formatear cronograma
+                cronograma = []
+                if cronograma_result:
+                    for row in cronograma_result:
+                        sesion = {
+                            'fecha': row['fecha_programada'].isoformat() if isinstance(row['fecha_programada'], (date, datetime)) else str(row['fecha_programada']),
+                            'hora_inicio': str(row['hora_inicio']) if row['hora_inicio'] else None,
+                            'hora_fin': str(row['hora_fin']) if row['hora_fin'] else None,
+                            'estado': row['estado'],
+                            'estado_asistencia': row['estado_asistencia'],
+                            'semana': row['semana_numero'],
+                            'sesion_semanal': row['numero_sesion_semanal']
+                        }
+                        cronograma.append(sesion)
+
+                # Formatear respuesta pública (sin información sensible)
+                response_data = {
+                    'sesion': {
+                        'titulo': sesion_data['titulo'],
+                        'objetivo_general': sesion_data['objetivo_general'],
+                        'terapeuta': sesion_data['terapeuta_nombre'],
+                        'especialidad': {
+                            'nombre': sesion_data['especialidad_nombre'],
+                            'area': sesion_data['especialidad_area']
+                        },
+                        'periodo': {
+                            'inicio': sesion_data['fecha_inicio'].isoformat() if isinstance(sesion_data['fecha_inicio'], (date, datetime)) else str(sesion_data['fecha_inicio']),
+                            'fin': sesion_data['fecha_fin'].isoformat() if isinstance(sesion_data['fecha_fin'], (date, datetime)) else str(sesion_data['fecha_fin'])
+                        },
+                        'horario': {
+                            'dias': sesion_data['dias_semana'],
+                            'hora_inicio': str(sesion_data['hora_inicio']) if sesion_data['hora_inicio'] else None,
+                            'hora_fin': str(sesion_data['hora_fin']) if sesion_data['hora_fin'] else None,
+                            'duracion_minutos': sesion_data['duracion_minutos']
+                        },
+                        'tipo': sesion_data['tipo_sesion'],
+                        'estado': sesion_data['estado']
+                    },
+                    'estadisticas': {
+                        'total_pacientes': int(sesion_data['total_pacientes']) if sesion_data['total_pacientes'] else 0,
+                        'sesiones_programadas': int(sesion_data['sesiones_programadas']) if sesion_data['sesiones_programadas'] else 0,
+                        'sesiones_realizadas': int(sesion_data['sesiones_realizadas']) if sesion_data['sesiones_realizadas'] else 0,
+                        'porcentaje_asistencia': float(sesion_data['porcentaje_asistencia']) if sesion_data['porcentaje_asistencia'] else 0
+                    },
+                    'cronograma': cronograma,
+                    'enlace_info': {
+                        'descripcion': sesion_data['enlace_descripcion'],
+                        'fecha_expiracion': sesion_data['fecha_expiracion'].isoformat() if isinstance(sesion_data['fecha_expiracion'], datetime) else str(sesion_data['fecha_expiracion'])
+                    }
+                }
+
+                HandleLogs.write_log(f"SesionTerapiaComponent.obtener_sesion_por_token_publico - Información obtenida para sesión {sesion_data['sesion_id']}")
+                return response_data
+            else:
+                HandleLogs.write_log(f"SesionTerapiaComponent.obtener_sesion_por_token_publico - Token inválido o expirado: {token[:10]}...")
+                return None
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.obtener_sesion_por_token_publico - Error: {str(e)}")
+            raise Exception(f"Error al obtener sesión por token: {str(e)}")

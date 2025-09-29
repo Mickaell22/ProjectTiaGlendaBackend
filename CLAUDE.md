@@ -295,3 +295,8 @@ Configuration follows a priority hierarchy:
 - Location: `src/utils/general/LOGS/`
 - Daily rotation: `LOG_DD_MM_YYYY.log` and `ERR_DD_MM_YYYY.log`
 - Automatic cleanup and archival by date
+
+## CRITICAL COMMUNICATION RULES
+
+### NO EMOJI POLICY
+**STRICTLY FORBIDDEN**: Never use emojis, Unicode symbols, or special characters in any response, file content, or script output. This causes encoding errors in Windows terminals and breaks Python scripts. Use only plain text and ASCII characters (a-z, A-Z, 0-9, basic punctuation).
