@@ -78,7 +78,7 @@ class SesionPedagogicaService:
                         'fecha_inicio': sesion['fecha_inicio'].isoformat() if hasattr(sesion['fecha_inicio'], 'isoformat') else sesion['fecha_inicio'],
                         'fecha_fin': sesion['fecha_fin'].isoformat() if hasattr(sesion['fecha_fin'], 'isoformat') else sesion['fecha_fin'],
                         'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
-                        'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
+                        'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion['hora_inicio'] else None,  # Solo HH:MM
                         'duracion_minutos': sesion['duracion_minutos'],
                         'numero_clases_programadas': sesion.get('numero_clases_programadas', 20),
                         'nivel_academico': sesion['nivel_academico'],
@@ -156,8 +156,8 @@ class SesionPedagogicaService:
                             'area': sesion['especialidad_area']
                         },
                         'dias_programados': sesion.get('dias_programados', []),
-                        'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
-                        'hora_fin': str(hora_fin) if hora_fin else None,
+                        'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion['hora_inicio'] else None,  # Solo HH:MM
+                        'hora_fin': str(hora_fin)[0:5] if hora_fin else None,  # Solo HH:MM
                         'duracion_minutos': sesion['duracion_minutos'],
                         'nivel_academico': sesion['nivel_academico'],
                         'capacidad_maxima': sesion['capacidad_maxima'],
@@ -208,7 +208,7 @@ class SesionPedagogicaService:
                     'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                     'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
                     'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
-                    'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
+                    'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion['hora_inicio'] else None,  # Solo HH:MM
                     'duracion_minutos': sesion['duracion_minutos'],
                     'numero_clases_programadas': sesion.get('numero_clases_programadas', 20),
                     'nivel_academico': sesion['nivel_academico'],
@@ -272,6 +272,19 @@ class SesionPedagogicaService:
                 
             if 'costo_total' in data and data['costo_total'] < 0:
                 return response_error("El costo total no puede ser negativo", 400)
+
+            # Validar relacion entre costo_total y costo_por_clase
+            if 'costo_total' in data and 'costo_por_clase' in data and 'numero_clases_programadas' in data:
+                if data['costo_total'] > 0 and data['costo_por_clase'] > 0 and data['numero_clases_programadas'] > 0:
+                    costo_calculado = data['costo_total'] / data['numero_clases_programadas']
+                    diferencia = abs(costo_calculado - data['costo_por_clase'])
+                    if diferencia > 0.01:  # Tolerancia de 1 centavo
+                        return response_error(
+                            f"El costo por clase ({data['costo_por_clase']}) no coincide con el costo total "
+                            f"({data['costo_total']}) dividido por el numero de clases ({data['numero_clases_programadas']}). "
+                            f"Costo esperado por clase: {costo_calculado:.2f}",
+                            400
+                        )
 
             # Validar días de la semana
             dias_validos = ['lunes', 'martes', 'miercoles', 'miércoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo']
