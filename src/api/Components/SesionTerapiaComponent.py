@@ -1897,63 +1897,59 @@ class SesionTerapiaComponent:
         """Generar un token público temporal para acceder a información de la sesión"""
         try:
             import secrets
-            import string
             from datetime import datetime, timedelta
 
             # Generar token seguro
-            alphabet = string.ascii_letters + string.digits
-            token = ''.join(secrets.choice(alphabet) for _ in range(64))
+            token = secrets.token_urlsafe(64)
 
             # Calcular fecha de expiración
             fecha_expiracion = datetime.now() + timedelta(hours=duracion_horas)
 
-            # Crear la tabla si no existe
-            create_table_query = """
-                CREATE TABLE IF NOT EXISTS tokens_publicos_sesion (
-                    id SERIAL PRIMARY KEY,
-                    token VARCHAR(64) UNIQUE NOT NULL,
-                    id_sesion INTEGER NOT NULL,
-                    descripcion TEXT,
-                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    fecha_expiracion TIMESTAMP NOT NULL,
-                    activo BOOLEAN DEFAULT TRUE,
-                    usuario_creacion INTEGER,
-                    usuario_modificacion INTEGER,
-                    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (id_sesion) REFERENCES sesion_terapia(id) ON DELETE CASCADE
-                );
-            """
-            DataBaseHandle.ExecuteNonQuery(create_table_query)
-
-            # Insertar el token
+            # Insertar el token usando la tabla existente
             insert_query = """
                 INSERT INTO tokens_publicos_sesion
-                (token, id_sesion, descripcion, fecha_expiracion, usuario_creacion)
-                VALUES (%s, %s, %s, %s, %s)
+                (token, id_sesion, nombre_enlace, descripcion, fecha_expiracion, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
-            params = (token, sesion_id, descripcion, fecha_expiracion, usuario_creacion)
+            nombre_enlace = f"Enlace {sesion_id}-{datetime.now().strftime('%Y%m%d')}"
+            params = (token, sesion_id, nombre_enlace, descripcion, fecha_expiracion, usuario_creacion)
 
-            # Usar ExecuteNonQuery para INSERT y luego SELECT para obtener el registro
-            DataBaseHandle.ExecuteNonQuery(insert_query, params)
+            # Usar ExecuteNonQuery para INSERT
+            rows_affected = DataBaseHandle.ExecuteNonQuery(insert_query, params)
+            HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - rows_affected: {rows_affected}")
 
-            # Obtener el token recién insertado
-            select_query = """
-                SELECT id, token, fecha_expiracion
-                FROM tokens_publicos_sesion
-                WHERE token = %s
+            # Verificar si el token se insertó correctamente
+            verify_query = """
+                SELECT COUNT(*) as count FROM tokens_publicos_sesion WHERE token = %s
             """
-            result = DataBaseHandle.getRecords(select_query, (token,))
-            if result:
-                token_data = result[0]
-                HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - Token generado con ID: {token_data['id']}")
+            verify_result = DataBaseHandle.getRecords(verify_query, (token,))
+            token_exists = verify_result and verify_result[0]['count'] > 0
 
-                return {
-                    'token': token_data['token'],
-                    'url_publica': f"/api/sesion-publica/{token_data['token']}",
-                    'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
-                    'descripcion': descripcion,
-                    'duracion_horas': duracion_horas
-                }
+            HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - Token exists: {token_exists}")
+
+            if token_exists:
+                # Obtener el token recién insertado
+                select_query = """
+                    SELECT token, nombre_enlace, descripcion, fecha_expiracion, estado
+                    FROM tokens_publicos_sesion
+                    WHERE token = %s
+                """
+                result = DataBaseHandle.getRecords(select_query, (token,))
+                if result:
+                    token_data = result[0]
+                    HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - Token generado para sesión {sesion_id}")
+
+                    return {
+                        'token': token_data['token'],
+                        'nombre_enlace': token_data['nombre_enlace'],
+                        'descripcion': token_data['descripcion'],
+                        'url_publica': f"/api/sesion-publica/{token_data['token']}",
+                        'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
+                        'estado': token_data['estado'],
+                        'duracion_horas': duracion_horas
+                    }
+                else:
+                    raise Exception("Error al obtener el token creado")
             else:
                 raise Exception("Error al crear el token en la base de datos")
 
@@ -1970,16 +1966,18 @@ class SesionTerapiaComponent:
             query = """
                 SELECT
                     token,
+                    nombre_enlace,
                     descripcion,
                     fecha_creacion,
                     fecha_expiracion,
-                    activo,
+                    estado,
                     CASE
-                        WHEN fecha_expiracion > CURRENT_TIMESTAMP THEN 'vigente'
-                        ELSE 'expirado'
-                    END as estado
+                        WHEN fecha_expiracion < CURRENT_TIMESTAMP THEN 'expirado'
+                        WHEN estado = 'inactivo' THEN 'inactivo'
+                        ELSE 'vigente'
+                    END as estado_calculado
                 FROM tokens_publicos_sesion
-                WHERE id_sesion = %s AND activo = TRUE
+                WHERE id_sesion = %s AND estado = 'activo'
                 ORDER BY fecha_creacion DESC
             """
             params = (sesion_id,)

@@ -24,6 +24,8 @@ DROP TABLE IF EXISTS sesion_estudiante CASCADE;
 DROP TABLE IF EXISTS asistencia_sesiones CASCADE;
 DROP TABLE IF EXISTS cronograma_sesiones CASCADE;
 DROP TABLE IF EXISTS sesion_paciente CASCADE;
+DROP TABLE IF EXISTS tokens_publicos_sesion_pedagogica CASCADE;
+DROP TABLE IF EXISTS tokens_publicos_sesion CASCADE;
 DROP TABLE IF EXISTS sesion_pedagogica CASCADE;
 DROP TABLE IF EXISTS sesion_terapia CASCADE;
 DROP TABLE IF EXISTS observaciones_sesiones CASCADE;
@@ -649,10 +651,48 @@ CREATE TABLE asistencia_clases (
 );
 
 -- =============================================
+-- TABLAS DE TOKENS PÚBLICOS PARA COMPARTIR SESIONES
+-- =============================================
+
+-- 21. TABLA: TOKENS_PUBLICOS_SESION (Enlaces públicos para sesiones terapéuticas)
+CREATE TABLE tokens_publicos_sesion (
+    id SERIAL PRIMARY KEY,
+    id_sesion INTEGER NOT NULL,
+    token VARCHAR(128) UNIQUE NOT NULL,
+    nombre_enlace VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    estado VARCHAR(20) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo', 'expirado')),
+    fecha_expiracion TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+
+    FOREIGN KEY (id_sesion) REFERENCES sesion_terapia(id) ON DELETE CASCADE
+);
+
+-- 22. TABLA: TOKENS_PUBLICOS_SESION_PEDAGOGICA (Enlaces públicos para sesiones pedagógicas)
+CREATE TABLE tokens_publicos_sesion_pedagogica (
+    id SERIAL PRIMARY KEY,
+    id_sesion INTEGER NOT NULL,
+    token VARCHAR(128) UNIQUE NOT NULL,
+    nombre_enlace VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    estado VARCHAR(20) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo', 'expirado')),
+    fecha_expiracion TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+
+    FOREIGN KEY (id_sesion) REFERENCES sesion_pedagogica(id) ON DELETE CASCADE
+);
+
+-- =============================================
 -- TABLAS DE COMUNICACIÓN
 -- =============================================
 
--- 21. TABLA: MENSAJES_CHAT (Sistema de chat interno)
+-- 23. TABLA: MENSAJES_CHAT (Sistema de chat interno)
 CREATE TABLE mensajes_chat (
     id SERIAL PRIMARY KEY,
     id_remitente INTEGER NOT NULL,
@@ -695,7 +735,7 @@ CREATE TABLE mensajes_chat (
     FOREIGN KEY (id_centro) REFERENCES centros(id) ON DELETE RESTRICT
 );
 
--- 22. TABLA: OBSERVACIONES_SESIONES (Observaciones de sesiones)
+-- 24. TABLA: OBSERVACIONES_SESIONES (Observaciones de sesiones)
 CREATE TABLE observaciones_sesiones (
     id SERIAL PRIMARY KEY,
     id_sesion INTEGER NOT NULL, -- Puede ser terapéutica o pedagógica
@@ -795,6 +835,14 @@ CREATE INDEX IF NOT EXISTS idx_cronograma_clases_sesion ON cronograma_clases(id_
 CREATE INDEX IF NOT EXISTS idx_cronograma_clases_fecha ON cronograma_clases(fecha_programada);
 CREATE INDEX IF NOT EXISTS idx_asistencia_clases_cronograma ON asistencia_clases(id_cronograma);
 CREATE INDEX IF NOT EXISTS idx_asistencia_clases_paciente ON asistencia_clases(id_paciente);
+
+-- Índices para tokens públicos
+CREATE INDEX IF NOT EXISTS idx_tokens_publicos_sesion_sesion ON tokens_publicos_sesion(id_sesion);
+CREATE INDEX IF NOT EXISTS idx_tokens_publicos_sesion_token ON tokens_publicos_sesion(token);
+CREATE INDEX IF NOT EXISTS idx_tokens_publicos_sesion_estado ON tokens_publicos_sesion(estado);
+CREATE INDEX IF NOT EXISTS idx_tokens_publicos_sesion_pedagogica_sesion ON tokens_publicos_sesion_pedagogica(id_sesion);
+CREATE INDEX IF NOT EXISTS idx_tokens_publicos_sesion_pedagogica_token ON tokens_publicos_sesion_pedagogica(token);
+CREATE INDEX IF NOT EXISTS idx_tokens_publicos_sesion_pedagogica_estado ON tokens_publicos_sesion_pedagogica(estado);
 
 -- Índices para comunicación
 CREATE INDEX IF NOT EXISTS idx_mensajes_chat_remitente ON mensajes_chat(id_remitente);
@@ -939,6 +987,17 @@ CREATE TRIGGER trigger_cronograma_clases_fecha_modificacion
 
 CREATE TRIGGER trigger_asistencia_clases_fecha_modificacion
     BEFORE UPDATE ON asistencia_clases
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+-- Triggers para tokens públicos
+CREATE TRIGGER trigger_tokens_publicos_sesion_fecha_modificacion
+    BEFORE UPDATE ON tokens_publicos_sesion
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+CREATE TRIGGER trigger_tokens_publicos_sesion_pedagogica_fecha_modificacion
+    BEFORE UPDATE ON tokens_publicos_sesion_pedagogica
     FOR EACH ROW
     EXECUTE FUNCTION actualizar_fecha_modificacion();
 
@@ -1365,6 +1424,8 @@ COMMENT ON TABLE sesion_pedagogica IS 'Configuración y gestión de sesiones ped
 COMMENT ON TABLE sesion_estudiante IS 'Inscripción de pacientes como estudiantes en sesiones pedagógicas';
 COMMENT ON TABLE cronograma_clases IS 'Programación de clases pedagógicas';
 COMMENT ON TABLE asistencia_clases IS 'Registro de asistencia y evaluación en clases pedagógicas';
+COMMENT ON TABLE tokens_publicos_sesion IS 'Enlaces públicos para compartir sesiones terapéuticas sin autenticación';
+COMMENT ON TABLE tokens_publicos_sesion_pedagogica IS 'Enlaces públicos para compartir sesiones pedagógicas sin autenticación';
 COMMENT ON TABLE mensajes_chat IS 'Sistema de mensajería interna entre usuarios del centro';
 COMMENT ON TABLE observaciones_sesiones IS 'Observaciones y notas sobre sesiones terapéuticas y pedagógicas';
 

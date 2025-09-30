@@ -1417,22 +1417,35 @@ class SesionPedagogicaComponent:
             # Insertar en la base de datos
             insert_query = """
                 INSERT INTO tokens_publicos_sesion_pedagogica
-                (id_sesion, token, descripcion, fecha_expiracion, usuario_creacion)
-                VALUES (%s, %s, %s, %s, %s)
+                (id_sesion, token, nombre_enlace, descripcion, fecha_expiracion, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
             params = (
                 enlace_data['sesion_id'],
                 token,
+                f"Enlace {enlace_data['sesion_id']}-{datetime.now().strftime('%Y%m%d')}",  # nombre_enlace
                 enlace_data['descripcion'],
                 fecha_expiracion,
                 enlace_data['usuario_creacion']
             )
 
             rows_affected = DataBaseHandle.ExecuteNonQuery(insert_query, params)
-            if rows_affected and rows_affected > 0:
+            HandleLogs.write_log(f"SesionPedagogicaComponent.generar_token_publico - rows_affected: {rows_affected}")
+
+            # En algunos casos ExecuteNonQuery puede devolver None aunque la inserción sea exitosa
+            # Vamos a verificar si el token se insertó correctamente
+            verify_query = """
+                SELECT COUNT(*) as count FROM tokens_publicos_sesion_pedagogica WHERE token = %s
+            """
+            verify_result = DataBaseHandle.getRecords(verify_query, (token,))
+            token_exists = verify_result and verify_result[0]['count'] > 0
+
+            HandleLogs.write_log(f"SesionPedagogicaComponent.generar_token_publico - Token exists: {token_exists}")
+
+            if token_exists:
                 # Obtener los datos del token creado
                 select_query = """
-                    SELECT token, descripcion, fecha_expiracion, activo
+                    SELECT token, nombre_enlace, descripcion, fecha_expiracion, estado
                     FROM tokens_publicos_sesion_pedagogica
                     WHERE token = %s
                 """
@@ -1442,9 +1455,11 @@ class SesionPedagogicaComponent:
                     token_data = result[0]
                     response_data = {
                         'token': token_data['token'],
+                        'nombre_enlace': token_data['nombre_enlace'],
                         'descripcion': token_data['descripcion'],
                         'duracion_horas': enlace_data['duracion_horas'],
                         'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
+                        'estado': token_data['estado'],
                         'url_publica': f"/api/sesion-pedagogica-publica/{token_data['token']}"
                     }
 
@@ -1466,17 +1481,18 @@ class SesionPedagogicaComponent:
             query = """
                 SELECT
                     token,
+                    nombre_enlace,
                     descripcion,
                     fecha_creacion,
                     fecha_expiracion,
-                    activo,
+                    estado,
                     CASE
                         WHEN fecha_expiracion < CURRENT_TIMESTAMP THEN 'expirado'
-                        WHEN activo = false THEN 'inactivo'
+                        WHEN estado = 'inactivo' THEN 'inactivo'
                         ELSE 'vigente'
-                    END as estado
+                    END as estado_calculado
                 FROM tokens_publicos_sesion_pedagogica
-                WHERE id_sesion = %s AND activo = TRUE
+                WHERE id_sesion = %s AND estado = 'activo'
                 ORDER BY fecha_creacion DESC
             """
             params = (sesion_id,)
@@ -1488,11 +1504,12 @@ class SesionPedagogicaComponent:
                 for token in result:
                     token_data = {
                         'token': token['token'],
+                        'nombre_enlace': token['nombre_enlace'],
                         'descripcion': token['descripcion'],
                         'fecha_creacion': token['fecha_creacion'].isoformat() if isinstance(token['fecha_creacion'], datetime) else str(token['fecha_creacion']),
                         'fecha_expiracion': token['fecha_expiracion'].isoformat() if isinstance(token['fecha_expiracion'], datetime) else str(token['fecha_expiracion']),
-                        'activo': token['activo'],
                         'estado': token['estado'],
+                        'estado_calculado': token['estado_calculado'],
                         'url_publica': f"/api/sesion-pedagogica-publica/{token['token']}"
                     }
                     tokens_formateados.append(token_data)
@@ -1515,7 +1532,7 @@ class SesionPedagogicaComponent:
             check_query = """
                 SELECT id, token
                 FROM tokens_publicos_sesion_pedagogica
-                WHERE token = %s AND activo = TRUE
+                WHERE token = %s AND estado = 'activo'
             """
             existing_token = DataBaseHandle.getRecords(check_query, (token,))
 
@@ -1526,10 +1543,10 @@ class SesionPedagogicaComponent:
             # Usar ExecuteNonQuery para el UPDATE (patrón correcto del proyecto)
             update_query = """
                 UPDATE tokens_publicos_sesion_pedagogica
-                SET activo = FALSE,
+                SET estado = 'inactivo',
                     usuario_modificacion = %s,
                     fecha_modificacion = CURRENT_TIMESTAMP
-                WHERE token = %s AND activo = TRUE
+                WHERE token = %s AND estado = 'activo'
             """
             params = (usuario_modificacion, token)
 
@@ -1585,7 +1602,7 @@ class SesionPedagogicaComponent:
                 LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
                 LEFT JOIN asistencia_clases ac ON cc.id = ac.id_cronograma
                 WHERE tps.token = %s
-                    AND tps.activo = TRUE
+                    AND tps.estado = 'activo'
                     AND tps.fecha_expiracion > CURRENT_TIMESTAMP
                 GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.competencias_objetivo,
                         p_ped.nombre, p_ped.apellido, e.nombre, e.area, sp.fecha_inicio,
