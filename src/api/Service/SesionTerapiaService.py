@@ -72,15 +72,14 @@ class SesionTerapiaService:
                                 'paciente_cedula': paciente['paciente_cedula'],
                                 'fecha_asignacion': DateHelpers.serialize_date(paciente.get('fecha_asignacion'))
                             })
-                    
-                    # Determinar tipo de sesión basado en número de pacientes
-                    tipo_sesion = 'grupal' if len(pacientes_data) > 1 else 'individual'
-                    
+
                     sesion_data = {
                         'id': sesion['id'],
                         'codigo_sesion': sesion['codigo_sesion'],
                         'titulo': sesion['titulo'],
-                        'tipo_sesion': tipo_sesion,
+                        'objetivo_general': sesion.get('objetivo_general'),
+                        'tipo_sesion': sesion.get('tipo_sesion', 'individual'),
+                        'observaciones': sesion.get('observaciones'),
                         'terapeuta': {
                             'id': sesion['terapeuta_id'],
                             'nombre': sesion['terapeuta_nombre']
@@ -228,13 +227,16 @@ class SesionTerapiaService:
             # CORRECCIÓN: Lógica de cálculo de costos corregida
             numero_sesiones_contratadas = data.get('numero_sesiones_contratadas', 20)
 
-            # Prioridad: Si viene costo_por_sesion, usarlo; si no, calcular de costo_total
-            if data.get('costo_por_sesion'):
-                costo_por_sesion = float(data['costo_por_sesion'])
-                costo_total_calculado = costo_por_sesion * numero_sesiones_contratadas
-            elif data.get('costo_total'):
+            # PRIORIDAD CORREGIDA: costo_total es la fuente de verdad
+            # El frontend envía el costo_total exacto que el admin ingresó
+            if data.get('costo_total') and data.get('costo_total') > 0:
+                # Si viene costo_total, usarlo como valor exacto
                 costo_total_calculado = float(data['costo_total'])
-                costo_por_sesion = costo_total_calculado / numero_sesiones_contratadas
+                costo_por_sesion = costo_total_calculado / numero_sesiones_contratadas if numero_sesiones_contratadas > 0 else 0
+            elif data.get('costo_sesion'):
+                # Si solo viene costo_sesion (costo_por_sesion), calcular total
+                costo_por_sesion = float(data['costo_sesion'])
+                costo_total_calculado = costo_por_sesion * numero_sesiones_contratadas
             else:
                 # Valores por defecto
                 costo_por_sesion = 25000.0
@@ -253,8 +255,8 @@ class SesionTerapiaService:
                 'duracion_minutos': duracion_minutos,
                 'numero_sesiones_contratadas': numero_sesiones_contratadas,
                 'meses_contrato': data.get('meses_contrato', 3),
-                'costo_total': costo_total_calculado,  # CORREGIDO: Calculado correctamente
-                'costo_sesion': costo_por_sesion,      # CORREGIDO: Lógica consistente
+                'costo_total': costo_total_calculado,  # El trigger calculará costo_sesion desde este valor
+                # NO enviar costo_sesion - el trigger lo calcula correctamente desde costo_total
                 'tipo_sesion': data.get('tipo_sesion', 'individual'),
                 'estado': data.get('estado', 'planificada'),
                 'id_centro': current_user.get('centro', {}).get('id', 1),

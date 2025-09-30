@@ -382,11 +382,12 @@ CREATE TABLE sesion_terapia (
 
     
     -- Control de estado
-    estado VARCHAR(20) DEFAULT 'planificada' CHECK (estado IN 
+    estado VARCHAR(20) DEFAULT 'planificada' CHECK (estado IN
         ('planificada', 'en_curso', 'pausada', 'finalizada', 'cancelada')),
     motivo_finalizacion TEXT,
     fecha_finalizacion_real DATE,
-    
+    observaciones TEXT,
+
     -- Control de auditoría
     id_centro INTEGER NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -509,27 +510,31 @@ CREATE TABLE sesion_pedagogica (
 
     -- Configuración académica
     nivel_academico VARCHAR(50), -- preescolar, primaria, secundaria
-    grado_escolar VARCHAR(20),
-    materia VARCHAR(100),
-    competencias_objetivo TEXT,
-    metodologia_ensenanza TEXT,
-    adaptacion_curricular TEXT, -- Campo agregado para adaptaciones curriculares específicas
+    adaptacion_curricular TEXT,
 
     -- Programación
     duracion_minutos INTEGER DEFAULT 60 CHECK (duracion_minutos > 0),
     frecuencia_semanal INTEGER DEFAULT 2 CHECK (frecuencia_semanal > 0 AND frecuencia_semanal <= 7),
-    numero_clases_programadas INTEGER DEFAULT 20 CHECK (numero_clases_programadas > 0), -- Total de clases programadas
-    dias_semana TEXT[] CHECK (array_length(dias_semana, 1) > 0), -- Array: ['martes', 'jueves']
+    numero_clases_programadas INTEGER DEFAULT 20 CHECK (numero_clases_programadas > 0),
+    dias_semana TEXT[] CHECK (array_length(dias_semana, 1) > 0),
     hora_inicio TIME DEFAULT '09:00',
     hora_fin TIME DEFAULT '10:00',
-    aula VARCHAR(50),
     capacidad_maxima INTEGER DEFAULT 8 CHECK (capacidad_maxima > 0),
+
+    -- Modalidad y periodo académico
+    modalidad VARCHAR(20) DEFAULT 'presencial' CHECK (modalidad IN ('presencial', 'virtual', 'hibrida')),
+    periodo_academico VARCHAR(50),
+
+    -- Costos
+    costo_total DECIMAL(10,2) DEFAULT 0.00 CHECK (costo_total >= 0),
+    costo_por_clase DECIMAL(10,2) DEFAULT 0.00 CHECK (costo_por_clase >= 0),
 
     -- Control de estado
     estado VARCHAR(20) DEFAULT 'planificada' CHECK (estado IN
         ('planificada', 'en_curso', 'pausada', 'finalizada', 'cancelada')),
     motivo_finalizacion TEXT,
     fecha_finalizacion_real DATE,
+    observaciones TEXT,
 
     id_centro INTEGER NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1053,11 +1058,27 @@ CREATE OR REPLACE FUNCTION generar_codigo_sesion_terapia()
 RETURNS TRIGGER AS $$
 DECLARE
     nuevo_codigo VARCHAR(20);
+    max_numero INTEGER;
+    anio_actual VARCHAR(4);
 BEGIN
-    nuevo_codigo := 'ST-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-' ||
-                   LPAD(nextval('seq_codigo_sesion_terapia')::TEXT, 4, '0');
-    
+    -- Obtener año actual
+    anio_actual := TO_CHAR(CURRENT_DATE, 'YYYY');
+
+    -- Obtener el máximo número de sesión para este año
+    SELECT COALESCE(MAX(
+        CAST(
+            SUBSTRING(codigo_sesion FROM 'ST-\d{4}-(\d+)') AS INTEGER
+        )
+    ), 0) INTO max_numero
+    FROM sesion_terapia
+    WHERE codigo_sesion LIKE 'ST-' || anio_actual || '-%';
+
+    -- Generar nuevo código con el siguiente número
+    nuevo_codigo := 'ST-' || anio_actual || '-' || LPAD((max_numero + 1)::TEXT, 4, '0');
+
+    -- Asignar el nuevo código
     NEW.codigo_sesion := nuevo_codigo;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -1067,27 +1088,60 @@ CREATE OR REPLACE FUNCTION generar_codigo_sesion_pedagogica()
 RETURNS TRIGGER AS $$
 DECLARE
     nuevo_codigo VARCHAR(20);
+    max_numero INTEGER;
+    anio_actual VARCHAR(4);
 BEGIN
-    nuevo_codigo := 'SP-' || TO_CHAR(CURRENT_DATE, 'YYYY') || '-' ||
-                   LPAD(nextval('seq_codigo_sesion_pedagogica')::TEXT, 4, '0');
-    
+    -- Obtener año actual
+    anio_actual := TO_CHAR(CURRENT_DATE, 'YYYY');
+
+    -- Obtener el máximo número de sesión para este año
+    SELECT COALESCE(MAX(
+        CAST(
+            SUBSTRING(codigo_sesion FROM 'SP-\d{4}-(\d+)') AS INTEGER
+        )
+    ), 0) INTO max_numero
+    FROM sesion_pedagogica
+    WHERE codigo_sesion LIKE 'SP-' || anio_actual || '-%';
+
+    -- Generar nuevo código con el siguiente número
+    nuevo_codigo := 'SP-' || anio_actual || '-' || LPAD((max_numero + 1)::TEXT, 4, '0');
+
+    -- Asignar el nuevo código
     NEW.codigo_sesion := nuevo_codigo;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Función para calcular costo total automáticamente
+-- LÓGICA: costo_total es la fuente de verdad
 CREATE OR REPLACE FUNCTION calcular_costo_total_sesion_terapia()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Calcular costo total basado en costo por sesión y número de sesiones contratadas
-    NEW.costo_total := COALESCE(NEW.costo_sesion, 0) * COALESCE(NEW.numero_sesiones_contratadas, 0);
-    
+    -- Estrategia: costo_total es la fuente de verdad
+    -- Si costo_total tiene un valor significativo (> 0), calcular costo_sesion desde él
+    -- Si no, calcular costo_total desde costo_sesion
+
+    IF NEW.costo_total IS NOT NULL AND NEW.costo_total > 0 THEN
+        -- Hay un costo_total definido, es la fuente de verdad
+        -- Recalcular costo_sesion para que sea consistente
+        IF NEW.numero_sesiones_contratadas > 0 THEN
+            NEW.costo_sesion := NEW.costo_total / NEW.numero_sesiones_contratadas;
+        END IF;
+    ELSIF NEW.costo_sesion IS NOT NULL AND NEW.costo_sesion > 0 THEN
+        -- No hay costo_total pero sí costo_sesion, calcular total desde sesión
+        NEW.costo_total := COALESCE(NEW.costo_sesion, 0) * COALESCE(NEW.numero_sesiones_contratadas, 0);
+    ELSE
+        -- No hay ninguno, dejar los defaults (probablemente 0)
+        NEW.costo_total := COALESCE(NEW.costo_total, 0);
+        NEW.costo_sesion := COALESCE(NEW.costo_sesion, 0);
+    END IF;
+
     -- Si no hay título, usar objetivo_general como título por defecto
     IF NEW.titulo IS NULL OR NEW.titulo = '' THEN
         NEW.titulo := COALESCE(NEW.objetivo_general, 'Sesión de Terapia');
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

@@ -168,3 +168,4 @@ documentos_personal/
 #Fotos de perfil
 fotos_perfil/
 src/utils/database/config_db.txt
+migrations_historicas

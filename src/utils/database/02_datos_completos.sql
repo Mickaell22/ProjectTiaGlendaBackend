@@ -457,61 +457,61 @@ INSERT INTO sesion_terapia (
 -- Sesión de Educación Especial - Centro Norte
 INSERT INTO sesion_pedagogica (
     codigo_sesion, id_educador, id_especialidad, nombre_clase, descripcion,
-    fecha_inicio, fecha_fin, nivel_academico, grado_escolar, materia,
-    competencias_objetivo, metodologia_ensenanza, adaptacion_curricular, duracion_minutos,
-    frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
-    capacidad_maxima, estado, id_centro
+    fecha_inicio, fecha_fin, nivel_academico, adaptacion_curricular,
+    duracion_minutos, frecuencia_semanal, dias_semana, hora_inicio, hora_fin,
+    capacidad_maxima, modalidad, periodo_academico, costo_total, costo_por_clase,
+    estado, observaciones, id_centro
 ) VALUES (
     'SP-2025-0003',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567906')), -- Carmen Flores
     (SELECT id FROM especialidad WHERE nombre = 'Educación Especial' AND id_centro = (SELECT id FROM centros WHERE codigo = 'NORTE')),
     'Apoyo en Lectoescritura Norte', 'Desarrollo de habilidades de lectura y escritura para estudiantes del Centro Norte',
-    '2025-01-08', '2025-07-08', 'primaria', '2do', 'Lenguaje',
-    'Comprensión lectora, escritura creativa, vocabulario básico',
-    'Método multisensorial con apoyo visual y actividades lúdicas',
-    'Adaptación de textos con imágenes de apoyo, tiempo extendido para completar actividades de escritura, uso de material manipulativo para el aprendizaje de letras', 60,
-    2, ARRAY['martes', 'jueves'], '08:00', '09:00', 'Aula Norte 1',
-    4, 'en_curso', (SELECT id FROM centros WHERE codigo = 'NORTE')
+    '2025-01-08', '2025-07-08', 'primaria',
+    'Adaptación de textos con imágenes de apoyo, tiempo extendido para completar actividades de escritura, uso de material manipulativo para el aprendizaje de letras',
+    60, 2, ARRAY['martes', 'jueves'], '08:00', '09:00',
+    4, 'presencial', '2025-A', 400.00, 20.00,
+    'en_curso', 'Sesión de apoyo en lectoescritura con enfoque multisensorial',
+    (SELECT id FROM centros WHERE codigo = 'NORTE')
 );
 
 -- Sesión de Educación Especial - Centro Sur
 INSERT INTO sesion_pedagogica (
     codigo_sesion, id_educador, id_especialidad, nombre_clase, descripcion,
-    fecha_inicio, fecha_fin, nivel_academico, grado_escolar, materia,
-    competencias_objetivo, metodologia_ensenanza, adaptacion_curricular, duracion_minutos,
-    frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
-    capacidad_maxima, estado, id_centro
+    fecha_inicio, fecha_fin, nivel_academico, adaptacion_curricular,
+    duracion_minutos, frecuencia_semanal, dias_semana, hora_inicio, hora_fin,
+    capacidad_maxima, modalidad, periodo_academico, costo_total, costo_por_clase,
+    estado, observaciones, id_centro
 ) VALUES (
     'SP-2025-0004',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567894')), -- Sandra López
     (SELECT id FROM especialidad WHERE nombre = 'Educación Especial' AND id_centro = (SELECT id FROM centros WHERE codigo = 'SUR')),
     'Lectoescritura Inicial', 'Desarrollo de habilidades básicas de lectura y escritura',
-    '2025-01-10', '2025-08-10', 'preescolar', 'preparatoria', 'Lenguaje',
-    'Reconocimiento de letras, formación de palabras, comprensión lectora básica',
-    'Método fonético con apoyo visual y material manipulativo',
-    'Reducción del número de letras por sesión, pausas frecuentes, material de gran tamaño visual, refuerzo positivo constante', 60,
-    3, ARRAY['lunes', 'miércoles', 'viernes'], '14:00', '15:00', 'Aula 1',
-    6, 'en_curso', (SELECT id FROM centros WHERE codigo = 'SUR')
+    '2025-01-10', '2025-08-10', 'preescolar',
+    'Reducción del número de letras por sesión, pausas frecuentes, material de gran tamaño visual, refuerzo positivo constante',
+    60, 3, ARRAY['lunes', 'miércoles', 'viernes'], '14:00', '15:00',
+    6, 'presencial', '2025-A', 600.00, 20.00,
+    'en_curso', 'Sesión de lectoescritura inicial con método fonético',
+    (SELECT id FROM centros WHERE codigo = 'SUR')
 );
 
 -- Sesión de Apoyo Académico - Centro Sur
 INSERT INTO sesion_pedagogica (
     codigo_sesion, id_educador, id_especialidad, nombre_clase, descripcion,
-    fecha_inicio, fecha_fin, nivel_academico, grado_escolar, materia,
-    competencias_objetivo, metodologia_ensenanza, adaptacion_curricular, duracion_minutos,
-    frecuencia_semanal, dias_semana, hora_inicio, hora_fin, aula,
-    capacidad_maxima, estado, id_centro
+    fecha_inicio, fecha_fin, nivel_academico, adaptacion_curricular,
+    duracion_minutos, frecuencia_semanal, dias_semana, hora_inicio, hora_fin,
+    capacidad_maxima, modalidad, periodo_academico, costo_total, costo_por_clase,
+    estado, observaciones, id_centro
 ) VALUES (
     'SP-2025-0005',
     (SELECT id FROM personal WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567895')), -- Miguel Torres
     (SELECT id FROM especialidad WHERE nombre = 'Desarrollo Cognitivo' AND id_centro = (SELECT id FROM centros WHERE codigo = 'SUR')),
     'Matemáticas Básicas', 'Refuerzo en operaciones matemáticas fundamentales',
-    '2025-01-15', '2025-09-15', 'primaria', '3ero', 'Matemáticas',
-    'Suma, resta, multiplicación básica, resolución de problemas simples',
-    'Aprendizaje con material concreto y juegos matemáticos',
-    'Uso de ábacos y bloques de colores, problemas con contextos familiares al estudiante, ejercicios graduales de menor a mayor complejidad', 60,
-    2, ARRAY['martes', 'jueves'], '15:00', '16:00', 'Aula 2',
-    4, 'en_curso', (SELECT id FROM centros WHERE codigo = 'SUR')
+    '2025-01-15', '2025-09-15', 'primaria',
+    'Uso de ábacos y bloques de colores, problemas con contextos familiares al estudiante, ejercicios graduales de menor a mayor complejidad',
+    60, 2, ARRAY['martes', 'jueves'], '15:00', '16:00',
+    4, 'presencial', '2025-A', 400.00, 20.00,
+    'en_curso', 'Sesión de matemáticas con material concreto y juegos educativos',
+    (SELECT id FROM centros WHERE codigo = 'SUR')
 );
 
 -- =============================================

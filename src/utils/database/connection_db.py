@@ -32,6 +32,9 @@ class DataBaseHandle:
         size=0: todos los registros
         size=1: un solo registro
         size=N: N registros
+
+        IMPORTANTE: Si la query es INSERT/UPDATE/DELETE con RETURNING,
+        se hace commit automáticamente para guardar los cambios.
         """
         try:
             conn = DataBaseHandle.get_connection()
@@ -55,12 +58,18 @@ class DataBaseHandle:
                 result = cursor.fetchall()
                 result = [dict(row) for row in result]
 
+            # CORRECCIÓN: Si es INSERT/UPDATE/DELETE, hacer commit
+            query_upper = query.strip().upper()
+            if query_upper.startswith(('INSERT', 'UPDATE', 'DELETE')):
+                conn.commit()
+
             conn.close()
             return result
 
         except Exception as e:
             HandleLogs.write_error(f"getRecords - Error: {str(e)}")
             if 'conn' in locals():
+                conn.rollback()  # Rollback en caso de error
                 conn.close()
             return None
 
@@ -119,6 +128,11 @@ class DataBaseHandle:
                 result = cursor.fetchall()
                 result = [dict(row) for row in result]
 
+            # CORRECCIÓN: Si es INSERT/UPDATE/DELETE, hacer commit
+            query_upper = query.strip().upper()
+            if query_upper.startswith(('INSERT', 'UPDATE', 'DELETE')):
+                conn.commit()
+
             conn.close()
             return {
                 "success": True,
@@ -131,6 +145,7 @@ class DataBaseHandle:
             error_msg = f"getRecordsWithStatus - Error: {str(e)}"
             HandleLogs.write_error(error_msg)
             if 'conn' in locals():
+                conn.rollback()  # Rollback en caso de error
                 conn.close()
             return {
                 "success": False,
@@ -161,6 +176,7 @@ class DataBaseHandle:
         except Exception as e:
             HandleLogs.write_error(f"ExecuteNonQuery - Error: {str(e)}")
             if 'conn' in locals():
+                conn.rollback()  # Rollback en caso de error
                 conn.close()
             return False
 
@@ -191,5 +207,6 @@ class DataBaseHandle:
         except Exception as e:
             HandleLogs.write_error(f"ExecuteInsert - Error: {str(e)}")
             if 'conn' in locals():
+                conn.rollback()  # Rollback en caso de error
                 conn.close()
             return None

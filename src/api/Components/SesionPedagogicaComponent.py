@@ -23,14 +23,17 @@ class SesionPedagogicaComponent:
                 HandleLogs.write_log("SesionPedagogicaComponent.get_sesiones - No sessions found in database")
                 return []
             
-            # Query simplificada con solo campos esenciales
+            # Query completa con información de pedagogo y especialidad
             query = """
                 SELECT
                     sp.id,
                     sp.codigo_sesion,
                     sp.nombre_clase as titulo,
                     sp.id_educador as pedagogo_id,
+                    CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
                     sp.id_especialidad as especialidad_id,
+                    e.nombre as especialidad_nombre,
+                    e.area as especialidad_area,
                     sp.fecha_inicio,
                     sp.fecha_fin,
                     sp.dias_semana,
@@ -39,6 +42,7 @@ class SesionPedagogicaComponent:
                     COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
                     sp.nivel_academico,
                     sp.capacidad_maxima,
+                    COALESCE(sp.modalidad, 'presencial') as modalidad,
                     COALESCE(sp.costo_total, 0) as costo_total,
                     COALESCE(sp.costo_por_clase, 0) as costo_por_clase,
                     COALESCE(sp.periodo_academico, '') as periodo_academico,
@@ -48,12 +52,16 @@ class SesionPedagogicaComponent:
                     COALESCE(COUNT(DISTINCT cc.id), 0) as clases_programadas,
                     COALESCE(COUNT(DISTINCT CASE WHEN cc.estado = 'realizada' THEN cc.id END), 0) as clases_realizadas
                 FROM sesion_pedagogica sp
+                JOIN personal per ON sp.id_educador = per.id
+                JOIN persona p_ped ON per.id_persona = p_ped.id
+                JOIN especialidad e ON sp.id_especialidad = e.id
                 LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
                 LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
                 GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.id_educador, sp.id_especialidad,
                          sp.fecha_inicio, sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.duracion_minutos,
-                         sp.numero_clases_programadas, sp.nivel_academico, sp.capacidad_maxima,
-                         sp.costo_total, sp.costo_por_clase, sp.periodo_academico, sp.estado, sp.fecha_creacion
+                         sp.numero_clases_programadas, sp.nivel_academico, sp.capacidad_maxima, sp.modalidad,
+                         sp.costo_total, sp.costo_por_clase, sp.periodo_academico, sp.estado, sp.fecha_creacion,
+                         p_ped.nombre, p_ped.apellido, e.nombre, e.area
                 ORDER BY sp.fecha_creacion DESC
             """
 

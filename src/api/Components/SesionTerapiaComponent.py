@@ -14,7 +14,7 @@ class SesionTerapiaComponent:
         """Obtener todas las sesiones de terapia con información completa"""
         try:
             query = """
-                SELECT 
+                SELECT
                     st.id,
                     st.codigo_sesion,
                     st.titulo,
@@ -36,6 +36,7 @@ class SesionTerapiaComponent:
                     st.meses_contrato,
                     st.tipo_sesion,
                     st.estado,
+                    st.observaciones,
                     st.fecha_creacion,
                     st.fecha_modificacion,
                     COUNT(DISTINCT sp.id_paciente) as total_pacientes,
@@ -66,7 +67,7 @@ class SesionTerapiaComponent:
         """Obtener una sesión específica por ID con toda su información"""
         try:
             query = """
-                SELECT 
+                SELECT
                     st.id,
                     st.codigo_sesion,
                     st.titulo,
@@ -85,6 +86,7 @@ class SesionTerapiaComponent:
                     st.meses_contrato,
                     st.tipo_sesion,
                     st.estado,
+                    st.observaciones,
                     st.fecha_creacion,
                     st.fecha_modificacion,
                     CONCAT(p_ter.nombre, ' ', p_ter.apellido) as terapeuta_nombre,
@@ -121,10 +123,10 @@ class SesionTerapiaComponent:
                 INSERT INTO sesion_terapia (
                     codigo_sesion, titulo, objetivo_general, id_terapeuta, id_especialidad,
                     fecha_inicio, fecha_fin, dias_semana, hora_inicio, hora_fin, duracion_minutos,
-                    numero_sesiones_contratadas, meses_contrato, costo_sesion,
-                    tipo_sesion, estado, id_centro, usuario_creacion
-                ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, codigo_sesion, costo_total
+                    numero_sesiones_contratadas, meses_contrato, costo_total,
+                    tipo_sesion, estado, observaciones, id_centro, usuario_creacion
+                ) VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, codigo_sesion, costo_total, costo_sesion
             """
 
             params = (
@@ -140,9 +142,10 @@ class SesionTerapiaComponent:
                 sesion_data.get('duracion_minutos', 45),
                 sesion_data.get('numero_sesiones_contratadas', 20),
                 sesion_data.get('meses_contrato', 3),
-                sesion_data.get('costo_sesion', 25000.0),
+                sesion_data.get('costo_total', 0),  # El trigger calculará costo_sesion desde este valor
                 sesion_data.get('tipo_sesion', 'individual'),
                 sesion_data.get('estado', 'planificada'),
+                sesion_data.get('observaciones'),
                 sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
             )
@@ -186,9 +189,9 @@ class SesionTerapiaComponent:
                 UPDATE sesion_terapia SET
                     titulo = %s, objetivo_general = %s, id_terapeuta = %s, id_especialidad = %s,
                     fecha_inicio = %s, fecha_fin = %s, dias_semana = %s,
-                    hora_inicio = %s, hora_fin = %s, duracion_minutos = %s, 
+                    hora_inicio = %s, hora_fin = %s, duracion_minutos = %s,
                     numero_sesiones_contratadas = %s, meses_contrato = %s, costo_sesion = %s,
-                    tipo_sesion = %s, estado = %s,
+                    tipo_sesion = %s, estado = %s, observaciones = %s,
                     usuario_modificacion = %s
                 WHERE id = %s
             """
@@ -209,6 +212,7 @@ class SesionTerapiaComponent:
                 sesion_data.get('costo_sesion', 25000.0),
                 sesion_data.get('tipo_sesion', 'individual'),
                 sesion_data.get('estado', 'planificada'),
+                sesion_data.get('observaciones'),
                 sesion_data['usuario_modificacion'],
                 sesion_id
             )

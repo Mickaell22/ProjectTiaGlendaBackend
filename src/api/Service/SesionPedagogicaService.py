@@ -65,13 +65,16 @@ class SesionPedagogicaService:
                         'titulo': sesion.get('titulo', sesion.get('nombre_clase', '')),
                         'pedagogo': {
                             'id': sesion['pedagogo_id'],
-                            'nombre': sesion['pedagogo_nombre']
+                            'nombre': sesion.get('pedagogo_nombre', 'No asignado')
                         },
+                        'pedagogo_nombre': sesion.get('pedagogo_nombre', 'No asignado'),
                         'especialidad': {
                             'id': sesion['especialidad_id'],
-                            'nombre': sesion['especialidad_nombre'],
-                            'area': sesion['especialidad_area']
+                            'nombre': sesion.get('especialidad_nombre', 'No asignada'),
+                            'area': sesion.get('especialidad_area', 'No especificada')
                         },
+                        'especialidad_nombre': sesion.get('especialidad_nombre', 'No asignada'),
+                        'especialidad_area': sesion.get('especialidad_area', 'No especificada'),
                         'fecha_inicio': sesion['fecha_inicio'].isoformat() if hasattr(sesion['fecha_inicio'], 'isoformat') else sesion['fecha_inicio'],
                         'fecha_fin': sesion['fecha_fin'].isoformat() if hasattr(sesion['fecha_fin'], 'isoformat') else sesion['fecha_fin'],
                         'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
@@ -87,16 +90,11 @@ class SesionPedagogicaService:
                         'adaptacion_curricular': sesion.get('adaptacion_curricular', ''),
                         'estado': sesion['estado'],
                         'observaciones': sesion.get('observaciones', ''),
-                        'estadisticas': {
-                            'total_estudiantes': sesion['total_estudiantes'],
-                            'clases_programadas': sesion['clases_programadas'],
-                            'clases_realizadas': sesion['clases_realizadas'],
-                            'progreso_porcentaje': round(
-                                (sesion['clases_realizadas'] / sesion['clases_programadas'] * 100), 2) if sesion[
-                                                                                                                  'clases_programadas'] > 0 else 0,
-                            'promedio_notas': float(sesion['promedio_notas']) if sesion['promedio_notas'] else None,
-                            'promedio_asistencia': float(sesion['promedio_asistencia']) if sesion['promedio_asistencia'] else None
-                        },
+                        'total_estudiantes': sesion.get('total_estudiantes', 0),
+                        'clases_programadas': sesion.get('clases_programadas', 0),
+                        'clases_realizadas': sesion.get('clases_realizadas', 0),
+                        'progreso_porcentaje': round(
+                            (sesion.get('clases_realizadas', 0) / sesion.get('clases_programadas', 1) * 100), 2) if sesion.get('clases_programadas', 0) > 0 else 0,
                         'fecha_creacion': sesion['fecha_creacion'].isoformat() if hasattr(sesion['fecha_creacion'], 'isoformat') else sesion['fecha_creacion']
                     }
                     sesiones_formateadas.append(sesion_data)
