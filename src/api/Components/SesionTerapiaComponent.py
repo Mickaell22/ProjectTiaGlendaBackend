@@ -1899,20 +1899,19 @@ class SesionTerapiaComponent:
             import secrets
             from datetime import datetime, timedelta
 
-            # Generar token seguro
-            token = secrets.token_urlsafe(64)
+            # Generar token seguro - 48 bytes = ~64 caracteres en base64url
+            token = secrets.token_urlsafe(48)
 
             # Calcular fecha de expiración
             fecha_expiracion = datetime.now() + timedelta(hours=duracion_horas)
 
-            # Insertar el token usando la tabla existente
+            # Insertar el token usando la tabla existente - estructura real sin nombre_enlace
             insert_query = """
                 INSERT INTO tokens_publicos_sesion
-                (token, id_sesion, nombre_enlace, descripcion, fecha_expiracion, usuario_creacion)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (token, id_sesion, descripcion, fecha_expiracion, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s)
             """
-            nombre_enlace = f"Enlace {sesion_id}-{datetime.now().strftime('%Y%m%d')}"
-            params = (token, sesion_id, nombre_enlace, descripcion, fecha_expiracion, usuario_creacion)
+            params = (token, sesion_id, descripcion, fecha_expiracion, usuario_creacion)
 
             # Usar ExecuteNonQuery para INSERT
             rows_affected = DataBaseHandle.ExecuteNonQuery(insert_query, params)
@@ -1928,9 +1927,9 @@ class SesionTerapiaComponent:
             HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - Token exists: {token_exists}")
 
             if token_exists:
-                # Obtener el token recién insertado
+                # Obtener el token recién insertado - estructura real
                 select_query = """
-                    SELECT token, nombre_enlace, descripcion, fecha_expiracion, estado
+                    SELECT token, descripcion, fecha_expiracion, activo
                     FROM tokens_publicos_sesion
                     WHERE token = %s
                 """
@@ -1938,14 +1937,15 @@ class SesionTerapiaComponent:
                 if result:
                     token_data = result[0]
                     HandleLogs.write_log(f"SesionTerapiaComponent.generar_token_publico - Token generado para sesión {sesion_id}")
+                    nombre_enlace = f"Enlace-{sesion_id}-{datetime.now().strftime('%Y%m%d')}"
 
                     return {
                         'token': token_data['token'],
-                        'nombre_enlace': token_data['nombre_enlace'],
+                        'nombre_enlace': nombre_enlace,
                         'descripcion': token_data['descripcion'],
                         'url_publica': f"/api/sesion-publica/{token_data['token']}",
                         'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
-                        'estado': token_data['estado'],
+                        'estado': 'activo' if token_data['activo'] else 'inactivo',
                         'duracion_horas': duracion_horas
                     }
                 else:
@@ -1966,18 +1966,17 @@ class SesionTerapiaComponent:
             query = """
                 SELECT
                     token,
-                    nombre_enlace,
                     descripcion,
                     fecha_creacion,
                     fecha_expiracion,
-                    estado,
+                    activo,
                     CASE
                         WHEN fecha_expiracion < CURRENT_TIMESTAMP THEN 'expirado'
-                        WHEN estado = 'inactivo' THEN 'inactivo'
+                        WHEN activo = false THEN 'inactivo'
                         ELSE 'vigente'
                     END as estado_calculado
                 FROM tokens_publicos_sesion
-                WHERE id_sesion = %s AND estado = 'activo'
+                WHERE id_sesion = %s AND activo = true
                 ORDER BY fecha_creacion DESC
             """
             params = (sesion_id,)
@@ -2009,12 +2008,13 @@ class SesionTerapiaComponent:
 
                         enlace = {
                             'token': str(row['token']),
+                            'nombre_enlace': f"Enlace-{sesion_id}-{i+1}",
                             'url_publica': f"/api/sesion-publica/{row['token']}",
                             'descripcion': str(row['descripcion'] or 'Sin descripción'),
                             'fecha_creacion': fecha_creacion_str,
                             'fecha_expiracion': fecha_expiracion_str,
-                            'estado': str(row['estado']),
-                            'activo': bool(row['activo'])
+                            'estado': 'activo' if row['activo'] else 'inactivo',
+                            'estado_calculado': str(row['estado_calculado'])
                         }
                         enlaces.append(enlace)
                         HandleLogs.write_log(f"SesionTerapiaComponent.obtener_tokens_publicos - Procesado enlace {i+1}: {enlace['descripcion']}")

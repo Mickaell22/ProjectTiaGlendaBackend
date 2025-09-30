@@ -1408,22 +1408,21 @@ class SesionPedagogicaComponent:
             import secrets
             from datetime import datetime, timedelta
 
-            # Generar token único
-            token = secrets.token_urlsafe(64)
+            # Generar token único - 48 bytes = ~64 caracteres en base64url
+            token = secrets.token_urlsafe(48)
 
             # Calcular fecha de expiración
             fecha_expiracion = datetime.now() + timedelta(hours=enlace_data['duracion_horas'])
 
-            # Insertar en la base de datos
+            # Insertar en la base de datos - estructura real sin nombre_enlace ni estado
             insert_query = """
                 INSERT INTO tokens_publicos_sesion_pedagogica
-                (id_sesion, token, nombre_enlace, descripcion, fecha_expiracion, usuario_creacion)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (token, id_sesion, descripcion, fecha_expiracion, usuario_creacion)
+                VALUES (%s, %s, %s, %s, %s)
             """
             params = (
-                enlace_data['sesion_id'],
                 token,
-                f"Enlace {enlace_data['sesion_id']}-{datetime.now().strftime('%Y%m%d')}",  # nombre_enlace
+                enlace_data['sesion_id'],
                 enlace_data['descripcion'],
                 fecha_expiracion,
                 enlace_data['usuario_creacion']
@@ -1443,9 +1442,9 @@ class SesionPedagogicaComponent:
             HandleLogs.write_log(f"SesionPedagogicaComponent.generar_token_publico - Token exists: {token_exists}")
 
             if token_exists:
-                # Obtener los datos del token creado
+                # Obtener los datos del token creado - usando estructura real
                 select_query = """
-                    SELECT token, nombre_enlace, descripcion, fecha_expiracion, estado
+                    SELECT token, descripcion, fecha_expiracion, activo
                     FROM tokens_publicos_sesion_pedagogica
                     WHERE token = %s
                 """
@@ -1453,13 +1452,14 @@ class SesionPedagogicaComponent:
 
                 if result:
                     token_data = result[0]
+                    nombre_enlace = f"Enlace-{enlace_data['sesion_id']}-{datetime.now().strftime('%Y%m%d')}"
                     response_data = {
                         'token': token_data['token'],
-                        'nombre_enlace': token_data['nombre_enlace'],
+                        'nombre_enlace': nombre_enlace,
                         'descripcion': token_data['descripcion'],
                         'duracion_horas': enlace_data['duracion_horas'],
                         'fecha_expiracion': token_data['fecha_expiracion'].isoformat() if isinstance(token_data['fecha_expiracion'], datetime) else str(token_data['fecha_expiracion']),
-                        'estado': token_data['estado'],
+                        'estado': 'activo' if token_data['activo'] else 'inactivo',
                         'url_publica': f"/api/sesion-pedagogica-publica/{token_data['token']}"
                     }
 
@@ -1481,18 +1481,17 @@ class SesionPedagogicaComponent:
             query = """
                 SELECT
                     token,
-                    nombre_enlace,
                     descripcion,
                     fecha_creacion,
                     fecha_expiracion,
-                    estado,
+                    activo,
                     CASE
                         WHEN fecha_expiracion < CURRENT_TIMESTAMP THEN 'expirado'
-                        WHEN estado = 'inactivo' THEN 'inactivo'
+                        WHEN activo = false THEN 'inactivo'
                         ELSE 'vigente'
                     END as estado_calculado
                 FROM tokens_publicos_sesion_pedagogica
-                WHERE id_sesion = %s AND estado = 'activo'
+                WHERE id_sesion = %s AND activo = true
                 ORDER BY fecha_creacion DESC
             """
             params = (sesion_id,)
@@ -1501,14 +1500,15 @@ class SesionPedagogicaComponent:
             if result:
                 # Formatear datos para la respuesta
                 tokens_formateados = []
-                for token in result:
+                for idx, token in enumerate(result):
+                    nombre_enlace = f"Enlace-{sesion_id}-{idx+1}"
                     token_data = {
                         'token': token['token'],
-                        'nombre_enlace': token['nombre_enlace'],
+                        'nombre_enlace': nombre_enlace,
                         'descripcion': token['descripcion'],
                         'fecha_creacion': token['fecha_creacion'].isoformat() if isinstance(token['fecha_creacion'], datetime) else str(token['fecha_creacion']),
                         'fecha_expiracion': token['fecha_expiracion'].isoformat() if isinstance(token['fecha_expiracion'], datetime) else str(token['fecha_expiracion']),
-                        'estado': token['estado'],
+                        'estado': 'activo' if token['activo'] else 'inactivo',
                         'estado_calculado': token['estado_calculado'],
                         'url_publica': f"/api/sesion-pedagogica-publica/{token['token']}"
                     }
@@ -1532,7 +1532,7 @@ class SesionPedagogicaComponent:
             check_query = """
                 SELECT id, token
                 FROM tokens_publicos_sesion_pedagogica
-                WHERE token = %s AND estado = 'activo'
+                WHERE token = %s AND activo = true
             """
             existing_token = DataBaseHandle.getRecords(check_query, (token,))
 
@@ -1543,10 +1543,10 @@ class SesionPedagogicaComponent:
             # Usar ExecuteNonQuery para el UPDATE (patrón correcto del proyecto)
             update_query = """
                 UPDATE tokens_publicos_sesion_pedagogica
-                SET estado = 'inactivo',
+                SET activo = false,
                     usuario_modificacion = %s,
                     fecha_modificacion = CURRENT_TIMESTAMP
-                WHERE token = %s AND estado = 'activo'
+                WHERE token = %s AND activo = true
             """
             params = (usuario_modificacion, token)
 
@@ -1602,7 +1602,7 @@ class SesionPedagogicaComponent:
                 LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
                 LEFT JOIN asistencia_clases ac ON cc.id = ac.id_cronograma
                 WHERE tps.token = %s
-                    AND tps.estado = 'activo'
+                    AND tps.activo = true
                     AND tps.fecha_expiracion > CURRENT_TIMESTAMP
                 GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.competencias_objetivo,
                         p_ped.nombre, p_ped.apellido, e.nombre, e.area, sp.fecha_inicio,
