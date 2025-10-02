@@ -611,6 +611,10 @@ class PacienteComponent:
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
+                -- Campos de pausa
+                pac.fecha_inicio_pausa,
+                pac.fecha_fin_pausa,
+                pac.motivo_pausa,
                 -- Información del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
@@ -864,18 +868,42 @@ class PacienteComponent:
     def pausar_especialidad_paciente(paciente_id, especialidad_id, fecha_inicio_pausa, fecha_fin_pausa=None, motivo_pausa=None, observaciones_pausa=None, usuario_id=None):
         """Pausar una especialidad específica de un paciente"""
         try:
-            # First find the paciente_especialidades record
+            from datetime import datetime, date
+
+            # VALIDACION 1: Buscar registro de paciente_especialidades
             query_find = """
-            SELECT id FROM paciente_especialidades
+            SELECT id, estado_pausa, fecha_inicio_pausa_esp, fecha_fin_pausa_esp
+            FROM paciente_especialidades
             WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
             """
 
             pe_record = DataBaseHandle.getRecords(query_find, (paciente_id, especialidad_id), size=1)
 
             if not pe_record:
-                HandleLogs.write_error(f"PacienteComponent.pausar_especialidad_paciente - No se encontró relación activa entre paciente {paciente_id} y especialidad {especialidad_id}")
-                return internal_response(False, None, "No se encontró la relación entre paciente y especialidad")
+                HandleLogs.write_error(f"PacienteComponent.pausar_especialidad_paciente - No se encontro relacion activa entre paciente {paciente_id} y especialidad {especialidad_id}")
+                return internal_response(False, None, "No se encontro la relacion entre paciente y especialidad")
 
+            # VALIDACION 2: Verificar pausa existente en esta especialidad
+            if pe_record['fecha_inicio_pausa_esp']:
+                if pe_record['fecha_fin_pausa_esp'] is None or pe_record['fecha_fin_pausa_esp'] >= date.today():
+                    return internal_response(False, None, "Esta especialidad ya tiene una pausa activa. Debe reanudar primero.")
+
+            # VALIDACION 3: Verificar coherencia de fechas
+            if fecha_fin_pausa:
+                if isinstance(fecha_inicio_pausa, str):
+                    inicio = datetime.strptime(fecha_inicio_pausa, '%Y-%m-%d').date()
+                else:
+                    inicio = fecha_inicio_pausa
+
+                if isinstance(fecha_fin_pausa, str):
+                    fin = datetime.strptime(fecha_fin_pausa, '%Y-%m-%d').date()
+                else:
+                    fin = fecha_fin_pausa
+
+                if fin <= inicio:
+                    return internal_response(False, None, "La fecha de fin debe ser posterior a la fecha de inicio")
+
+            # ACTUALIZACION: Pausar especialidad
             query_update = """
             UPDATE paciente_especialidades
             SET estado_pausa = 'pausado_especialidad',
@@ -891,8 +919,42 @@ class PacienteComponent:
                 query_update,
                 (fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, usuario_id, pe_record['id'])
             )
-            
+
             if success:
+                # AUDITORIA: Registrar en historial
+                query_historial = """
+                INSERT INTO historial_pausas (
+                    id_paciente, id_especialidad, tipo_pausa, accion,
+                    fecha_inicio_pausa, fecha_fin_pausa, motivo, observaciones, usuario_accion
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                DataBaseHandle.ExecuteNonQuery(
+                    query_historial,
+                    (paciente_id, especialidad_id, 'especialidad', 'pausar',
+                     fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, observaciones_pausa, usuario_id)
+                )
+
+                # INTEGRACION: Cancelar sesiones de esta especialidad durante el periodo de pausa
+                query_pausar_sesiones = """
+                UPDATE cronograma_sesiones cs
+                SET estado = 'cancelada',
+                    motivo_cancelacion = 'Especialidad pausada',
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE cs.id_sesion IN (
+                    SELECT st.id FROM sesion_terapia st
+                    INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
+                    WHERE sp.id_paciente = %s AND st.id_especialidad = %s
+                )
+                AND cs.fecha_programada >= %s
+                AND (cs.fecha_programada <= %s OR %s IS NULL)
+                AND cs.estado IN ('programada', 'confirmada')
+                """
+                DataBaseHandle.ExecuteNonQuery(
+                    query_pausar_sesiones,
+                    (usuario_id, paciente_id, especialidad_id, fecha_inicio_pausa, fecha_fin_pausa, fecha_fin_pausa)
+                )
+
                 HandleLogs.write_log(f"PacienteComponent.pausar_especialidad_paciente - Especialidad {especialidad_id} pausada para paciente {paciente_id}")
                 return internal_response(True, {"paciente_id": paciente_id, "especialidad_id": especialidad_id}, "Especialidad pausada exitosamente")
             else:
@@ -907,7 +969,7 @@ class PacienteComponent:
     def reactivar_especialidad_paciente(paciente_id, especialidad_id, usuario_id=None):
         """Reactivar una especialidad pausada de un paciente"""
         try:
-            # First find the paciente_especialidades record
+            # VALIDACION: Buscar registro de paciente_especialidades
             query_find = """
             SELECT id FROM paciente_especialidades
             WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
@@ -916,9 +978,10 @@ class PacienteComponent:
             pe_record = DataBaseHandle.getRecords(query_find, (paciente_id, especialidad_id), size=1)
 
             if not pe_record:
-                HandleLogs.write_error(f"PacienteComponent.reactivar_especialidad_paciente - No se encontró relación activa entre paciente {paciente_id} y especialidad {especialidad_id}")
-                return internal_response(False, None, "No se encontró la relación entre paciente y especialidad")
+                HandleLogs.write_error(f"PacienteComponent.reactivar_especialidad_paciente - No se encontro relacion activa entre paciente {paciente_id} y especialidad {especialidad_id}")
+                return internal_response(False, None, "No se encontro la relacion entre paciente y especialidad")
 
+            # ACTUALIZACION: Reactivar especialidad
             query_update = """
             UPDATE paciente_especialidades
             SET estado_pausa = 'activo',
@@ -931,8 +994,23 @@ class PacienteComponent:
             """
 
             success = DataBaseHandle.ExecuteNonQuery(query_update, (usuario_id, pe_record['id']))
-            
+
             if success:
+                # AUDITORIA: Registrar en historial
+                query_historial = """
+                INSERT INTO historial_pausas (
+                    id_paciente, id_especialidad, tipo_pausa, accion, usuario_accion
+                ) VALUES (%s, %s, %s, %s, %s)
+                """
+                DataBaseHandle.ExecuteNonQuery(
+                    query_historial,
+                    (paciente_id, especialidad_id, 'especialidad', 'reanudar', usuario_id)
+                )
+
+                # INTEGRACION: NO reactivar sesiones canceladas por pausa
+                # Las sesiones canceladas permanecen canceladas
+                # El terapeuta debe crear nuevas sesiones si es necesario
+
                 HandleLogs.write_log(f"PacienteComponent.reactivar_especialidad_paciente - Especialidad {especialidad_id} reactivada para paciente {paciente_id}")
                 return internal_response(True, {"paciente_id": paciente_id, "especialidad_id": especialidad_id}, "Especialidad reactivada exitosamente")
             else:
@@ -1011,22 +1089,97 @@ class PacienteComponent:
     def pausar_paciente_general(paciente_id, fecha_inicio_pausa, fecha_fin_pausa=None, motivo_pausa=None, observaciones_pausa=None, usuario_id=None):
         """Pausar todas las especialidades de un paciente (pausa general)"""
         try:
+            from datetime import datetime, date
+
+            # VALIDACION 1: Verificar que el paciente existe y esta activo
+            query_check_paciente = """
+            SELECT id, estado, fecha_inicio_pausa, fecha_fin_pausa
+            FROM paciente
+            WHERE id = %s
+            """
+            paciente = DataBaseHandle.getRecords(query_check_paciente, (paciente_id,), size=1)
+
+            if not paciente:
+                HandleLogs.write_error(f"PacienteComponent.pausar_paciente_general - Paciente {paciente_id} no encontrado")
+                return internal_response(False, None, "Paciente no encontrado")
+
+            if paciente['estado'] != 'activo':
+                return internal_response(False, None, f"No se puede pausar un paciente en estado {paciente['estado']}")
+
+            # VALIDACION 2: Verificar pausa existente
+            if paciente['fecha_inicio_pausa']:
+                # Verificar si pausa esta activa
+                if paciente['fecha_fin_pausa'] is None or paciente['fecha_fin_pausa'] >= date.today():
+                    HandleLogs.write_error(f"PacienteComponent.pausar_paciente_general - Paciente {paciente_id} ya tiene pausa activa")
+                    return internal_response(False, None, "El paciente ya tiene una pausa activa. Debe reanudar primero.")
+
+            # VALIDACION 3: Verificar coherencia de fechas
+            if fecha_fin_pausa:
+                if isinstance(fecha_inicio_pausa, str):
+                    inicio = datetime.strptime(fecha_inicio_pausa, '%Y-%m-%d').date()
+                else:
+                    inicio = fecha_inicio_pausa
+
+                if isinstance(fecha_fin_pausa, str):
+                    fin = datetime.strptime(fecha_fin_pausa, '%Y-%m-%d').date()
+                else:
+                    fin = fecha_fin_pausa
+
+                if fin <= inicio:
+                    return internal_response(False, None, "La fecha de fin debe ser posterior a la fecha de inicio")
+
+            # ACTUALIZACION: Pausar paciente
             query_update = """
             UPDATE paciente
             SET fecha_inicio_pausa = %s,
                 fecha_fin_pausa = %s,
                 motivo_pausa = %s,
+                estado_tratamiento = 'pausado',
                 usuario_modificacion = %s,
                 fecha_modificacion = CURRENT_TIMESTAMP
             WHERE id = %s
             """
-            
+
             success = DataBaseHandle.ExecuteNonQuery(
                 query_update,
                 (fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa, usuario_id, paciente_id)
             )
-            
+
             if success:
+                # AUDITORIA: Registrar en historial
+                query_historial = """
+                INSERT INTO historial_pausas (
+                    id_paciente, tipo_pausa, accion, fecha_inicio_pausa,
+                    fecha_fin_pausa, motivo, observaciones, usuario_accion
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                DataBaseHandle.ExecuteNonQuery(
+                    query_historial,
+                    (paciente_id, 'general', 'pausar', fecha_inicio_pausa,
+                     fecha_fin_pausa, motivo_pausa, observaciones_pausa, usuario_id)
+                )
+
+                # INTEGRACION: Cancelar sesiones programadas durante el periodo de pausa
+                query_pausar_sesiones = """
+                UPDATE cronograma_sesiones cs
+                SET estado = 'cancelada',
+                    motivo_cancelacion = 'Paciente pausado',
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE cs.id_sesion IN (
+                    SELECT st.id FROM sesion_terapia st
+                    INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
+                    WHERE sp.id_paciente = %s
+                )
+                AND cs.fecha_programada >= %s
+                AND (cs.fecha_programada <= %s OR %s IS NULL)
+                AND cs.estado IN ('programada', 'confirmada')
+                """
+                DataBaseHandle.ExecuteNonQuery(
+                    query_pausar_sesiones,
+                    (usuario_id, paciente_id, fecha_inicio_pausa, fecha_fin_pausa, fecha_fin_pausa)
+                )
+
                 HandleLogs.write_log(f"PacienteComponent.pausar_paciente_general - Paciente {paciente_id} pausado generalmente")
                 return internal_response(True, {"paciente_id": paciente_id}, "Paciente pausado exitosamente")
             else:
@@ -1041,19 +1194,36 @@ class PacienteComponent:
     def reactivar_paciente_general(paciente_id, usuario_id=None):
         """Reactivar un paciente pausado generalmente"""
         try:
+            # ACTUALIZACION: Reactivar paciente
             query_update = """
             UPDATE paciente
             SET fecha_inicio_pausa = NULL,
                 fecha_fin_pausa = NULL,
                 motivo_pausa = NULL,
+                estado_tratamiento = 'activo',
                 usuario_modificacion = %s,
                 fecha_modificacion = CURRENT_TIMESTAMP
             WHERE id = %s
             """
-            
+
             success = DataBaseHandle.ExecuteNonQuery(query_update, (usuario_id, paciente_id))
-            
+
             if success:
+                # AUDITORIA: Registrar en historial
+                query_historial = """
+                INSERT INTO historial_pausas (
+                    id_paciente, tipo_pausa, accion, usuario_accion
+                ) VALUES (%s, %s, %s, %s)
+                """
+                DataBaseHandle.ExecuteNonQuery(
+                    query_historial,
+                    (paciente_id, 'general', 'reanudar', usuario_id)
+                )
+
+                # INTEGRACION: NO reactivar sesiones canceladas por pausa
+                # Las sesiones canceladas permanecen canceladas
+                # El terapeuta debe crear nuevas sesiones si es necesario
+
                 HandleLogs.write_log(f"PacienteComponent.reactivar_paciente_general - Paciente {paciente_id} reactivado")
                 return internal_response(True, {"paciente_id": paciente_id}, "Paciente reactivado exitosamente")
             else:
@@ -1208,6 +1378,10 @@ class PacienteComponent:
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
+                -- Campos de pausa
+                pac.fecha_inicio_pausa,
+                pac.fecha_fin_pausa,
+                pac.motivo_pausa,
                 -- Información del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,

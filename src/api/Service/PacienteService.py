@@ -679,36 +679,36 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
-    def pausar_especialidad_paciente():
-        """Pausar una especialidad específica de un paciente"""
+    def pausar_especialidad_paciente(paciente_id, especialidad_id, usuario_actual=None):
+        """Pausar una especialidad especifica de un paciente"""
         try:
             data = request.get_json()
-            HandleLogs.write_log("PacienteService.pausar_especialidad_paciente - Iniciando")
+            HandleLogs.write_log(f"PacienteService.pausar_especialidad_paciente - Paciente {paciente_id}, Especialidad {especialidad_id}")
 
             # Validar datos requeridos
             required_validation = Validators.validate_required_fields(
-                data, ['paciente_id', 'especialidad_id', 'fecha_inicio_pausa']
+                data, ['fecha_inicio_pausa']
             )
             if not required_validation['valid']:
                 return response_error(required_validation['message'], 400)
 
-            paciente_id = data['paciente_id']
-            especialidad_id = data['especialidad_id']
             fecha_inicio_pausa = data['fecha_inicio_pausa']
             fecha_fin_pausa = data.get('fecha_fin_pausa')
             motivo_pausa = data.get('motivo_pausa')
             observaciones_pausa = data.get('observaciones_pausa')
-            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Obtener usuario_id del token o usar default
+            usuario_id = usuario_actual['id'] if usuario_actual else 1
 
             # Validar IDs
             if not isinstance(paciente_id, int) or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+                return response_error("ID de paciente invalido", 400)
 
             if not isinstance(especialidad_id, int) or especialidad_id <= 0:
-                return response_error("ID de especialidad inválido", 400)
+                return response_error("ID de especialidad invalido", 400)
 
             result = PacienteComponent.pausar_especialidad_paciente(
-                paciente_id, especialidad_id, fecha_inicio_pausa, fecha_fin_pausa, 
+                paciente_id, especialidad_id, fecha_inicio_pausa, fecha_fin_pausa,
                 motivo_pausa, observaciones_pausa, usuario_id
             )
 
@@ -724,29 +724,20 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
-    def reactivar_especialidad_paciente():
+    def reactivar_especialidad_paciente(paciente_id, especialidad_id, usuario_actual=None):
         """Reactivar una especialidad pausada de un paciente"""
         try:
-            data = request.get_json()
-            HandleLogs.write_log("PacienteService.reactivar_especialidad_paciente - Iniciando")
+            HandleLogs.write_log(f"PacienteService.reactivar_especialidad_paciente - Paciente {paciente_id}, Especialidad {especialidad_id}")
 
-            # Validar datos requeridos
-            required_validation = Validators.validate_required_fields(
-                data, ['paciente_id', 'especialidad_id']
-            )
-            if not required_validation['valid']:
-                return response_error(required_validation['message'], 400)
-
-            paciente_id = data['paciente_id']
-            especialidad_id = data['especialidad_id']
-            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+            # Obtener usuario_id del token o usar default
+            usuario_id = usuario_actual['id'] if usuario_actual else 1
 
             # Validar IDs
             if not isinstance(paciente_id, int) or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+                return response_error("ID de paciente invalido", 400)
 
             if not isinstance(especialidad_id, int) or especialidad_id <= 0:
-                return response_error("ID de especialidad inválido", 400)
+                return response_error("ID de especialidad invalido", 400)
 
             result = PacienteComponent.reactivar_especialidad_paciente(paciente_id, especialidad_id, usuario_id)
 
@@ -784,32 +775,33 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
-    def pausar_paciente_general():
+    def pausar_paciente_general(paciente_id, usuario_actual=None):
         """Pausar todas las especialidades de un paciente (pausa general)"""
         try:
             data = request.get_json()
-            HandleLogs.write_log("PacienteService.pausar_paciente_general - Iniciando")
+            HandleLogs.write_log(f"PacienteService.pausar_paciente_general - Paciente {paciente_id}")
 
             # Validar datos requeridos
             required_validation = Validators.validate_required_fields(
-                data, ['paciente_id', 'fecha_inicio_pausa']
+                data, ['fecha_inicio_pausa']
             )
             if not required_validation['valid']:
                 return response_error(required_validation['message'], 400)
 
-            paciente_id = data['paciente_id']
             fecha_inicio_pausa = data['fecha_inicio_pausa']
             fecha_fin_pausa = data.get('fecha_fin_pausa')
             motivo_pausa = data.get('motivo_pausa')
             observaciones_pausa = data.get('observaciones_pausa')
-            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+
+            # Obtener usuario_id del token o del body
+            usuario_id = usuario_actual['id'] if usuario_actual else data.get('usuario_id', 1)
 
             # Validar ID
             if not isinstance(paciente_id, int) or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+                return response_error("ID de paciente invalido", 400)
 
             result = PacienteComponent.pausar_paciente_general(
-                paciente_id, fecha_inicio_pausa, fecha_fin_pausa, 
+                paciente_id, fecha_inicio_pausa, fecha_fin_pausa,
                 motivo_pausa, observaciones_pausa, usuario_id
             )
 
@@ -825,23 +817,17 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
-    def reactivar_paciente_general():
+    def reactivar_paciente_general(paciente_id, usuario_actual=None):
         """Reactivar un paciente pausado generalmente"""
         try:
-            data = request.get_json()
-            HandleLogs.write_log("PacienteService.reactivar_paciente_general - Iniciando")
+            HandleLogs.write_log(f"PacienteService.reactivar_paciente_general - Paciente {paciente_id}")
 
-            # Validar datos requeridos
-            required_validation = Validators.validate_required_fields(data, ['paciente_id'])
-            if not required_validation['valid']:
-                return response_error(required_validation['message'], 400)
-
-            paciente_id = data['paciente_id']
-            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+            # Obtener usuario_id del token o usar default
+            usuario_id = usuario_actual['id'] if usuario_actual else 1
 
             # Validar ID
             if not isinstance(paciente_id, int) or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+                return response_error("ID de paciente invalido", 400)
 
             result = PacienteComponent.reactivar_paciente_general(paciente_id, usuario_id)
 

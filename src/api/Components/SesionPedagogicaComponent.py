@@ -664,14 +664,14 @@ class SesionPedagogicaComponent:
             HandleLogs.write_log(f"SesionPedagogicaComponent.get_cronograma_sesion - Iniciando para sesión {sesion_id}")
             
             query = """
-                SELECT 
+                SELECT
                     cc.id,
-                    cc.numero_clase_semanal as numero_clase,
+                    ROW_NUMBER() OVER (ORDER BY cc.fecha_programada, cc.hora_inicio) as numero_clase,
                     cc.fecha_programada,
                     cc.hora_inicio as hora_programada,
                     cc.hora_fin,
                     cc.tema_clase,
-                    CASE 
+                    CASE
                         WHEN cc.estado = 'completada' THEN 'realizada'
                         ELSE cc.estado
                     END as estado,
@@ -687,7 +687,7 @@ class SesionPedagogicaComponent:
                     '' as tipo_evaluacion
                 FROM cronograma_clases cc
                 WHERE cc.id_sesion = %s
-                ORDER BY cc.numero_clase_semanal
+                ORDER BY cc.fecha_programada, cc.hora_inicio
             """
 
             params = (sesion_id,)

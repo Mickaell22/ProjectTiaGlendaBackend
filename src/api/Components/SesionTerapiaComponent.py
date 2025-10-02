@@ -322,8 +322,15 @@ class SesionTerapiaComponent:
 
             # CORRECCIÓN: Validar si la fecha fin es suficiente ANTES de generar
             fecha_minima_necesaria = fecha_inicio + timedelta(weeks=semanas_necesarias + 1)
+            fecha_fin_original = fecha_fin
             if fecha_fin < fecha_minima_necesaria:
-                raise Exception(f"La fecha fin ({fecha_fin}) es insuficiente para generar {max_sesiones} sesiones. Se necesita hasta {fecha_minima_necesaria}. ¿Desea extender la fecha fin?")
+                # Extender automáticamente la fecha fin
+                fecha_fin = fecha_minima_necesaria
+                HandleLogs.write_log(f"Fecha fin extendida automáticamente de {fecha_fin_original} a {fecha_fin} para generar {max_sesiones} sesiones")
+
+                # Actualizar la fecha_fin en la base de datos
+                update_query = "UPDATE sesion_terapia SET fecha_fin = %s WHERE id = %s"
+                DataBaseHandle.ExecuteNonQuery(update_query, (fecha_fin, sesion_id))
 
             # Generar cronograma de manera eficiente
             fecha_actual = fecha_inicio
@@ -495,9 +502,10 @@ class SesionTerapiaComponent:
         """Obtener el cronograma completo de una sesión con información de asistencias"""
         try:
             query = """
-                SELECT 
+                SELECT
                     cs.*,
-                    CASE 
+                    ROW_NUMBER() OVER (ORDER BY cs.fecha_programada, cs.hora_inicio) as numero_sesion,
+                    CASE
                         WHEN cs.fecha_programada < CURRENT_DATE THEN 'vencida'
                         WHEN cs.fecha_programada = CURRENT_DATE THEN 'hoy'
                         ELSE cs.estado
@@ -510,7 +518,7 @@ class SesionTerapiaComponent:
                 LEFT JOIN asistencia_sesiones a ON cs.id = a.id_cronograma
                 WHERE cs.id_sesion = %s
                 GROUP BY cs.id
-                ORDER BY cs.numero_sesion_semanal
+                ORDER BY cs.fecha_programada, cs.hora_inicio
             """
 
             params = (sesion_id,)

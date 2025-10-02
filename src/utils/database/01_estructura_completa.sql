@@ -18,6 +18,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 GRANT ALL ON SCHEMA public TO public;
 
 -- Eliminar tablas existentes en orden correcto (si existen)
+DROP TABLE IF EXISTS historial_pausas CASCADE;
 DROP TABLE IF EXISTS asistencia_clases CASCADE;
 DROP TABLE IF EXISTS cronograma_clases CASCADE;
 DROP TABLE IF EXISTS sesion_estudiante CASCADE;
@@ -1741,6 +1742,53 @@ BEGIN
         );
     END IF;
 END $$;
+
+-- =============================================
+-- TABLA DE HISTORIAL DE PAUSAS
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS historial_pausas (
+    id SERIAL PRIMARY KEY,
+    id_paciente INTEGER NOT NULL,
+    id_especialidad INTEGER,
+    tipo_pausa VARCHAR(20) NOT NULL CHECK (tipo_pausa IN ('general', 'especialidad')),
+    accion VARCHAR(20) NOT NULL CHECK (accion IN ('pausar', 'reanudar')),
+    fecha_inicio_pausa DATE,
+    fecha_fin_pausa DATE,
+    motivo TEXT,
+    observaciones TEXT,
+    fecha_accion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_accion INTEGER,
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_especialidad) REFERENCES especialidad(id) ON DELETE SET NULL,
+    FOREIGN KEY (usuario_accion) REFERENCES usuario(id) ON DELETE SET NULL
+);
+
+-- Indices para mejorar el rendimiento de historial_pausas
+CREATE INDEX IF NOT EXISTS idx_historial_pausas_paciente ON historial_pausas(id_paciente);
+CREATE INDEX IF NOT EXISTS idx_historial_pausas_especialidad ON historial_pausas(id_especialidad);
+CREATE INDEX IF NOT EXISTS idx_historial_pausas_fecha_accion ON historial_pausas(fecha_accion);
+CREATE INDEX IF NOT EXISTS idx_historial_pausas_tipo_pausa ON historial_pausas(tipo_pausa);
+CREATE INDEX IF NOT EXISTS idx_historial_pausas_accion ON historial_pausas(accion);
+
+-- Indices adicionales para optimizar consultas de pausas
+CREATE INDEX IF NOT EXISTS idx_paciente_fecha_inicio_pausa ON paciente(fecha_inicio_pausa) WHERE fecha_inicio_pausa IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_paciente_fecha_fin_pausa ON paciente(fecha_fin_pausa) WHERE fecha_fin_pausa IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_paciente_especialidades_estado_pausa ON paciente_especialidades(estado_pausa);
+CREATE INDEX IF NOT EXISTS idx_paciente_especialidades_fecha_pausa ON paciente_especialidades(fecha_inicio_pausa_esp) WHERE fecha_inicio_pausa_esp IS NOT NULL;
+
+-- Comentarios en la tabla historial_pausas
+COMMENT ON TABLE historial_pausas IS 'Historial completo de pausas y reactivaciones de pacientes';
+COMMENT ON COLUMN historial_pausas.id_paciente IS 'ID del paciente afectado';
+COMMENT ON COLUMN historial_pausas.id_especialidad IS 'ID de la especialidad (NULL si es pausa general)';
+COMMENT ON COLUMN historial_pausas.tipo_pausa IS 'Tipo de pausa: general o especialidad';
+COMMENT ON COLUMN historial_pausas.accion IS 'Accion realizada: pausar o reanudar';
+COMMENT ON COLUMN historial_pausas.fecha_inicio_pausa IS 'Fecha de inicio de la pausa';
+COMMENT ON COLUMN historial_pausas.fecha_fin_pausa IS 'Fecha de fin de la pausa (puede ser NULL)';
+COMMENT ON COLUMN historial_pausas.motivo IS 'Motivo de la pausa';
+COMMENT ON COLUMN historial_pausas.observaciones IS 'Observaciones adicionales';
+COMMENT ON COLUMN historial_pausas.fecha_accion IS 'Fecha y hora en que se realizo la accion';
+COMMENT ON COLUMN historial_pausas.usuario_accion IS 'Usuario que realizo la accion';
 
 -- =============================================
 -- FINALIZACIÓN

@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 from datetime import datetime
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import response_success, response_error
@@ -810,28 +810,32 @@ def register_routes(app):
     def pausar_paciente_general(paciente_id):
         """Pausar paciente de forma general (todas las especialidades)"""
         from src.api.Service.PacienteService import PacienteService
-        return PacienteService.pausar_paciente_general(paciente_id)
+        usuario_actual = request.current_user
+        return PacienteService.pausar_paciente_general(paciente_id, usuario_actual)
 
     @app.route('/api/pacientes/<int:paciente_id>/reactivar', methods=['PUT'])
     @token_required
     def reactivar_paciente_general(paciente_id):
         """Reactivar paciente de forma general"""
         from src.api.Service.PacienteService import PacienteService
-        return PacienteService.reactivar_paciente_general(paciente_id)
+        usuario_actual = request.current_user
+        return PacienteService.reactivar_paciente_general(paciente_id, usuario_actual)
 
     @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples/<int:especialidad_id>/pausar', methods=['PUT'])
     @token_required
     def pausar_especialidad_paciente(paciente_id, especialidad_id):
-        """Pausar tratamiento de especialidad específica para un paciente"""
+        """Pausar tratamiento de especialidad especifica para un paciente"""
         from src.api.Service.PacienteService import PacienteService
-        return PacienteService.pausar_especialidad_paciente(paciente_id, especialidad_id)
+        usuario_actual = request.current_user
+        return PacienteService.pausar_especialidad_paciente(paciente_id, especialidad_id, usuario_actual)
 
     @app.route('/api/pacientes/<int:paciente_id>/especialidades-multiples/<int:especialidad_id>/reactivar', methods=['PUT'])
     @token_required
     def reactivar_especialidad_paciente(paciente_id, especialidad_id):
-        """Reactivar tratamiento de especialidad específica para un paciente"""
+        """Reactivar tratamiento de especialidad especifica para un paciente"""
         from src.api.Service.PacienteService import PacienteService
-        return PacienteService.reactivar_especialidad_paciente(paciente_id, especialidad_id)
+        usuario_actual = request.current_user
+        return PacienteService.reactivar_especialidad_paciente(paciente_id, especialidad_id, usuario_actual)
 
     @app.route('/api/pacientes/pausados', methods=['GET'])
     @token_required
@@ -839,6 +843,57 @@ def register_routes(app):
         """Obtener lista de pacientes pausados (general y por especialidad)"""
         from src.api.Service.PacienteService import PacienteService
         return PacienteService.get_pacientes_pausados()
+
+    @app.route('/api/pacientes/<int:paciente_id>/pausas', methods=['GET'])
+    @token_required
+    def get_estado_pausas_paciente(paciente_id):
+        """Obtener estado completo de pausas de un paciente"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        return ControlPausasService.get_estado_pausas_paciente(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/pausa-activa', methods=['GET'])
+    @token_required
+    def verificar_pausa_activa(paciente_id):
+        """Verificar si un paciente tiene alguna pausa activa"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        return ControlPausasService.verificar_pausa_activa(paciente_id)
+
+    @app.route('/api/pacientes/<int:paciente_id>/historial-pausas', methods=['GET'])
+    @token_required
+    def get_historial_pausas(paciente_id):
+        """Obtener historial completo de pausas de un paciente"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        return ControlPausasService.get_historial_pausas(paciente_id)
+
+    @app.route('/api/control-pausas/vencidas', methods=['GET'])
+    @token_required
+    def get_pausas_vencidas():
+        """Obtener pausas que ya han vencido y deben reactivarse"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        return ControlPausasService.get_pausas_vencidas()
+
+    @app.route('/api/control-pausas/proximas-vencer', methods=['GET'])
+    @token_required
+    def get_pausas_proximas_vencer():
+        """Obtener pausas proximas a vencer"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        from flask import request
+        dias = request.args.get('dias', default=7, type=int)
+        return ControlPausasService.get_pausas_proximas_vencer(dias)
+
+    @app.route('/api/control-pausas/procesar-automaticas', methods=['POST'])
+    @token_required
+    def procesar_pausas_automaticas():
+        """Procesar automaticamente pausas vencidas y reactivar pacientes"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        return ControlPausasService.procesar_pausas_automaticas()
+
+    @app.route('/api/control-pausas/estadisticas', methods=['GET'])
+    @token_required
+    def get_estadisticas_pausas():
+        """Obtener estadisticas generales de pausas en el sistema"""
+        from src.api.Service.ControlPausasService import ControlPausasService
+        return ControlPausasService.get_estadisticas_pausas()
 
     @app.route('/api/pacientes/por-especialidad/<int:especialidad_id>', methods=['GET'])
     @token_required
