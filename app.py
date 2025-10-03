@@ -1,12 +1,24 @@
 from flask import Flask, jsonify
+from flask.json.provider import DefaultJSONProvider
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from src.api.routes.api_routes import register_routes
 from src.utils.general.logs import HandleLogs
 from src.utils.general.config import get_config
 import os
+import datetime
+
+class CustomJSONProvider(DefaultJSONProvider):
+    """Custom JSON provider to handle date serialization"""
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
+        if isinstance(obj, datetime.time):
+            return str(obj)
+        return super().default(obj)
 
 app = Flask(__name__)
+app.json = CustomJSONProvider(app)
 
 # Configurar CORS para desarrollo y producción
 cors_origins = [

@@ -9,23 +9,23 @@ from src.utils.general.response import internal_response
 class DocumentoPersonalComponent:
 
     @staticmethod
-    def crear_documento_personal(personal_id, tipo_documento, nombre_documento, nombre_archivo, 
-                                ruta_archivo, tamanio_archivo=None, tipo_mime=None, descripcion=None, 
+    def crear_documento_personal(personal_id, tipo_documento, nombre_documento, nombre_archivo,
+                                ruta_archivo, tamanio_archivo=None, tipo_mime=None, descripcion=None,
                                 fecha_documento=None, fecha_vencimiento=None, usuario_id=None):
         """Crear un nuevo documento para un miembro del personal"""
         try:
-            # Primero hacer INSERT
+            # INSERT sin nombre_original por compatibilidad
             insert_query = """
             INSERT INTO documentos_personal (
-                id_personal, tipo_documento, nombre_archivo, 
-                ruta_archivo, tamaño_archivo, tipo_mime, descripcion, 
+                id_personal, tipo_documento, nombre_archivo,
+                ruta_archivo, tamaño_archivo, tipo_mime, descripcion,
                 fecha_vencimiento, usuario_creacion
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            
+
             success = DataBaseHandle.ExecuteNonQuery(
-                insert_query, 
+                insert_query,
                 (personal_id, tipo_documento, nombre_archivo,
                  ruta_archivo, tamanio_archivo, tipo_mime, descripcion,
                  fecha_vencimiento, usuario_id)
@@ -65,11 +65,28 @@ class DocumentoPersonalComponent:
     def get_documentos_personal(personal_id):
         """Obtener todos los documentos de un miembro del personal"""
         try:
+            # Query solo con campos que existen en la tabla
             query = """
-            SELECT dp.*
+            SELECT
+                dp.id,
+                dp.id_personal,
+                dp.tipo_documento,
+                dp.nombre_archivo,
+                dp.nombre_archivo as nombre_original,
+                dp.ruta_archivo,
+                dp.tamaño_archivo,
+                dp.tipo_mime,
+                dp.descripcion,
+                dp.fecha_subida as fecha_creacion,
+                dp.fecha_vencimiento,
+                dp.estado_validacion,
+                dp.observaciones_validacion,
+                dp.validado_por,
+                dp.fecha_validacion,
+                FALSE as es_confidencial
             FROM documentos_personal dp
             WHERE dp.id_personal = %s
-            ORDER BY dp.fecha_creacion DESC
+            ORDER BY dp.fecha_subida DESC
             """
 
             documentos = DataBaseHandle.getRecords(query, (personal_id,))
@@ -175,16 +192,43 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def eliminar_documento_personal(documento_id):
-        """Eliminar un documento (marcarlo como eliminado)"""
+        """Eliminar un documento (elimina registro de BD y archivo físico)"""
         try:
-            query = """
-            DELETE FROM documentos_personal 
+            import os
+
+            # Primero obtener la información del documento para obtener la ruta del archivo
+            query_get = """
+            SELECT ruta_archivo
+            FROM documentos_personal
             WHERE id = %s
             """
-            
-            success = DataBaseHandle.ExecuteNonQuery(query, (documento_id,))
-            
+
+            documento = DataBaseHandle.getRecords(query_get, (documento_id,), size=1)
+
+            if not documento:
+                HandleLogs.write_error(f"DocumentoPersonalComponent.eliminar_documento_personal - Documento {documento_id} no encontrado")
+                return internal_response(False, None, "Documento no encontrado")
+
+            ruta_archivo = documento.get('ruta_archivo')
+
+            # Eliminar registro de la base de datos
+            query_delete = """
+            DELETE FROM documentos_personal
+            WHERE id = %s
+            """
+
+            success = DataBaseHandle.ExecuteNonQuery(query_delete, (documento_id,))
+
             if success:
+                # Si se eliminó de BD, intentar eliminar archivo físico
+                if ruta_archivo and os.path.exists(ruta_archivo):
+                    try:
+                        os.remove(ruta_archivo)
+                        HandleLogs.write_log(f"DocumentoPersonalComponent.eliminar_documento_personal - Archivo físico eliminado: {ruta_archivo}")
+                    except Exception as e:
+                        HandleLogs.write_error(f"DocumentoPersonalComponent.eliminar_documento_personal - Error eliminando archivo físico: {str(e)}")
+                        # No fallar si no se puede eliminar el archivo físico
+
                 HandleLogs.write_log(f"DocumentoPersonalComponent.eliminar_documento_personal - Documento {documento_id} eliminado")
                 return internal_response(True, {"documento_id": documento_id}, "Documento eliminado exitosamente")
             else:
@@ -332,16 +376,16 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def generar_nombre_archivo_unico(nombre_original):
-        """Generar un nombre de archivo único manteniendo la extensión original"""
+        """Generar un nombre de archivo único incluyendo el nombre original"""
         try:
             nombre_base, extension = os.path.splitext(nombre_original)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            uuid_corto = str(uuid.uuid4())[:8]
-            nombre_unico = f"{timestamp}_{uuid_corto}{extension}"
-            
+            uuid_corto = str(uuid.uuid4())[:8].replace('-', '')
+            # Formato: uuid_nombreoriginal.ext
+            nombre_unico = f"{uuid_corto}_{nombre_original}"
+
             HandleLogs.write_log(f"DocumentoPersonalComponent.generar_nombre_archivo_unico - Nombre generado: {nombre_unico}")
             return nombre_unico
-            
+
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalComponent.generar_nombre_archivo_unico - Error: {str(e)}")
             return f"documento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.bin"

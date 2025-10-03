@@ -22,7 +22,7 @@ class PersonaComponent:
                     p.telefono,
                     p.correo,
                     p.direccion,
-                    p.fecha_nacimiento,
+                    p.fecha_nacimiento::DATE as fecha_nacimiento,
                     p.estado,
                     p.fecha_creacion,
                     p.fecha_modificacion,
@@ -67,7 +67,7 @@ class PersonaComponent:
             else:
                 # Consulta sin filtro (solo para administradores de sistema)
                 query = """
-                SELECT 
+                SELECT
                     p.id,
                     p.nombre,
                     p.apellido,
@@ -76,7 +76,7 @@ class PersonaComponent:
                     p.telefono,
                     p.correo,
                     p.direccion,
-                    p.fecha_nacimiento,
+                    p.fecha_nacimiento::DATE as fecha_nacimiento,
                     p.estado,
                     p.fecha_creacion,
                     p.fecha_modificacion,
@@ -113,7 +113,7 @@ class PersonaComponent:
         """Obtener una persona por ID"""
         try:
             query = """
-            SELECT 
+            SELECT
                 p.id,
                 p.nombre,
                 p.apellido,
@@ -122,7 +122,7 @@ class PersonaComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
                 p.estado,
                 p.fecha_creacion,
                 p.fecha_modificacion,

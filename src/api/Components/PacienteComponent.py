@@ -11,11 +11,12 @@ class PacienteComponent:
         """Obtener todos los pacientes con información completa incluyendo especialidad"""
         try:
             query = """
-            SELECT 
+            SELECT
                 pac.id,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.motivo_consulta as observaciones_tratamiento,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
@@ -28,7 +29,7 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
@@ -89,11 +90,12 @@ class PacienteComponent:
         try:
             # Obtener información básica del paciente con especialidad
             query_paciente = """
-            SELECT 
+            SELECT
                 pac.id,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.motivo_consulta as observaciones_tratamiento,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
@@ -106,7 +108,7 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
                 -- Información del tutor
                 t.id as tutor_id,
                 t.parentesco,
@@ -1035,14 +1037,14 @@ class PacienteComponent:
                 e.area as especialidad_area,
                 pe.es_principal,
                 pe.prioridad,
-                pe.fecha_asignacion,
-                pe.fecha_inicio_tratamiento,
-                pe.fecha_fin_tratamiento,
+                pe.fecha_asignacion::DATE as fecha_asignacion,
+                pe.fecha_inicio_tratamiento::DATE as fecha_inicio_tratamiento,
+                pe.fecha_fin_tratamiento::DATE as fecha_fin_tratamiento,
                 pe.observaciones,
                 pe.estado,
                 pe.estado_pausa,
-                pe.fecha_inicio_pausa_esp,
-                pe.fecha_fin_pausa_esp,
+                pe.fecha_inicio_pausa_esp::DATE as fecha_inicio_pausa_esp,
+                pe.fecha_fin_pausa_esp::DATE as fecha_fin_pausa_esp,
                 pe.motivo_pausa_esp
             FROM paciente_especialidades pe
             INNER JOIN especialidad e ON pe.id_especialidad = e.id
