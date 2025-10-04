@@ -34,8 +34,10 @@ class PacienteComponent:
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.cedula as cedula_tutor,
                 pt.telefono as telefono_tutor,
-                pt.correo as correo_tutor
+                pt.correo as correo_tutor,
+                pt.direccion as direccion_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades)
             FROM paciente pac
             INNER JOIN persona p ON pac.id_persona = p.id
@@ -113,8 +115,10 @@ class PacienteComponent:
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.cedula as cedula_tutor,
                 pt.telefono as telefono_tutor,
-                pt.correo as correo_tutor
+                pt.correo as correo_tutor,
+                pt.direccion as direccion_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades)
             FROM paciente pac
             INNER JOIN persona p ON pac.id_persona = p.id
@@ -704,8 +708,10 @@ class PacienteComponent:
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.cedula as cedula_tutor,
                 pt.telefono as telefono_tutor,
-                pt.correo as correo_tutor
+                pt.correo as correo_tutor,
+                pt.direccion as direccion_tutor
                 -- Sin especialidad directa (se maneja por tabla paciente_especialidades),
                 -- Información del centro
                 c.nombre as centro_nombre,

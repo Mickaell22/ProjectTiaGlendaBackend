@@ -10,7 +10,8 @@
       "Bash(del debug_fecha_persona.py)",
       "Bash(del test_json_fix.py)",
       "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda)",
-      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -f \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\utils\\database\\agregar_nombre_original_documentos.sql\")"
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -f \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\utils\\database\\agregar_nombre_original_documentos.sql\")",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -c \"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = ''paciente'' ORDER BY ordinal_position;\")"
     ],
     "deny": [],
     "ask": [],
