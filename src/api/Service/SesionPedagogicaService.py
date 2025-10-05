@@ -874,7 +874,6 @@ class SesionPedagogicaService:
                         'nombre': registro['estudiante_nombre'],
                         'cedula': registro['estudiante_cedula'],
                         'asistio': registro['asistio'],
-                        'hora_llegada': str(registro['hora_llegada']) if registro['hora_llegada'] else None,
                         'llegada_tardanza_minutos': registro['llegada_tardanza_minutos'],
                         'tardanza_minutos': registro['llegada_tardanza_minutos'],  # Mantener ambos nombres
                         'estado_asistencia': registro['estado_asistencia'],
@@ -882,9 +881,9 @@ class SesionPedagogicaService:
                         'observaciones': registro['observaciones_educador'],  # Mantener ambos nombres
                         'calificacion_clase': registro['calificacion_clase'],
                         'calificacion': registro['calificacion_clase'],  # Mantener ambos nombres
-                        'fecha_registro': registro['fecha_registro'].isoformat() if registro['fecha_registro'] else None,
+                        'fecha_registro': registro['fecha_registro'].isoformat() if registro.get('fecha_registro') else None,
                         'objetivos_trabajados': registro['objetivos_trabajados'],
-                        'evaluacion_comportamiento': registro['evaluacion_comportamiento'],
+                        'participacion_clase': registro['participacion_clase'],
                         'tareas_asignadas': registro['tareas_asignadas'],
                         'actividades_completadas': registro['actividades_completadas']
                     }
@@ -989,6 +988,76 @@ class SesionPedagogicaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaService.cancelar_clase - Error: {str(e)}")
             return response_error(f"Error al cancelar clase: {str(e)}", 500)
+
+    @staticmethod
+    def actualizar_cronograma_clase(cronograma_id):
+        """Actualizar información de cronograma de clase (tema, objetivos, materiales)"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.actualizar_cronograma_clase - Cronograma: {cronograma_id}")
+
+            # Validar ID
+            if not isinstance(cronograma_id, int) or cronograma_id <= 0:
+                return response_error("ID de cronograma debe ser un número positivo", 400)
+
+            # Obtener datos JSON
+            data = request.get_json()
+            if not data:
+                return response_error("Datos de actualización son requeridos", 400)
+
+            # Preparar datos de actualización (solo campos permitidos)
+            update_data = {}
+
+            if 'tema_clase' in data:
+                update_data['tema_clase'] = data['tema_clase'].strip() if data['tema_clase'] else None
+
+            if 'objetivos_clase' in data:
+                update_data['objetivos_clase'] = data['objetivos_clase'].strip() if data['objetivos_clase'] else None
+
+            if 'materiales_necesarios' in data:
+                update_data['materiales_necesarios'] = data['materiales_necesarios'].strip() if data['materiales_necesarios'] else None
+
+            if not update_data:
+                return response_error("No se proporcionaron campos válidos para actualizar", 400)
+
+            # Actualizar en base de datos
+            from src.utils.database.connection_db import DataBaseHandle
+
+            # Construir query dinámica
+            set_clauses = []
+            params = []
+
+            for field, value in update_data.items():
+                set_clauses.append(f"{field} = %s")
+                params.append(value)
+
+            # Agregar fecha de modificación y usuario
+            set_clauses.append("fecha_modificacion = CURRENT_TIMESTAMP")
+            set_clauses.append("usuario_modificacion = %s")
+            params.append(request.current_user['id'])
+
+            # Agregar cronograma_id al final
+            params.append(cronograma_id)
+
+            query = f"""
+                UPDATE cronograma_clases
+                SET {', '.join(set_clauses)}
+                WHERE id = %s
+            """
+
+            result = DataBaseHandle.ExecuteNonQuery(query, tuple(params))
+
+            if not result:
+                return response_error("No se pudo actualizar el cronograma de clase", 500)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.actualizar_cronograma_clase - Actualizado exitosamente")
+            return response_success({
+                'cronograma_id': cronograma_id,
+                'campos_actualizados': list(update_data.keys())
+            }, "Cronograma de clase actualizado exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.actualizar_cronograma_clase - Error: {str(e)}")
+            return response_error(f"Error al actualizar cronograma de clase: {str(e)}", 500)
 
     # ============================================
     # MÉTODOS DE ENLACES PÚBLICOS PEDAGÓGICOS

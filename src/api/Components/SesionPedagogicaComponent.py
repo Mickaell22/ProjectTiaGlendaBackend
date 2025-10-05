@@ -866,23 +866,25 @@ class SesionPedagogicaComponent:
             # Insertar asistencia
             insert_query = """
                 INSERT INTO asistencia_clases (
-                    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+                    id_cronograma, id_paciente, asistio,
                     llegada_tardanza_minutos, estado_asistencia, observaciones_educador,
-                    objetivos_trabajados, calificacion_clase,
+                    objetivos_trabajados, participacion_clase, actividades_completadas,
+                    tareas_asignadas, calificacion_clase,
                     usuario_creacion
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
 
             params = (
                 cronograma_id,
                 estudiante_id,
                 asistencia_data.get('asistio', False),
-                asistencia_data.get('hora_llegada'),
-                asistencia_data.get('hora_salida'),
                 asistencia_data.get('llegada_tardanza_minutos', 0),
                 asistencia_data.get('estado_asistencia', 'presente' if asistencia_data.get('asistio') else 'ausente'),
                 asistencia_data.get('observaciones_educador') or asistencia_data.get('observaciones_asistencia'),
                 asistencia_data.get('objetivos_trabajados') or asistencia_data.get('proximos_objetivos'),
+                asistencia_data.get('participacion_clase'),
+                asistencia_data.get('actividades_completadas', False),
+                asistencia_data.get('tareas_asignadas'),
                 asistencia_data.get('calificacion_evaluacion') or asistencia_data.get('calificacion_clase'),
                 asistencia_data.get('usuario_creacion', 1)
             )
@@ -915,20 +917,22 @@ class SesionPedagogicaComponent:
             # PostgreSQL UPSERT: INSERT ... ON CONFLICT DO UPDATE
             upsert_query = """
                 INSERT INTO asistencia_clases (
-                    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+                    id_cronograma, id_paciente, asistio,
                     llegada_tardanza_minutos, estado_asistencia, observaciones_educador,
-                    objetivos_trabajados, calificacion_clase,
+                    objetivos_trabajados, participacion_clase, actividades_completadas,
+                    tareas_asignadas, calificacion_clase,
                     usuario_creacion, usuario_modificacion
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id_cronograma, id_paciente) 
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id_cronograma, id_paciente)
                 DO UPDATE SET
                     asistio = EXCLUDED.asistio,
-                    hora_llegada = EXCLUDED.hora_llegada,
-                    hora_salida = EXCLUDED.hora_salida,
                     llegada_tardanza_minutos = EXCLUDED.llegada_tardanza_minutos,
                     estado_asistencia = EXCLUDED.estado_asistencia,
                     observaciones_educador = EXCLUDED.observaciones_educador,
                     objetivos_trabajados = EXCLUDED.objetivos_trabajados,
+                    participacion_clase = EXCLUDED.participacion_clase,
+                    actividades_completadas = EXCLUDED.actividades_completadas,
+                    tareas_asignadas = EXCLUDED.tareas_asignadas,
                     calificacion_clase = EXCLUDED.calificacion_clase,
                     usuario_modificacion = EXCLUDED.usuario_modificacion,
                     fecha_modificacion = CURRENT_TIMESTAMP
@@ -938,13 +942,14 @@ class SesionPedagogicaComponent:
                 cronograma_id,
                 estudiante_id,
                 asistencia_data.get('asistio', False),
-                asistencia_data.get('hora_llegada'),
-                asistencia_data.get('hora_salida'),
                 asistencia_data.get('llegada_tardanza_minutos', 0),
                 asistencia_data.get('estado_asistencia', 'presente' if asistencia_data.get('asistio') else 'ausente'),
                 asistencia_data.get('observaciones_educador'),
                 asistencia_data.get('objetivos_trabajados'),
-                asistencia_data.get('calificacion_evaluacion'),
+                asistencia_data.get('participacion_clase'),
+                asistencia_data.get('actividades_completadas', False),
+                asistencia_data.get('tareas_asignadas'),
+                asistencia_data.get('calificacion_clase'),
                 asistencia_data.get('usuario_creacion', 1),
                 asistencia_data.get('usuario_modificacion', 1)
             )
@@ -962,7 +967,7 @@ class SesionPedagogicaComponent:
         """Obtener todas las asistencias de una sesión pedagógica"""
         try:
             query = """
-                SELECT 
+                SELECT
                     ac.id,
                     ac.id_cronograma,
                     ac.id_paciente,
@@ -972,13 +977,13 @@ class SesionPedagogicaComponent:
                     CONCAT(p.nombre, ' ', p.apellido) as estudiante_nombre,
                     p.cedula as estudiante_cedula,
                     ac.asistio,
-                    ac.hora_llegada,
-                    ac.hora_salida,
                     ac.llegada_tardanza_minutos,
                     ac.estado_asistencia,
                     ac.observaciones_educador,
                     ac.objetivos_trabajados,
-                    ac.progreso_observado,
+                    ac.participacion_clase,
+                    ac.actividades_completadas,
+                    ac.tareas_asignadas,
                     ac.calificacion_clase,
                     ac.fecha_creacion as fecha_registro
                 FROM asistencia_clases ac
@@ -1002,7 +1007,7 @@ class SesionPedagogicaComponent:
         """Obtener control de asistencia completo para una clase específica"""
         try:
             query = """
-                SELECT 
+                SELECT
                     cc.id as cronograma_id,
                     cc.numero_clase_semanal,
                     cc.fecha_programada,
@@ -1017,16 +1022,14 @@ class SesionPedagogicaComponent:
                     CONCAT(p_est.nombre, ' ', p_est.apellido) as estudiante_nombre,
                     p_est.cedula as estudiante_cedula,
                     ac.asistio,
-                    ac.hora_llegada,
-                    ac.hora_salida,
                     ac.llegada_tardanza_minutos,
                     ac.estado_asistencia,
                     ac.observaciones_educador,
                     ac.objetivos_trabajados,
-                    ac.calificacion_clase,
-                    ac.evaluacion_comportamiento,
-                    ac.tareas_asignadas,
+                    ac.participacion_clase,
                     ac.actividades_completadas,
+                    ac.tareas_asignadas,
+                    ac.calificacion_clase,
                     ac.fecha_creacion as fecha_registro,
                     ac.fecha_modificacion
                 FROM cronograma_clases cc

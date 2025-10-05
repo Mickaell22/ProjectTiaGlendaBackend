@@ -464,36 +464,29 @@ CREATE TABLE asistencia_sesiones (
     id SERIAL PRIMARY KEY,
     id_cronograma INTEGER NOT NULL,
     id_paciente INTEGER NOT NULL,
-    
+
     -- Registro de asistencia
     asistio BOOLEAN DEFAULT FALSE,
-    hora_llegada TIME,
-    hora_salida TIME,
     llegada_tardanza_minutos INTEGER DEFAULT 0,
-    estado_asistencia VARCHAR(20) DEFAULT 'pendiente' CHECK (estado_asistencia IN 
+    estado_asistencia VARCHAR(20) DEFAULT 'pendiente' CHECK (estado_asistencia IN
         ('pendiente', 'presente', 'ausente', 'tarde', 'justificado', 'cancelado')),
-    
+
     -- Observaciones de la sesión
     observaciones_terapeuta TEXT,
     objetivos_trabajados TEXT,
     actividades_realizadas TEXT,
     progreso_observado TEXT,
     tareas_asignadas TEXT,
-    
-    -- Evaluación de la sesión
-    calificacion_sesion INTEGER CHECK (calificacion_sesion BETWEEN 1 AND 5),
-    requiere_seguimiento BOOLEAN DEFAULT FALSE,
-    
-    
+
     -- Campos de auditoría
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usuario_creacion INTEGER,
     usuario_modificacion INTEGER,
-    
+
     FOREIGN KEY (id_cronograma) REFERENCES cronograma_sesiones(id) ON DELETE CASCADE,
     FOREIGN KEY (id_paciente) REFERENCES paciente(id) ON DELETE RESTRICT,
-    
+
     -- Constraint para evitar duplicados
     UNIQUE (id_cronograma, id_paciente)
 );
@@ -621,37 +614,32 @@ CREATE TABLE asistencia_clases (
     id SERIAL PRIMARY KEY,
     id_cronograma INTEGER NOT NULL,
     id_paciente INTEGER NOT NULL,
-    
+
     -- Registro de asistencia
     asistio BOOLEAN DEFAULT FALSE,
-    hora_llegada TIME,
-    hora_salida TIME,
     llegada_tardanza_minutos INTEGER DEFAULT 0 CHECK (llegada_tardanza_minutos >= 0),
-    estado_asistencia VARCHAR(20) DEFAULT 'pendiente' CHECK (estado_asistencia IN 
+    estado_asistencia VARCHAR(20) DEFAULT 'pendiente' CHECK (estado_asistencia IN
         ('pendiente', 'presente', 'ausente', 'tarde', 'justificado', 'cancelado')),
-    
+
     -- Observaciones académicas
     observaciones_educador TEXT,
     objetivos_trabajados TEXT,
     participacion_clase VARCHAR(20) CHECK (participacion_clase IN ('excelente', 'buena', 'regular', 'deficiente')),
-    comprension_tema VARCHAR(20) CHECK (comprension_tema IN ('excelente', 'buena', 'regular', 'deficiente')),
     actividades_completadas BOOLEAN DEFAULT FALSE,
     tareas_asignadas TEXT,
-    
+
     -- Evaluación académica
     calificacion_clase INTEGER CHECK (calificacion_clase BETWEEN 1 AND 10),
-    evaluacion_comportamiento VARCHAR(20) CHECK (evaluacion_comportamiento IN ('excelente', 'bueno', 'regular', 'necesita_apoyo')),
-    requiere_refuerzo BOOLEAN DEFAULT FALSE,
-    
+
     -- Campos de auditoría
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usuario_creacion INTEGER,
     usuario_modificacion INTEGER,
-    
+
     FOREIGN KEY (id_cronograma) REFERENCES cronograma_clases(id) ON DELETE CASCADE,
     FOREIGN KEY (id_paciente) REFERENCES paciente(id) ON DELETE RESTRICT,
-    
+
     -- Constraint para evitar duplicados
     UNIQUE (id_cronograma, id_paciente)
 );
@@ -1415,43 +1403,43 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Función para calcular tardanza (híbrida: manual + automática)
-CREATE OR REPLACE FUNCTION calcular_tardanza_asistencia()
+-- Función para validar y establecer el estado de asistencia automáticamente
+CREATE OR REPLACE FUNCTION establecer_estado_asistencia()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- PRIORIDAD 1: Si viene tardanza manual del frontend (> 0), mantenerla
-    IF NEW.llegada_tardanza_minutos IS NOT NULL AND NEW.llegada_tardanza_minutos > 0 THEN
-        -- Mantener el valor manual
-        RETURN NEW;
+    -- Si no se especifica estado_asistencia, calcularlo automáticamente
+    IF NEW.estado_asistencia IS NULL OR NEW.estado_asistencia = 'pendiente' THEN
+        IF NEW.asistio = TRUE THEN
+            IF NEW.llegada_tardanza_minutos > 0 THEN
+                NEW.estado_asistencia := 'tarde';
+            ELSE
+                NEW.estado_asistencia := 'presente';
+            END IF;
+        ELSE
+            NEW.estado_asistencia := 'ausente';
+        END IF;
     END IF;
-    
-    -- PRIORIDAD 2: Si hay hora_llegada, calcular automáticamente
-    IF NEW.asistio = TRUE AND NEW.hora_llegada IS NOT NULL THEN
-        -- Obtener la hora programada del cronograma
-        SELECT 
-            CASE 
-                WHEN NEW.hora_llegada > cs.hora_inicio THEN
-                    EXTRACT(EPOCH FROM (NEW.hora_llegada - cs.hora_inicio)) / 60
-                ELSE 
-                    0
-            END
-        INTO NEW.llegada_tardanza_minutos
-        FROM cronograma_sesiones cs
-        WHERE cs.id = NEW.id_cronograma;
-    ELSE
-        -- PRIORIDAD 3: Por defecto 0
+
+    -- Asegurar que llegada_tardanza_minutos no sea NULL
+    IF NEW.llegada_tardanza_minutos IS NULL THEN
         NEW.llegada_tardanza_minutos := 0;
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para calcular tardanza automáticamente
-CREATE TRIGGER trigger_calcular_tardanza
+-- Trigger para establecer el estado de asistencia automáticamente (sesiones terapéuticas)
+CREATE TRIGGER trigger_estado_asistencia
     BEFORE INSERT OR UPDATE ON asistencia_sesiones
     FOR EACH ROW
-    EXECUTE FUNCTION calcular_tardanza_asistencia();
+    EXECUTE FUNCTION establecer_estado_asistencia();
+
+-- Trigger para establecer el estado de asistencia automáticamente (clases pedagógicas)
+CREATE TRIGGER trigger_estado_asistencia_clases
+    BEFORE INSERT OR UPDATE ON asistencia_clases
+    FOR EACH ROW
+    EXECUTE FUNCTION establecer_estado_asistencia();
 
 -- =============================================
 -- COMENTARIOS EN TABLAS

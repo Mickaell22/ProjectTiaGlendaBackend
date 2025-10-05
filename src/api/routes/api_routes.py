@@ -1408,6 +1408,13 @@ def register_routes(app):
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.reprogramar_clase(cronograma_id)
 
+        @app.route('/api/cronograma-clases/<int:cronograma_id>', methods=['PUT'])
+        @token_required
+        def actualizar_cronograma_clase(cronograma_id):
+            """Actualizar información de cronograma de clase (tema, objetivos, etc.)"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.actualizar_cronograma_clase(cronograma_id)
+
         @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/cancelar', methods=['PUT'])
         @token_required
         def cancelar_clase(cronograma_id):

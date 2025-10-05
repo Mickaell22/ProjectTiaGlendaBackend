@@ -732,14 +732,13 @@ class SesionTerapiaComponent:
             # Query que incluye TODOS los pacientes asignados a la sesión, 
             # incluso si no tienen registro de asistencia todavía
             query = """
-                SELECT 
+                SELECT
                     COALESCE(a.id, NULL) as id,
                     %s as id_cronograma,
                     sp.id_paciente,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
                     COALESCE(a.asistio, false) as asistio,
-                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     COALESCE(a.llegada_tardanza_minutos, 0) as llegada_tardanza_minutos,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
@@ -773,7 +772,7 @@ class SesionTerapiaComponent:
         """Obtener todos los pacientes de la sesión con su estado de asistencia para un cronograma específico"""
         try:
             query = """
-                SELECT 
+                SELECT
                     cs.id as cronograma_id,
                     cs.numero_sesion_semanal,
                     cs.fecha_programada,
@@ -788,13 +787,12 @@ class SesionTerapiaComponent:
                     p.cedula as paciente_cedula,
                     -- Información de asistencia (si existe)
                     COALESCE(a.asistio, false) as asistio,
-                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     COALESCE(a.llegada_tardanza_minutos, 0) as llegada_tardanza_minutos,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
                     a.objetivos_trabajados,
-                    CASE 
+                    CASE
                         WHEN a.id IS NOT NULL THEN 'registrada'
                         ELSE 'pendiente'
                     END as estado_asistencia
@@ -864,7 +862,6 @@ class SesionTerapiaComponent:
                         'paciente_nombre': row['paciente_nombre'],
                         'paciente_cedula': row['paciente_cedula'],
                         'asistio': row['asistio'],
-                        'hora_llegada': str(row['hora_llegada']) if row['hora_llegada'] else None,
                         'llegada_tardanza_minutos': row['llegada_tardanza_minutos'],
                         'observaciones_terapeuta': row['observaciones_terapeuta'],
                         'progreso_observado': row['progreso_observado'],
@@ -889,9 +886,10 @@ class SesionTerapiaComponent:
         """Actualizar asistencia existente de un paciente"""
         try:
             query = """
-                UPDATE asistencia_sesiones 
+                UPDATE asistencia_sesiones
                 SET asistio = %s,
-                    hora_llegada = %s,
+                    llegada_tardanza_minutos = %s,
+                    estado_asistencia = %s,
                     observaciones_terapeuta = %s,
                     progreso_observado = %s,
                     tareas_asignadas = %s,
@@ -900,13 +898,14 @@ class SesionTerapiaComponent:
                     fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id_cronograma = %s AND id_paciente = %s
             """
-            
+
             # Limpiar campos de texto para UTF-8
             from src.utils.general.utf8_helper import UTF8Helper
-            
+
             params = (
                 data.get('asistio', False),
-                data.get('hora_llegada'),
+                data.get('llegada_tardanza_minutos', 0),
+                data.get('estado_asistencia', 'pendiente'),
                 UTF8Helper.clean_observaciones(data.get('observaciones_terapeuta', '')),
                 UTF8Helper.clean_observaciones(data.get('progreso_observado', '')),
                 UTF8Helper.clean_observaciones(data.get('tareas_asignadas', '')),
@@ -938,15 +937,15 @@ class SesionTerapiaComponent:
             # Ejecutar UPSERT usando ExecuteNonQuery
             upsert_query = """
                 INSERT INTO asistencia_sesiones (
-                    id_cronograma, id_paciente, asistio, hora_llegada, llegada_tardanza_minutos,
+                    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos, estado_asistencia,
                     observaciones_terapeuta, progreso_observado, tareas_asignadas,
                     objetivos_trabajados, usuario_creacion
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id_cronograma, id_paciente) 
+                ON CONFLICT (id_cronograma, id_paciente)
                 DO UPDATE SET
                     asistio = EXCLUDED.asistio,
-                    hora_llegada = EXCLUDED.hora_llegada,
                     llegada_tardanza_minutos = EXCLUDED.llegada_tardanza_minutos,
+                    estado_asistencia = EXCLUDED.estado_asistencia,
                     observaciones_terapeuta = EXCLUDED.observaciones_terapeuta,
                     progreso_observado = EXCLUDED.progreso_observado,
                     tareas_asignadas = EXCLUDED.tareas_asignadas,
@@ -956,43 +955,27 @@ class SesionTerapiaComponent:
 
             # Limpiar campos de texto para UTF-8
             from src.utils.general.utf8_helper import UTF8Helper
-            
-            # Calcular hora_llegada si se proporciona llegada_tardanza_minutos
-            hora_llegada = asistencia_data.get('hora_llegada')
-            if not hora_llegada and asistencia_data.get('llegada_tardanza_minutos', 0) > 0:
-                try:
-                    # Obtener hora de inicio programada para calcular hora_llegada
-                    cronograma_query = """
-                        SELECT hora_inicio FROM cronograma_sesiones WHERE id = %s
-                    """
-                    cronograma_result = DataBaseHandle.getRecords(cronograma_query, (cronograma_id,), size=1)
-                    if cronograma_result and len(cronograma_result) > 0:
-                        from datetime import datetime, timedelta
-                        hora_inicio = cronograma_result[0]['hora_inicio']
-                        if isinstance(hora_inicio, str):
-                            # Parse time string if needed
-                            hora_inicio = datetime.strptime(hora_inicio, '%H:%M:%S').time()
-                        
-                        # Convert to datetime to add minutes
-                        base_date = datetime.combine(datetime.today().date(), hora_inicio)
-                        hora_llegada_calc = base_date + timedelta(minutes=asistencia_data.get('llegada_tardanza_minutos', 0))
-                        hora_llegada = hora_llegada_calc.time()
-                        HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - Calculada hora_llegada: {hora_llegada} (tardanza: {asistencia_data.get('llegada_tardanza_minutos', 0)} min)")
-                    else:
-                        HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - No se encontró cronograma {cronograma_id}, usando tardanza manual")
-                except Exception as e:
-                    HandleLogs.write_error(f"SesionTerapiaComponent.registrar_asistencia - Error calculando hora_llegada: {str(e)}")
-            
+
+            # Determinar estado de asistencia
+            estado_asistencia = 'pendiente'
+            if asistencia_data.get('asistio', False):
+                if asistencia_data.get('llegada_tardanza_minutos', 0) > 0:
+                    estado_asistencia = 'tarde'
+                else:
+                    estado_asistencia = 'presente'
+            else:
+                estado_asistencia = asistencia_data.get('estado_asistencia', 'ausente')
+
             params = (
                 cronograma_id,
                 paciente_id,
                 asistencia_data.get('asistio', False),
-                hora_llegada,
                 asistencia_data.get('llegada_tardanza_minutos', 0),
-                UTF8Helper.clean_observaciones(asistencia_data.get('observaciones_asistencia')),
-                UTF8Helper.clean_observaciones(asistencia_data.get('notas_progreso')),
+                estado_asistencia,
+                UTF8Helper.clean_observaciones(asistencia_data.get('observaciones_terapeuta')),
+                UTF8Helper.clean_observaciones(asistencia_data.get('progreso_observado')),
                 UTF8Helper.clean_observaciones(asistencia_data.get('tareas_asignadas')),
-                UTF8Helper.clean_observaciones(asistencia_data.get('proximos_objetivos')),
+                UTF8Helper.clean_observaciones(asistencia_data.get('objetivos_trabajados')),
                 asistencia_data['usuario_creacion']
             )
 
@@ -1004,7 +987,7 @@ class SesionTerapiaComponent:
             # Actualizar estado del cronograma si el paciente asistió
             if asistencia_data.get('asistio', False):
                 # Marcar sesión como realizada si al menos un paciente asistió
-                observaciones_cronograma = asistencia_data.get('observaciones_asistencia') or asistencia_data.get('notas_progreso')
+                observaciones_cronograma = asistencia_data.get('observaciones_terapeuta') or asistencia_data.get('progreso_observado')
                 SesionTerapiaComponent.marcar_sesion_realizada(cronograma_id, observaciones_cronograma)
                 HandleLogs.write_log(f"SesionTerapiaComponent.registrar_asistencia - Cronograma {cronograma_id} marcado como realizada")
                 
@@ -1319,15 +1302,15 @@ class SesionTerapiaComponent:
         """Obtener todas las asistencias de una sesión de terapia"""
         try:
             query = """
-                SELECT 
+                SELECT
                     a.id,
                     a.id_cronograma,
                     a.id_paciente,
                     CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                     p.cedula as paciente_cedula,
                     a.asistio,
-                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
                     a.llegada_tardanza_minutos,
+                    a.estado_asistencia,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,
@@ -1361,12 +1344,13 @@ class SesionTerapiaComponent:
         """Obtener historial de asistencias de un paciente específico"""
         try:
             query = """
-                SELECT 
+                SELECT
                     a.id,
                     a.id_cronograma,
                     a.id_paciente,
                     a.asistio,
-                    CAST(a.hora_llegada AS TEXT) as hora_llegada,
+                    a.llegada_tardanza_minutos,
+                    a.estado_asistencia,
                     a.observaciones_terapeuta,
                     a.progreso_observado,
                     a.tareas_asignadas,

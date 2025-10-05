@@ -708,18 +708,17 @@ LIMIT 64; -- 2 clases por semana durante 8 meses
 
 -- Asistencias Sesión Terapéutica ST-2025-0001 (Sebastián)
 INSERT INTO asistencia_sesiones (
-    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
     estado_asistencia, observaciones_terapeuta, objetivos_trabajados,
-    progreso_observado, calificacion_sesion
+    progreso_observado
 )
-SELECT 
+SELECT
     cs.id,
     (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567900')),
-    true, '08:00', '08:45', 'presente',
+    true, 0, 'presente',
     'Sesión productiva, paciente colaborador',
     'Articulación de fonemas /r/ y /l/',
-    'Mejora notable en pronunciación',
-    4
+    'Mejora notable en pronunciación'
 FROM cronograma_sesiones cs
 JOIN sesion_terapia st ON cs.id_sesion = st.id
 WHERE st.codigo_sesion = 'ST-2025-0001'
@@ -728,18 +727,17 @@ LIMIT 5;
 
 -- Asistencias Sesión Fisioterapia ST-2025-0002 (Valentina)
 INSERT INTO asistencia_sesiones (
-    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
     estado_asistencia, observaciones_terapeuta, objetivos_trabajados,
-    progreso_observado, calificacion_sesion
+    progreso_observado
 )
-SELECT 
+SELECT
     cs.id,
     (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567901')),
-    true, '09:00', '09:45', 'presente',
+    true, 0, 'presente',
     'Excelente disposición para los ejercicios',
     'Fortalecimiento de pinza digital y coordinación',
-    'Mejoras en fuerza y precisión',
-    5
+    'Mejoras en fuerza y precisión'
 FROM cronograma_sesiones cs
 JOIN sesion_terapia st ON cs.id_sesion = st.id
 WHERE st.codigo_sesion = 'ST-2025-0002'
@@ -748,16 +746,16 @@ LIMIT 4;
 
 -- Asistencias Sesión Pedagógica SP-2025-0003 (Ana Sofía - Centro Norte)
 INSERT INTO asistencia_clases (
-    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
     estado_asistencia, observaciones_educador, participacion_clase,
-    comprension_tema, actividades_completadas, calificacion_clase
+    actividades_completadas, calificacion_clase
 )
 SELECT
     cc.id,
     (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567907')),
-    true, '08:00', '09:00', 'presente',
+    true, 0, 'presente',
     'Excelente participación en actividades de lectura',
-    'buena', 'buena', true, 8
+    'buena', true, 8
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
 WHERE sp.codigo_sesion = 'SP-2025-0003'
@@ -766,16 +764,16 @@ LIMIT 6;
 
 -- Asistencias Sesión Pedagógica SP-2025-0004 (Mateo - Centro Sur)
 INSERT INTO asistencia_clases (
-    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
     estado_asistencia, observaciones_educador, participacion_clase,
-    comprension_tema, actividades_completadas, calificacion_clase
+    actividades_completadas, calificacion_clase
 )
 SELECT
     cc.id,
     (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567902')),
-    true, '14:00', '15:00', 'presente',
+    true, 0, 'presente',
     'Responde bien a estímulos visuales en lectoescritura',
-    'buena', 'buena', true, 7
+    'buena', true, 7
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
 WHERE sp.codigo_sesion = 'SP-2025-0004'
@@ -784,17 +782,16 @@ LIMIT 5;
 
 -- Asistencias Sesión Pedagógica SP-2025-0005 (Isabella - Matemáticas Centro Sur)
 INSERT INTO asistencia_clases (
-    id_cronograma, id_paciente, asistio, hora_llegada, hora_salida,
+    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
     estado_asistencia, observaciones_educador, participacion_clase,
-    comprension_tema, actividades_completadas, calificacion_clase,
-    evaluacion_comportamiento
+    actividades_completadas, calificacion_clase
 )
 SELECT
     cc.id,
     (SELECT id FROM paciente WHERE id_persona = (SELECT id FROM persona WHERE cedula = '1234567903')),
-    true, '15:00', '16:00', 'presente',
+    true, 0, 'presente',
     'Muy dedicada en resolver ejercicios matemáticos',
-    'excelente', 'buena', true, 9, 'excelente'
+    'excelente', true, 9
 FROM cronograma_clases cc
 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
 WHERE sp.codigo_sesion = 'SP-2025-0005'

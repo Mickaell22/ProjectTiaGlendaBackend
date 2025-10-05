@@ -1068,15 +1068,17 @@ class SesionTerapiaService:
                 HandleLogs.write_error(f"SesionTerapiaService.registrar_asistencia - Error verificando paciente: {str(check_error)}")
                 return response_error(f"Error verificando paciente: {str(check_error)}", 500)
 
-            # Preparar datos de asistencia con mapeo correcto de campos
+            # Preparar datos de asistencia - usar nombres exactos de la BD
+            # Frontend y BD usan los mismos nombres: observaciones_terapeuta, progreso_observado, objetivos_trabajados
             asistencia_data = {
                 'asistio': data.get('asistio', False),
                 'llegada_tardanza_minutos': data.get('llegada_tardanza_minutos', 0) if data.get('llegada_tardanza_minutos') else 0,
-                'hora_llegada': data.get('hora_llegada') if data.get('hora_llegada') else None,
-                'observaciones_asistencia': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
-                'notas_progreso': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
+                'estado_asistencia': data.get('estado_asistencia'),
+                # Nombres directos de la BD (sin mapeo)
+                'observaciones_terapeuta': data.get('observaciones_terapeuta', '').strip() if data.get('observaciones_terapeuta') else None,
+                'progreso_observado': data.get('progreso_observado', '').strip() if data.get('progreso_observado') else None,
                 'tareas_asignadas': data.get('tareas_asignadas', '').strip() if data.get('tareas_asignadas') else None,
-                'proximos_objetivos': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None,
+                'objetivos_trabajados': data.get('objetivos_trabajados', '').strip() if data.get('objetivos_trabajados') else None,
                 'usuario_creacion': current_user['id']
             }
             
@@ -1231,15 +1233,17 @@ class SesionTerapiaService:
             current_user = g.get('usuario_info', {})
             usuario_modificacion = current_user.get('id', 1)
 
-            # Preparar datos de asistencia con mapeo correcto de campos (igual que en registrar)
+            # Preparar datos de asistencia - usar nombres exactos de la BD (igual que en registrar)
+            # Frontend y BD usan los mismos nombres: observaciones_terapeuta, progreso_observado, objetivos_trabajados
             asistencia_data = {
                 'asistio': data.get('asistio', False),
                 'llegada_tardanza_minutos': data.get('llegada_tardanza_minutos', 0) if data.get('llegada_tardanza_minutos') else 0,
-                'hora_llegada': data.get('hora_llegada') if data.get('hora_llegada') else None,
-                'observaciones_asistencia': data.get('observaciones_asistencia', '').strip() if data.get('observaciones_asistencia') else None,
-                'notas_progreso': data.get('notas_progreso', '').strip() if data.get('notas_progreso') else None,
+                'estado_asistencia': data.get('estado_asistencia'),
+                # Nombres directos de la BD (sin mapeo)
+                'observaciones_terapeuta': data.get('observaciones_terapeuta', '').strip() if data.get('observaciones_terapeuta') else None,
+                'progreso_observado': data.get('progreso_observado', '').strip() if data.get('progreso_observado') else None,
                 'tareas_asignadas': data.get('tareas_asignadas', '').strip() if data.get('tareas_asignadas') else None,
-                'proximos_objetivos': data.get('proximos_objetivos', '').strip() if data.get('proximos_objetivos') else None
+                'objetivos_trabajados': data.get('objetivos_trabajados', '').strip() if data.get('objetivos_trabajados') else None
             }
             
             # Debug logging para verificar datos recibidos
