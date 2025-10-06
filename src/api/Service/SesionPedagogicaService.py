@@ -527,6 +527,61 @@ class SesionPedagogicaService:
             return response_error(f"Error al remover estudiante: {str(e)}", 500)
 
     @staticmethod
+    def get_estudiantes_retirados(sesion_id):
+        """Obtener estudiantes retirados de una sesión pedagógica"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.get_estudiantes_retirados - Sesión: {sesion_id}")
+
+            estudiantes = SesionPedagogicaComponent.get_estudiantes_retirados_sesion(sesion_id)
+
+            if estudiantes:
+                estudiantes_formateados = []
+                for estudiante in estudiantes:
+                    estudiante_data = {
+                        'id': estudiante['id'],
+                        'estudiante': {
+                            'id': estudiante['paciente_id'],
+                            'nombre': estudiante['estudiante_nombre'],
+                            'cedula': estudiante['estudiante_cedula']
+                        },
+                        'tutor': {
+                            'nombre': estudiante['tutor_nombre'],
+                            'telefono': estudiante['tutor_telefono']
+                        },
+                        'fecha_incorporacion': estudiante['fecha_incorporacion'].isoformat() if estudiante['fecha_incorporacion'] else None,
+                        'observaciones_estudiante': estudiante['observaciones_estudiante'],
+                        'estado': estudiante['estado']
+                    }
+                    estudiantes_formateados.append(estudiante_data)
+
+                return response_success(estudiantes_formateados, "Estudiantes retirados obtenidos exitosamente")
+            else:
+                return response_success([], "No hay estudiantes retirados en esta sesión")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.get_estudiantes_retirados - Error: {str(e)}")
+            return response_error(f"Error al obtener estudiantes retirados: {str(e)}", 500)
+
+    @staticmethod
+    def reincorporar_estudiante(sesion_id, paciente_id):
+        """Reincorporar un estudiante retirado a una sesión pedagógica"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.reincorporar_estudiante - Sesión: {sesion_id}, Paciente: {paciente_id}")
+
+            # Reincorporar estudiante
+            SesionPedagogicaComponent.reincorporar_estudiante_sesion(sesion_id, paciente_id)
+
+            HandleLogs.write_log(f"SesionPedagogicaService.reincorporar_estudiante - Estudiante reincorporado")
+            return response_success({
+                'sesion_id': sesion_id,
+                'paciente_id': paciente_id
+            }, "Estudiante reincorporado a la sesión pedagógica exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.reincorporar_estudiante - Error: {str(e)}")
+            return response_error(f"Error al reincorporar estudiante: {str(e)}", 500)
+
+    @staticmethod
     def get_cronograma_sesion(sesion_id):
         """Obtener cronograma de una sesión pedagógica"""
         try:

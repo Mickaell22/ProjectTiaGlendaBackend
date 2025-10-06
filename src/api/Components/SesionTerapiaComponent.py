@@ -416,7 +416,7 @@ class SesionTerapiaComponent:
                 LEFT JOIN tutor t ON pac.id_tutor = t.id
                 LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
                 WHERE sp.id_sesion = %s
-                ORDER BY sp.fecha_inscripcion
+                ORDER BY sp.estado DESC, sp.fecha_inscripcion
             """
 
             params = (sesion_id,)
@@ -478,8 +478,8 @@ class SesionTerapiaComponent:
         """Remover un paciente de una sesión (cambiar estado a retirado)"""
         try:
             query = """
-                UPDATE sesion_paciente 
-                SET estado = 'retirado' 
+                UPDATE sesion_paciente
+                SET estado = 'retirado'
                 WHERE id_sesion = %s AND id_paciente = %s
             """
             params = (sesion_id, paciente_id)
@@ -492,6 +492,58 @@ class SesionTerapiaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.remove_paciente_from_sesion - Error: {str(e)}")
             raise Exception(f"Error al retirar paciente de la sesión: {str(e)}")
+
+    @staticmethod
+    def get_pacientes_retirados_sesion(sesion_id):
+        """Obtener pacientes retirados de una sesión terapéutica"""
+        try:
+            query = """
+                SELECT
+                    sp.id,
+                    sp.id_paciente as paciente_id,
+                    CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                    p.cedula as paciente_cedula,
+                    sp.fecha_inscripcion as fecha_asignacion,
+                    sp.observaciones,
+                    sp.estado,
+                    CONCAT(p_tutor.nombre, ' ', p_tutor.apellido) as tutor_nombre,
+                    p_tutor.telefono as tutor_telefono
+                FROM sesion_paciente sp
+                JOIN paciente pac ON sp.id_paciente = pac.id
+                JOIN persona p ON pac.id_persona = p.id
+                LEFT JOIN tutor t ON pac.id_tutor = t.id
+                LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
+                WHERE sp.id_sesion = %s AND sp.estado = 'retirado'
+                ORDER BY sp.fecha_inscripcion
+            """
+            params = (sesion_id,)
+            result = DataBaseHandle.getRecords(query, params)
+            HandleLogs.write_log(
+                f"SesionTerapiaComponent.get_pacientes_retirados_sesion - {len(result) if result else 0} pacientes retirados encontrados")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_pacientes_retirados_sesion - Error: {str(e)}")
+            raise Exception(f"Error al obtener pacientes retirados: {str(e)}")
+
+    @staticmethod
+    def reincorporar_paciente_sesion(sesion_id, paciente_id):
+        """Reincorporar un paciente previamente retirado a una sesión terapéutica"""
+        try:
+            query = """
+                UPDATE sesion_paciente
+                SET estado = 'activo'
+                WHERE id_sesion = %s AND id_paciente = %s AND estado = 'retirado'
+            """
+            params = (sesion_id, paciente_id)
+
+            DataBaseHandle.ExecuteNonQuery(query, params)
+            HandleLogs.write_log(f"SesionTerapiaComponent.reincorporar_paciente_sesion - Paciente reincorporado a sesión {sesion_id}")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.reincorporar_paciente_sesion - Error: {str(e)}")
+            raise Exception(f"Error al reincorporar paciente: {str(e)}")
 
     # ============================================
     # MÉTODOS PARA CRONOGRAMA_SESIONES

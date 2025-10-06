@@ -1133,6 +1133,20 @@ def register_routes(app):
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.remove_paciente_from_sesion(sesion_id, paciente_id)
 
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/pacientes-retirados', methods=['GET'])
+        @token_required
+        def get_pacientes_retirados_sesion(sesion_id):
+            """Obtener pacientes retirados de una sesión terapéutica"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.get_pacientes_retirados(sesion_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/pacientes/<int:paciente_id>/reincorporar', methods=['PUT'])
+        @token_required
+        def reincorporar_paciente_sesion(sesion_id, paciente_id):
+            """Reincorporar un paciente retirado a una sesión terapéutica"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.reincorporar_paciente(sesion_id, paciente_id)
+
         # ============================================
         # RUTAS DE GESTIÓN DE CRONOGRAMA
         # ============================================
@@ -1389,6 +1403,34 @@ def register_routes(app):
             """Obtener estudiantes de una sesión pedagógica"""
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.get_estudiantes_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes', methods=['POST'])
+        @token_required
+        def add_estudiante_sesion_pedagogica(sesion_id):
+            """Agregar estudiante a una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.add_estudiante_to_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes/<int:paciente_id>', methods=['DELETE'])
+        @token_required
+        def remove_estudiante_sesion_pedagogica(sesion_id, paciente_id):
+            """Remover estudiante de una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.remove_estudiante_from_sesion(sesion_id, paciente_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes-retirados', methods=['GET'])
+        @token_required
+        def get_estudiantes_retirados_sesion_pedagogica(sesion_id):
+            """Obtener estudiantes retirados de una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_estudiantes_retirados(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/estudiantes/<int:paciente_id>/reincorporar', methods=['PUT'])
+        @token_required
+        def reincorporar_estudiante_sesion_pedagogica(sesion_id, paciente_id):
+            """Reincorporar un estudiante retirado a una sesión pedagógica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.reincorporar_estudiante(sesion_id, paciente_id)
 
         # ============================================
         # ENDPOINTS PARA CRONOGRAMA PEDAGÓGICO

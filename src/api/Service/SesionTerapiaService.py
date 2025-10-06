@@ -914,6 +914,42 @@ class SesionTerapiaService:
             HandleLogs.write_error(f"SesionTerapiaService.remove_paciente_from_sesion - Error: {str(e)}")
             return response_error(f"Error al retirar paciente de la sesión: {str(e)}", 500)
 
+    @staticmethod
+    def get_pacientes_retirados(sesion_id):
+        """Obtener pacientes retirados de una sesión terapéutica"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.get_pacientes_retirados - Sesión: {sesion_id}")
+
+            pacientes = SesionTerapiaComponent.get_pacientes_retirados_sesion(sesion_id)
+
+            if pacientes:
+                return response_success(pacientes, "Pacientes retirados obtenidos exitosamente")
+            else:
+                return response_success([], "No hay pacientes retirados en esta sesión")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.get_pacientes_retirados - Error: {str(e)}")
+            return response_error(f"Error al obtener pacientes retirados: {str(e)}", 500)
+
+    @staticmethod
+    def reincorporar_paciente(sesion_id, paciente_id):
+        """Reincorporar un paciente retirado a una sesión terapéutica"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.reincorporar_paciente - Sesión: {sesion_id}, Paciente: {paciente_id}")
+
+            # Reincorporar paciente
+            SesionTerapiaComponent.reincorporar_paciente_sesion(sesion_id, paciente_id)
+
+            HandleLogs.write_log(f"SesionTerapiaService.reincorporar_paciente - Paciente reincorporado")
+            return response_success({
+                'sesion_id': sesion_id,
+                'paciente_id': paciente_id
+            }, "Paciente reincorporado a la sesión terapéutica exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.reincorporar_paciente - Error: {str(e)}")
+            return response_error(f"Error al reincorporar paciente: {str(e)}", 500)
+
     # ============================================
     # MÉTODOS PARA GESTIÓN DE CRONOGRAMA
     # ============================================

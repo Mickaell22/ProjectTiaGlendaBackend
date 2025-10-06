@@ -565,8 +565,8 @@ class SesionPedagogicaComponent:
                 LEFT JOIN persona p ON pac.id_persona = p.id
                 LEFT JOIN tutor t ON pac.id_tutor = t.id
                 LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
-                WHERE se.id_sesion = %s AND se.estado != 'retirado'
-                ORDER BY se.fecha_inscripcion
+                WHERE se.id_sesion = %s
+                ORDER BY se.estado DESC, se.fecha_inscripcion
             """
 
             params = (sesion_id,)
@@ -640,7 +640,7 @@ class SesionPedagogicaComponent:
         """Remover estudiante de una sesión pedagógica"""
         try:
             query = """
-                UPDATE sesion_estudiante 
+                UPDATE sesion_estudiante
                 SET estado = 'retirado'
                 WHERE id_sesion = %s AND id_paciente = %s
             """
@@ -653,6 +653,58 @@ class SesionPedagogicaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.remove_estudiante_from_sesion - Error: {str(e)}")
             raise Exception(f"Error al remover estudiante: {str(e)}")
+
+    @staticmethod
+    def get_estudiantes_retirados_sesion(sesion_id):
+        """Obtener estudiantes retirados de una sesión pedagógica"""
+        try:
+            query = """
+                SELECT
+                    se.id,
+                    se.id_paciente as paciente_id,
+                    CONCAT(p.nombre, ' ', p.apellido) as estudiante_nombre,
+                    p.cedula as estudiante_cedula,
+                    se.fecha_inscripcion as fecha_incorporacion,
+                    se.observaciones as observaciones_estudiante,
+                    se.estado,
+                    CONCAT(p_tutor.nombre, ' ', p_tutor.apellido) as tutor_nombre,
+                    p_tutor.telefono as tutor_telefono
+                FROM sesion_estudiante se
+                LEFT JOIN paciente pac ON se.id_paciente = pac.id
+                LEFT JOIN persona p ON pac.id_persona = p.id
+                LEFT JOIN tutor t ON pac.id_tutor = t.id
+                LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
+                WHERE se.id_sesion = %s AND se.estado = 'retirado'
+                ORDER BY se.fecha_inscripcion
+            """
+            params = (sesion_id,)
+            result = DataBaseHandle.getRecords(query, params)
+            HandleLogs.write_log(
+                f"SesionPedagogicaComponent.get_estudiantes_retirados_sesion - {len(result) if result else 0} estudiantes retirados encontrados")
+            return result
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.get_estudiantes_retirados_sesion - Error: {str(e)}")
+            raise Exception(f"Error al obtener estudiantes retirados: {str(e)}")
+
+    @staticmethod
+    def reincorporar_estudiante_sesion(sesion_id, paciente_id):
+        """Reincorporar un estudiante previamente retirado a una sesión pedagógica"""
+        try:
+            query = """
+                UPDATE sesion_estudiante
+                SET estado = 'activo'
+                WHERE id_sesion = %s AND id_paciente = %s AND estado = 'retirado'
+            """
+            params = (sesion_id, paciente_id)
+
+            DataBaseHandle.ExecuteNonQuery(query, params)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.reincorporar_estudiante_sesion - Estudiante reincorporado a sesión {sesion_id}")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.reincorporar_estudiante_sesion - Error: {str(e)}")
+            raise Exception(f"Error al reincorporar estudiante: {str(e)}")
 
     # ============================================
     # MÉTODOS PARA CRONOGRAMA DE CLASES
