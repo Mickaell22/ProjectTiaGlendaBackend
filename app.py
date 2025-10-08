@@ -164,7 +164,7 @@ def internal_error(error):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('DEBUG', 'True').lower() == 'true'
+    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
 
     HandleLogs.write_log("app - Iniciando Sistema Tía Glenda Backend")
     print("=" * 70)

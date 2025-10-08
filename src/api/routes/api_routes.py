@@ -1464,6 +1464,13 @@ def register_routes(app):
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.cancelar_clase(cronograma_id)
 
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/asistencias', methods=['GET'])
+        @token_required
+        def get_asistencias_por_sesion_pedagogica(sesion_id):
+            """Obtener todas las asistencias de una sesion pedagogica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.get_asistencias_por_sesion(sesion_id)
+
         @app.route('/api/sesiones-pedagogicas/cronograma/<int:cronograma_id>/control-asistencia', methods=['GET'])
         @token_required
         def get_control_asistencia_clase(cronograma_id):

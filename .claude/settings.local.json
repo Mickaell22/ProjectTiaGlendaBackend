@@ -11,7 +11,13 @@
       "Bash(del test_json_fix.py)",
       "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda)",
       "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -f \"C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\utils\\database\\agregar_nombre_original_documentos.sql\")",
-      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -c \"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = ''paciente'' ORDER BY ordinal_position;\")"
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -c \"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = ''paciente'' ORDER BY ordinal_position;\")",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -h localhost -p 5432 -U postgres -d centro_tia_glenda -c \"SELECT st.codigo_sesion, st.titulo, COUNT(cs.id) as num_cronogramas FROM sesion_terapia st LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion WHERE st.codigo_sesion LIKE ''ST-NORTE%'' GROUP BY st.codigo_sesion, st.titulo ORDER BY st.codigo_sesion;\")",
+      "Bash(findstr /C:\"ST-NORTE\" 04_datos_norte.sql)",
+      "Bash(findstr:*)",
+      "Bash(railway status:*)",
+      "Bash(railway environment:*)",
+      "Bash(railway variables:*)"
     ],
     "deny": [],
     "ask": [],
