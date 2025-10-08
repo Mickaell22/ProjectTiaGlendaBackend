@@ -858,23 +858,25 @@ class SesionPedagogicaService:
                     'id': asistencia['id'],
                     'cronograma_id': asistencia['id_cronograma'],
                     'estudiante_id': asistencia['id_paciente'],
-                    'fecha_programada': asistencia['fecha_programada'].isoformat() if asistencia['fecha_programada'] else None,
-                    'hora_programada': str(asistencia['hora_programada']) if asistencia['hora_programada'] else None,
-                    'numero_clase': asistencia['numero_clase_semanal'],
+                    'fecha_programada': asistencia['fecha_programada'].isoformat() if asistencia.get('fecha_programada') else None,
+                    'hora_programada': str(asistencia['hora_programada']) if asistencia.get('hora_programada') else None,
+                    'numero_clase': asistencia.get('numero_clase_semanal'),
+                    'estudiante_nombre': asistencia.get('estudiante_nombre'),
+                    'estudiante_cedula': asistencia.get('estudiante_cedula'),
                     'estudiante': {
-                        'nombre': asistencia['estudiante_nombre'],
-                        'cedula': asistencia['estudiante_cedula']
+                        'nombre': asistencia.get('estudiante_nombre'),
+                        'cedula': asistencia.get('estudiante_cedula')
                     },
-                    'asistio': asistencia['asistio'],
-                    'hora_llegada': str(asistencia['hora_llegada']) if asistencia['hora_llegada'] else None,
-                    'hora_salida': str(asistencia['hora_salida']) if asistencia['hora_salida'] else None,
-                    'tardanza_minutos': asistencia['llegada_tardanza_minutos'],
-                    'estado_asistencia': asistencia['estado_asistencia'],
-                    'observaciones_educador': asistencia['observaciones_educador'],
-                    'objetivos_trabajados': asistencia['objetivos_trabajados'],
-                    'progreso_observado': asistencia['progreso_observado'],
-                    'calificacion_clase': asistencia['calificacion_clase'],
-                    'fecha_registro': asistencia['fecha_registro'].isoformat() if asistencia['fecha_registro'] else None
+                    'asistio': asistencia.get('asistio'),
+                    'llegada_tardanza_minutos': asistencia.get('llegada_tardanza_minutos', 0),
+                    'estado_asistencia': asistencia.get('estado_asistencia'),
+                    'observaciones_educador': asistencia.get('observaciones_educador'),
+                    'objetivos_trabajados': asistencia.get('objetivos_trabajados'),
+                    'participacion_clase': asistencia.get('participacion_clase'),
+                    'actividades_completadas': asistencia.get('actividades_completadas'),
+                    'tareas_asignadas': asistencia.get('tareas_asignadas'),
+                    'calificacion_clase': asistencia.get('calificacion_clase'),
+                    'fecha_registro': asistencia['fecha_registro'].isoformat() if asistencia.get('fecha_registro') else None
                 }
                 asistencias_formateadas.append(asistencia_data)
 

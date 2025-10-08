@@ -430,6 +430,44 @@ class SesionTerapiaComponent:
             raise Exception(f"Error al obtener pacientes de la sesión: {str(e)}")
 
     @staticmethod
+    def get_pacientes_multiple_sesiones(sesion_ids):
+        """Obtener pacientes de multiples sesiones en una sola query (optimizacion N+1)"""
+        try:
+            if not sesion_ids:
+                return []
+
+            placeholders = ','.join(['%s'] * len(sesion_ids))
+            query = f"""
+                SELECT
+                    sp.id_sesion,
+                    sp.id,
+                    sp.id_paciente as paciente_id,
+                    CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
+                    p.cedula as paciente_cedula,
+                    sp.fecha_inscripcion as fecha_asignacion,
+                    sp.observaciones,
+                    sp.estado,
+                    CONCAT(p_tutor.nombre, ' ', p_tutor.apellido) as tutor_nombre,
+                    p_tutor.telefono as tutor_telefono
+                FROM sesion_paciente sp
+                JOIN paciente pac ON sp.id_paciente = pac.id
+                JOIN persona p ON pac.id_persona = p.id
+                LEFT JOIN tutor t ON pac.id_tutor = t.id
+                LEFT JOIN persona p_tutor ON t.id_persona = p_tutor.id
+                WHERE sp.id_sesion IN ({placeholders})
+                ORDER BY sp.id_sesion, sp.estado DESC, sp.fecha_inscripcion
+            """
+
+            result = DataBaseHandle.getRecords(query, tuple(sesion_ids))
+            HandleLogs.write_log(
+                f"SesionTerapiaComponent.get_pacientes_multiple_sesiones - {len(result) if result else 0} pacientes encontrados para {len(sesion_ids)} sesiones")
+            return result or []
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_pacientes_multiple_sesiones - Error: {str(e)}")
+            raise Exception(f"Error al obtener pacientes de multiples sesiones: {str(e)}")
+
+    @staticmethod
     def add_paciente_to_sesion(sesion_id, paciente_data):
         """Agregar un paciente a una sesión"""
         try:

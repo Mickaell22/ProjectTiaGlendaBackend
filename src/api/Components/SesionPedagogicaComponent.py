@@ -505,34 +505,52 @@ class SesionPedagogicaComponent:
                 HandleLogs.write_log(f"No hay estudiantes inscritos en sesión {sesion_id}")
                 return
             
-            # Crear registros de asistencia para cada combinación clase-estudiante
-            registros_creados = 0
+            # OPTIMIZACION: Obtener registros existentes en una sola query
+            clase_ids = [clase['id'] for clase in clases]
+            estudiante_ids = [est['id_paciente'] for est in estudiantes]
+
+            placeholders_clases = ','.join(['%s'] * len(clase_ids))
+            placeholders_estudiantes = ','.join(['%s'] * len(estudiante_ids))
+
+            check_query = f"""
+                SELECT id_cronograma, id_paciente
+                FROM asistencia_clases
+                WHERE id_cronograma IN ({placeholders_clases})
+                AND id_paciente IN ({placeholders_estudiantes})
+            """
+            existing_records = DataBaseHandle.getRecords(check_query, tuple(clase_ids + estudiante_ids)) or []
+
+            # Crear set de registros existentes para búsqueda rápida
+            existing_set = {(rec['id_cronograma'], rec['id_paciente']) for rec in existing_records}
+
+            # OPTIMIZACION: Recolectar todos los registros a insertar
+            records_to_insert = []
             for clase in clases:
                 for estudiante in estudiantes:
-                    try:
-                        # Verificar si ya existe el registro
-                        check_query = """
-                            SELECT id FROM asistencia_clases 
-                            WHERE id_cronograma = %s AND id_paciente = %s
-                        """
-                        existing = DataBaseHandle.getRecords(check_query, (clase['id'], estudiante['id_paciente']), size=1)
-                        
-                        if not existing:
-                            # Crear nuevo registro de asistencia (sin marcar asistencia por defecto)
-                            insert_query = """
-                                INSERT INTO asistencia_clases (
-                                    id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
-                                    estado_asistencia, fecha_creacion, usuario_creacion
-                                ) VALUES (%s, %s, NULL, 0, 'pendiente', CURRENT_TIMESTAMP, 1)
-                            """
-                            DataBaseHandle.ExecuteNonQuery(insert_query, (clase['id'], estudiante['id_paciente']))
-                            registros_creados += 1
-                    
-                    except Exception as registro_error:
-                        HandleLogs.write_error(f"Error creando registro asistencia clase {clase['id']}, estudiante {estudiante['id_paciente']}: {str(registro_error)}")
-                        continue
-            
-            HandleLogs.write_log(f"Creados {registros_creados} registros de asistencia para sesión {sesion_id}")
+                    if (clase['id'], estudiante['id_paciente']) not in existing_set:
+                        records_to_insert.append((clase['id'], estudiante['id_paciente']))
+
+            # OPTIMIZACION: Insertar todos en una sola query usando VALUES multi-row
+            if records_to_insert:
+                values_placeholders = ','.join(['(%s, %s, NULL, 0, \'pendiente\', CURRENT_TIMESTAMP, 1)'] * len(records_to_insert))
+                insert_query = f"""
+                    INSERT INTO asistencia_clases (
+                        id_cronograma, id_paciente, asistio, llegada_tardanza_minutos,
+                        estado_asistencia, fecha_creacion, usuario_creacion
+                    ) VALUES {values_placeholders}
+                """
+
+                # Aplanar la lista de tuplas para params
+                params = []
+                for record in records_to_insert:
+                    params.extend(record)
+
+                DataBaseHandle.ExecuteNonQuery(insert_query, tuple(params))
+                registros_creados = len(records_to_insert)
+            else:
+                registros_creados = 0
+
+            HandleLogs.write_log(f"Creados {registros_creados} registros de asistencia para sesión {sesion_id} (optimizado batch insert)")
             
         except Exception as e:
             HandleLogs.write_error(f"Error en _crear_registros_asistencia_cronograma: {str(e)}")

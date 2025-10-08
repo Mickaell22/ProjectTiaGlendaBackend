@@ -57,13 +57,25 @@ class SesionTerapiaService:
                     HandleLogs.write_log(f"SesionTerapiaService.get_sesiones - Rol {user_role} sin centro - lista vacía")
 
             if sesiones:
+                # Optimizacion: Obtener todos los pacientes en una sola query
+                sesion_ids = [sesion['id'] for sesion in sesiones]
+                todos_pacientes = SesionTerapiaComponent.get_pacientes_multiple_sesiones(sesion_ids)
+
+                # Agrupar pacientes por sesion_id en memoria
+                pacientes_por_sesion = {}
+                for paciente in todos_pacientes:
+                    sesion_id = paciente['id_sesion']
+                    if sesion_id not in pacientes_por_sesion:
+                        pacientes_por_sesion[sesion_id] = []
+                    pacientes_por_sesion[sesion_id].append(paciente)
+
                 # Formatear datos para respuesta
                 sesiones_formateadas = []
                 for sesion in sesiones:
-                    # Obtener información de pacientes para esta sesión
-                    pacientes = SesionTerapiaComponent.get_pacientes_sesion(sesion['id'])
+                    # Obtener pacientes de esta sesion desde el diccionario
+                    pacientes = pacientes_por_sesion.get(sesion['id'], [])
                     pacientes_data = []
-                    
+
                     if pacientes:
                         for paciente in pacientes:
                             pacientes_data.append({
