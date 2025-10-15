@@ -1102,6 +1102,20 @@ def register_routes(app):
             from src.api.Service.SesionTerapiaService import SesionTerapiaService
             return SesionTerapiaService.delete_sesion(sesion_id)
 
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/finalizar', methods=['PUT'])
+        @token_required  # Tanto admin como terapeuta pueden finalizar
+        def finalizar_sesion_terapia(sesion_id):
+            """Finalizar sesion de terapia manualmente verificando que todos los cronogramas esten completados"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.finalizar_sesion(sesion_id)
+
+        @app.route('/api/sesiones-terapia/<int:sesion_id>/cancelar', methods=['PUT'])
+        @token_required
+        def cancelar_sesion_terapia(sesion_id):
+            """Cancelar sesion de terapia"""
+            from src.api.Service.SesionTerapiaService import SesionTerapiaService
+            return SesionTerapiaService.cancelar_sesion(sesion_id)
+
         # ============================================
         # RUTAS DE GESTIÓN DE PACIENTES EN SESIONES
         # ============================================

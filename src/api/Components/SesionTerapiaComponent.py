@@ -2293,3 +2293,83 @@ class SesionTerapiaComponent:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaComponent.obtener_sesion_por_token_publico - Error: {str(e)}")
             raise Exception(f"Error al obtener sesión por token: {str(e)}")
+
+    @staticmethod
+    def get_estadisticas_sesion(sesion_id):
+        """Obtener estadisticas de cronogramas de una sesion"""
+        try:
+            query = """
+                SELECT
+                    COUNT(*) as total_cronogramas,
+                    COUNT(CASE WHEN estado = 'completada' THEN 1 END) as cronogramas_completados,
+                    COUNT(CASE WHEN estado = 'programada' THEN 1 END) as cronogramas_programados,
+                    COUNT(CASE WHEN estado = 'en_curso' THEN 1 END) as cronogramas_en_curso,
+                    COUNT(CASE WHEN estado = 'cancelada' THEN 1 END) as cronogramas_cancelados,
+                    COUNT(CASE WHEN estado = 'reprogramada' THEN 1 END) as cronogramas_reprogramados,
+                    COUNT(CASE WHEN estado NOT IN ('completada', 'cancelada', 'reprogramada') THEN 1 END) as cronogramas_pendientes
+                FROM cronograma_sesiones
+                WHERE id_sesion = %s
+                  AND estado NOT IN ('cancelada', 'reprogramada')
+            """
+            result = DataBaseHandle.getRecords(query, (sesion_id,))
+
+            if result and len(result) > 0:
+                stats = result[0]
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_estadisticas_sesion - Estadisticas de sesion {sesion_id}: {stats}")
+                return stats
+            else:
+                return {
+                    'total_cronogramas': 0,
+                    'cronogramas_completados': 0,
+                    'cronogramas_programados': 0,
+                    'cronogramas_en_curso': 0,
+                    'cronogramas_cancelados': 0,
+                    'cronogramas_reprogramados': 0,
+                    'cronogramas_pendientes': 0
+                }
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.get_estadisticas_sesion - Error: {str(e)}")
+            raise Exception(f"Error al obtener estadisticas de sesion: {str(e)}")
+
+    @staticmethod
+    def finalizar_sesion(sesion_id):
+        """Finalizar manualmente una sesion de terapia"""
+        try:
+            # Verificar que la sesion existe y obtener su estado actual
+            query_verificar = """
+                SELECT id, estado, codigo_sesion
+                FROM sesion_terapia
+                WHERE id = %s
+            """
+            sesion = DataBaseHandle.getRecords(query_verificar, (sesion_id,))
+
+            if not sesion or len(sesion) == 0:
+                raise Exception(f"No se encontro la sesion con ID {sesion_id}")
+
+            estado_actual = sesion[0]['estado']
+            codigo_sesion = sesion[0]['codigo_sesion']
+
+            # No permitir finalizar si ya esta finalizada o cancelada
+            if estado_actual == 'finalizada':
+                HandleLogs.write_log(f"SesionTerapiaComponent.finalizar_sesion - Sesion {codigo_sesion} ya esta finalizada")
+                return {'ya_finalizada': True, 'mensaje': 'La sesion ya esta finalizada'}
+
+            if estado_actual == 'cancelada':
+                raise Exception("No se puede finalizar una sesion cancelada")
+
+            # Actualizar estado a finalizada
+            query_finalizar = """
+                UPDATE sesion_terapia
+                SET estado = 'finalizada',
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """
+            DataBaseHandle.ExecuteNonQuery(query_finalizar, (sesion_id,))
+
+            HandleLogs.write_log(f"SesionTerapiaComponent.finalizar_sesion - Sesion {codigo_sesion} (ID: {sesion_id}) marcada como finalizada manualmente")
+            return {'finalizada': True, 'codigo_sesion': codigo_sesion}
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaComponent.finalizar_sesion - Error: {str(e)}")
+            raise Exception(f"Error al finalizar sesion: {str(e)}")

@@ -1497,3 +1497,123 @@ class SesionTerapiaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.ver_sesion_publica - Error: {str(e)}")
             return response_error(f"Error al obtener información de sesión: {str(e)}", 500)
+
+    # ============================================
+    # METODOS PARA FINALIZACION DE SESIONES
+    # ============================================
+
+    @staticmethod
+    def finalizar_sesion(sesion_id):
+        """Finalizar una sesion de terapia verificando que todos los cronogramas esten completados"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.finalizar_sesion - Sesion ID: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesion debe ser un numero positivo", 400)
+
+            # Obtener estadisticas de la sesion
+            try:
+                estadisticas = SesionTerapiaComponent.get_estadisticas_sesion(sesion_id)
+            except Exception as stats_error:
+                HandleLogs.write_error(f"SesionTerapiaService.finalizar_sesion - Error obteniendo estadisticas: {str(stats_error)}")
+                return response_error(f"Error al obtener estadisticas de la sesion: {str(stats_error)}", 500)
+
+            # Validar que todos los cronogramas esten completados
+            cronogramas_pendientes = estadisticas.get('cronogramas_pendientes', 0)
+            total_cronogramas = estadisticas.get('total_cronogramas', 0)
+            cronogramas_completados = estadisticas.get('cronogramas_completados', 0)
+
+            if total_cronogramas == 0:
+                return response_error("La sesion no tiene cronogramas generados", 400)
+
+            if cronogramas_pendientes > 0:
+                return response_error(
+                    f"No se puede finalizar la sesion. Aun hay {cronogramas_pendientes} sesiones pendientes de completar. "
+                    f"Total: {total_cronogramas}, Completadas: {cronogramas_completados}",
+                    400
+                )
+
+            # Intentar finalizar la sesion
+            try:
+                result = SesionTerapiaComponent.finalizar_sesion(sesion_id)
+            except Exception as fin_error:
+                HandleLogs.write_error(f"SesionTerapiaService.finalizar_sesion - Error finalizando sesion: {str(fin_error)}")
+                return response_error(f"Error al finalizar sesion: {str(fin_error)}", 500)
+
+            # Verificar si la sesion ya estaba finalizada
+            if result.get('ya_finalizada'):
+                HandleLogs.write_log(f"SesionTerapiaService.finalizar_sesion - Sesion {sesion_id} ya estaba finalizada")
+                return response_success({
+                    'sesion_id': sesion_id,
+                    'codigo_sesion': result.get('codigo_sesion'),
+                    'ya_finalizada': True
+                }, "La sesion ya estaba finalizada")
+
+            # Sesion finalizada exitosamente
+            HandleLogs.write_log(f"SesionTerapiaService.finalizar_sesion - Sesion {sesion_id} finalizada exitosamente")
+            return response_success({
+                'sesion_id': sesion_id,
+                'codigo_sesion': result.get('codigo_sesion'),
+                'estadisticas': {
+                    'total_cronogramas': total_cronogramas,
+                    'cronogramas_completados': cronogramas_completados
+                }
+            }, "Sesion finalizada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.finalizar_sesion - Error: {str(e)}")
+            return response_error(f"Error al finalizar sesion: {str(e)}", 500)
+
+    @staticmethod
+    def cancelar_sesion(sesion_id):
+        """Cancelar una sesion de terapia"""
+        try:
+            HandleLogs.write_log(f"SesionTerapiaService.cancelar_sesion - Sesion ID: {sesion_id}")
+
+            # Validar ID
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesion debe ser un numero positivo", 400)
+
+            # Obtener informacion de la sesion
+            sesion = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
+            if not sesion:
+                return response_error("Sesion no encontrada", 404)
+
+            estado_actual = sesion.get('estado')
+            codigo_sesion = sesion.get('codigo_sesion')
+
+            # Verificar que la sesion no este ya cancelada o finalizada
+            if estado_actual == 'cancelada':
+                HandleLogs.write_log(f"SesionTerapiaService.cancelar_sesion - Sesion {codigo_sesion} ya esta cancelada")
+                return response_success({
+                    'sesion_id': sesion_id,
+                    'codigo_sesion': codigo_sesion,
+                    'ya_cancelada': True
+                }, "La sesion ya estaba cancelada")
+
+            if estado_actual == 'finalizada':
+                return response_error("No se puede cancelar una sesion finalizada", 400)
+
+            # Actualizar estado a cancelada
+            current_user = request.current_user
+            from src.utils.database.connection_db import DataBaseHandle
+
+            query = """
+                UPDATE sesion_terapia
+                SET estado = 'cancelada',
+                    fecha_modificacion = CURRENT_TIMESTAMP,
+                    usuario_modificacion = %s
+                WHERE id = %s
+            """
+            DataBaseHandle.ExecuteNonQuery(query, (current_user['id'], sesion_id))
+
+            HandleLogs.write_log(f"SesionTerapiaService.cancelar_sesion - Sesion {codigo_sesion} (ID: {sesion_id}) cancelada exitosamente")
+            return response_success({
+                'sesion_id': sesion_id,
+                'codigo_sesion': codigo_sesion
+            }, "Sesion cancelada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionTerapiaService.cancelar_sesion - Error: {str(e)}")
+            return response_error(f"Error al cancelar sesion: {str(e)}", 500)
