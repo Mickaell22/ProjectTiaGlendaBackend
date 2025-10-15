@@ -1240,3 +1240,121 @@ class SesionPedagogicaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaService.ver_sesion_publica - Error: {str(e)}")
             return response_error(f"Error al obtener información de sesión: {str(e)}", 500)
+
+    # ============================================
+    # MÉTODOS DE CANCELACIÓN Y FINALIZACIÓN
+    # ============================================
+
+    @staticmethod
+    def cancelar_sesion(sesion_id):
+        """Cancelar una sesion pedagogica"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.cancelar_sesion - Sesion ID: {sesion_id}")
+
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesion debe ser un numero positivo", 400)
+
+            sesion = SesionPedagogicaComponent.get_sesion_by_id(sesion_id)
+            if not sesion:
+                return response_error("Sesion no encontrada", 404)
+
+            estado_actual = sesion.get('estado')
+            codigo_sesion = sesion.get('codigo_sesion')
+
+            if estado_actual == 'cancelada':
+                return response_success({
+                    'sesion_id': sesion_id,
+                    'codigo_sesion': codigo_sesion,
+                    'ya_cancelada': True
+                }, "La sesion ya estaba cancelada")
+
+            if estado_actual == 'finalizada':
+                return response_error("No se puede cancelar una sesion finalizada", 400)
+
+            current_user = request.current_user
+            from src.utils.database.connection_db import DataBaseHandle
+
+            query = """
+                UPDATE sesion_pedagogica
+                SET estado = 'cancelada',
+                    fecha_modificacion = CURRENT_TIMESTAMP,
+                    usuario_modificacion = %s
+                WHERE id = %s
+            """
+            DataBaseHandle.ExecuteNonQuery(query, (current_user['id'], sesion_id))
+
+            HandleLogs.write_log(f"SesionPedagogicaService.cancelar_sesion - Sesion {codigo_sesion} (ID: {sesion_id}) cancelada exitosamente")
+            return response_success({
+                'sesion_id': sesion_id,
+                'codigo_sesion': codigo_sesion
+            }, "Sesion cancelada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.cancelar_sesion - Error: {str(e)}")
+            return response_error(f"Error al cancelar sesion: {str(e)}", 500)
+
+    @staticmethod
+    def finalizar_sesion(sesion_id):
+        """Finalizar manualmente una sesion pedagogica"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.finalizar_sesion - Sesion ID: {sesion_id}")
+
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesion debe ser un numero positivo", 400)
+
+            sesion = SesionPedagogicaComponent.get_sesion_by_id(sesion_id)
+            if not sesion:
+                return response_error("Sesion no encontrada", 404)
+
+            estado_actual = sesion.get('estado')
+            codigo_sesion = sesion.get('codigo_sesion')
+
+            if estado_actual == 'finalizada':
+                return response_success({
+                    'sesion_id': sesion_id,
+                    'codigo_sesion': codigo_sesion,
+                    'ya_finalizada': True
+                }, "La sesion ya estaba finalizada")
+
+            if estado_actual == 'cancelada':
+                return response_error("No se puede finalizar una sesion cancelada", 400)
+
+            # Verificar estadisticas de clases
+            from src.utils.database.connection_db import DataBaseHandle
+            query_stats = """
+                SELECT
+                    COUNT(*) as total_clases,
+                    COUNT(CASE WHEN estado = 'realizada' THEN 1 END) as clases_realizadas
+                FROM cronograma_clases
+                WHERE id_sesion = %s
+            """
+            result = DataBaseHandle.getRecords(query_stats, (sesion_id,))
+
+            if result and len(result) > 0:
+                total_clases = result[0]['total_clases']
+                clases_realizadas = result[0]['clases_realizadas']
+            else:
+                total_clases = 0
+                clases_realizadas = 0
+
+            current_user = request.current_user
+            query = """
+                UPDATE sesion_pedagogica
+                SET estado = 'finalizada',
+                    fecha_modificacion = CURRENT_TIMESTAMP,
+                    usuario_modificacion = %s
+                WHERE id = %s
+            """
+            DataBaseHandle.ExecuteNonQuery(query, (current_user['id'], sesion_id))
+
+            HandleLogs.write_log(f"SesionPedagogicaService.finalizar_sesion - Sesion {codigo_sesion} (ID: {sesion_id}) finalizada exitosamente ({clases_realizadas}/{total_clases} clases completadas)")
+            return response_success({
+                'sesion_id': sesion_id,
+                'codigo_sesion': codigo_sesion,
+                'total_clases': total_clases,
+                'clases_realizadas': clases_realizadas
+            }, "Sesion finalizada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.finalizar_sesion - Error: {str(e)}")
+            return response_error(f"Error al finalizar sesion: {str(e)}", 500)

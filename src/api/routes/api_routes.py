@@ -1386,6 +1386,20 @@ def register_routes(app):
             from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
             return SesionPedagogicaService.delete_sesion(sesion_id)
 
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/cancelar', methods=['PUT'])
+        @token_required
+        def cancelar_sesion_pedagogica(sesion_id):
+            """Cancelar sesion pedagogica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.cancelar_sesion(sesion_id)
+
+        @app.route('/api/sesiones-pedagogicas/<int:sesion_id>/finalizar', methods=['PUT'])
+        @token_required
+        def finalizar_sesion_pedagogica(sesion_id):
+            """Finalizar manualmente una sesion pedagogica"""
+            from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+            return SesionPedagogicaService.finalizar_sesion(sesion_id)
+
         # ============================================
         # ENDPOINTS AUXILIARES PARA SESIONES PEDAGÓGICAS
         # ============================================
