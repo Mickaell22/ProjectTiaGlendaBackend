@@ -43,6 +43,7 @@ if railway_domain:
 if os.getenv('RAILWAY_ENVIRONMENT'):
     cors_origins.extend([
         'https://projecttiaglendafrontend-k.up.railway.app',
+        'https://projecttiaglendafrontend-production.up.railway.app',
         'https://tiaglenda.com',
         'https://www.tiaglenda.com',
         'http://tiaglenda.com',
