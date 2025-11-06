@@ -73,17 +73,17 @@ class DashboardComponent:
             
             # Sesiones terapéuticas de hoy
             st_result = DataBaseHandle.getRecords("""
-                SELECT COUNT(*) FROM cronograma_sesiones 
+                SELECT COUNT(*) FROM cronograma_sesiones
                 WHERE fecha_programada = %s AND estado IN ('programada', 'confirmada')
             """, (hoy,))
-            sesiones_terapeuticas = st_result[0][0] if st_result else 0
-            
+            sesiones_terapeuticas = st_result[0]['count'] if st_result and st_result[0] else 0
+
             # Sesiones pedagógicas de hoy
             sp_result = DataBaseHandle.getRecords("""
-                SELECT COUNT(*) FROM cronograma_clases 
+                SELECT COUNT(*) FROM cronograma_clases
                 WHERE fecha_programada = %s AND estado IN ('programada', 'confirmada')
             """, (hoy,))
-            sesiones_pedagogicas = sp_result[0][0] if sp_result else 0
+            sesiones_pedagogicas = sp_result[0]['count'] if sp_result and sp_result[0] else 0
             
             return {
                 'sesiones_terapeuticas': sesiones_terapeuticas,
@@ -107,46 +107,48 @@ class DashboardComponent:
             # Actividad de usuarios (últimas conexiones)
             usuarios_result = DataBaseHandle.getRecords("""
                 SELECT u.email, u.fecha_ultimo_acceso, 'login' as tipo
-                FROM usuario u 
-                WHERE u.fecha_ultimo_acceso IS NOT NULL 
-                ORDER BY u.fecha_ultimo_acceso DESC 
+                FROM usuario u
+                WHERE u.fecha_ultimo_acceso IS NOT NULL
+                ORDER BY u.fecha_ultimo_acceso DESC
                 LIMIT %s
             """, (limite//2,))
-            
-            for row in usuarios_result:
-                tiempo_diff = datetime.now() - row[1] if row[1] else timedelta(hours=1)
-                minutos = int(tiempo_diff.total_seconds() / 60)
-                tiempo_texto = f"{minutos} min" if minutos < 60 else f"{minutos//60} hora(s)"
-                
-                actividades.append({
-                    'tipo': 'usuario',
-                    'usuario': row[0],
-                    'accion': 'accedió al sistema',
-                    'tiempo': tiempo_texto,
-                    'avatar': row[0][:2].upper() if row[0] else 'U'
-                })
-            
+
+            if usuarios_result:
+                for row in usuarios_result:
+                    tiempo_diff = datetime.now() - row[1] if row[1] else timedelta(hours=1)
+                    minutos = int(tiempo_diff.total_seconds() / 60)
+                    tiempo_texto = f"{minutos} min" if minutos < 60 else f"{minutos//60} hora(s)"
+
+                    actividades.append({
+                        'tipo': 'usuario',
+                        'usuario': row[0],
+                        'accion': 'accedió al sistema',
+                        'tiempo': tiempo_texto,
+                        'avatar': row[0][:2].upper() if row[0] else 'U'
+                    })
+
             # Actividad de pacientes (registros recientes)
             pacientes_result = DataBaseHandle.getRecords("""
                 SELECT pe.nombre, p.fecha_creacion, 'paciente' as tipo
                 FROM paciente p
                 JOIN persona pe ON p.persona_id = pe.id
-                ORDER BY p.fecha_creacion DESC 
+                ORDER BY p.fecha_creacion DESC
                 LIMIT %s
             """, (limite//2,))
-            
-            for row in pacientes_result:
-                tiempo_diff = datetime.now() - row[1] if row[1] else timedelta(hours=1)
-                minutos = int(tiempo_diff.total_seconds() / 60)
-                tiempo_texto = f"{minutos} min" if minutos < 60 else f"{minutos//60} hora(s)"
-                
-                actividades.append({
-                    'tipo': 'paciente',
-                    'usuario': 'Sistema',
-                    'accion': f'registró paciente: {row[0]}',
-                    'tiempo': tiempo_texto,
-                    'avatar': 'SIS'
-                })
+
+            if pacientes_result:
+                for row in pacientes_result:
+                    tiempo_diff = datetime.now() - row[1] if row[1] else timedelta(hours=1)
+                    minutos = int(tiempo_diff.total_seconds() / 60)
+                    tiempo_texto = f"{minutos} min" if minutos < 60 else f"{minutos//60} hora(s)"
+
+                    actividades.append({
+                        'tipo': 'paciente',
+                        'usuario': 'Sistema',
+                        'accion': f'registró paciente: {row[0]}',
+                        'tiempo': tiempo_texto,
+                        'avatar': 'SIS'
+                    })
             
             # Ordenar por tiempo y limitar
             return actividades[:limite]
@@ -163,16 +165,16 @@ class DashboardComponent:
             # Verificar pacientes sin sesiones recientes
             pacientes_result = DataBaseHandle.getRecords("""
                 SELECT COUNT(*) FROM paciente p
-                WHERE p.estado = 'activo' 
+                WHERE p.estado = 'activo'
                 AND NOT EXISTS (
-                    SELECT 1 FROM cronograma_sesiones cs 
+                    SELECT 1 FROM cronograma_sesiones cs
                     JOIN sesion_terapia st ON cs.id_sesion = st.id
                     JOIN sesion_paciente sp ON st.id = sp.id_sesion
-                    WHERE sp.id_paciente = p.id 
+                    WHERE sp.id_paciente = p.id
                     AND cs.fecha_programada >= CURRENT_DATE - INTERVAL '7 days'
                 )
             """)
-            pacientes_sin_sesion = pacientes_result[0][0] if pacientes_result else 0
+            pacientes_sin_sesion = pacientes_result[0]['count'] if pacientes_result and pacientes_result[0] else 0
             
             if pacientes_sin_sesion > 5:
                 alertas.append({
@@ -203,20 +205,21 @@ class DashboardComponent:
         try:
             # Intentar obtener métricas de asistencia de cronogramas
             result = DataBaseHandle.getRecords("""
-                SELECT 
+                SELECT
                     COUNT(*) as total_sesiones,
                     COUNT(CASE WHEN asistio = TRUE THEN 1 END) as asistencias
                 FROM (
-                    SELECT asistio FROM asistencia_sesiones 
+                    SELECT asistio FROM asistencia_sesiones
                     WHERE fecha >= CURRENT_DATE - INTERVAL '30 days'
                     UNION ALL
-                    SELECT asistio FROM asistencia_clases 
+                    SELECT asistio FROM asistencia_clases
                     WHERE fecha >= CURRENT_DATE - INTERVAL '30 days'
                 ) as todas_asistencias
             """)
-            
-            if result and result[0][0] > 0:
-                total_sesiones, asistencias = result[0]
+
+            if result and result[0] and result[0]['total_sesiones'] > 0:
+                total_sesiones = result[0]['total_sesiones']
+                asistencias = result[0]['asistencias']
                 promedio = (asistencias / total_sesiones) * 100
                 return {'promedio': round(promedio, 1)}
             else:
@@ -233,7 +236,7 @@ class DashboardComponent:
             
             for i in range(7):
                 fecha = datetime.now().date() - timedelta(days=6-i)
-                
+
                 # Contar sesiones del día
                 sesiones_result = DataBaseHandle.getRecords("""
                     SELECT COUNT(*) FROM (
@@ -242,8 +245,8 @@ class DashboardComponent:
                         SELECT fecha_programada FROM cronograma_clases WHERE fecha_programada = %s
                     ) as sesiones_dia
                 """, (fecha, fecha))
-                
-                sesiones = sesiones_result[0][0] if sesiones_result else 0
+
+                sesiones = sesiones_result[0]['count'] if sesiones_result and sesiones_result[0] else 0
                 # Convertir a porcentaje basado en capacidad estimada
                 porcentaje = min(100, (sesiones / 10) * 100) if sesiones > 0 else 0
                 rendimiento.append(int(porcentaje))
@@ -399,7 +402,7 @@ class DashboardComponent:
             for row in pacientes_result:
                 # Calcular estadísticas de sesiones para cada paciente
                 sesiones_stats = DataBaseHandle.getRecords("""
-                    SELECT 
+                    SELECT
                         COUNT(cs.id) as total_sesiones,
                         COUNT(CASE WHEN asist.asistio = true THEN 1 END) as sesiones_asistidas
                     FROM cronograma_sesiones cs
@@ -408,22 +411,22 @@ class DashboardComponent:
                     LEFT JOIN asistencia_sesiones asist ON cs.id = asist.id_cronograma
                     WHERE sp.id_paciente = %s AND st.id_terapeuta = %s
                 """, (row[0], id_personal))
-                
-                total_sesiones = sesiones_stats[0][0] if sesiones_stats else 0
-                sesiones_asistidas = sesiones_stats[0][1] if sesiones_stats else 0
+
+                total_sesiones = sesiones_stats[0]['total_sesiones'] if sesiones_stats and sesiones_stats[0] else 0
+                sesiones_asistidas = sesiones_stats[0]['sesiones_asistidas'] if sesiones_stats and sesiones_stats[0] else 0
                 porcentaje_asistencia = (sesiones_asistidas / total_sesiones * 100) if total_sesiones > 0 else 0
-                
+
                 # Calcular días desde última sesión
                 ultima_sesion_result = DataBaseHandle.getRecords("""
-                    SELECT MAX(cs.fecha_programada)
+                    SELECT MAX(cs.fecha_programada) as max_fecha
                     FROM cronograma_sesiones cs
                     JOIN sesion_terapia st ON cs.id_sesion = st.id
                     JOIN sesion_paciente sp ON st.id = sp.id_sesion
                     WHERE sp.id_paciente = %s AND st.id_terapeuta = %s
                     AND cs.estado = 'realizada'
                 """, (row[0], id_personal))
-                
-                ultima_sesion = ultima_sesion_result[0][0] if ultima_sesion_result and ultima_sesion_result[0][0] else None
+
+                ultima_sesion = ultima_sesion_result[0]['max_fecha'] if ultima_sesion_result and ultima_sesion_result[0] and ultima_sesion_result[0]['max_fecha'] else None
                 dias_ultima_sesion = (datetime.now().date() - ultima_sesion).days if ultima_sesion else None
                 
                 pacientes.append({
@@ -488,13 +491,13 @@ class DashboardComponent:
                     WHERE se.id_estudiante = %s AND sp.id_educador = %s
                 """, (row[0], id_personal))
 
-                total_clases = clases_stats[0][0] if clases_stats else 0
-                clases_asistidas = clases_stats[0][1] if clases_stats else 0
+                total_clases = clases_stats[0]['total_clases'] if clases_stats and clases_stats[0] else 0
+                clases_asistidas = clases_stats[0]['clases_asistidas'] if clases_stats and clases_stats[0] else 0
                 porcentaje_asistencia = (clases_asistidas / total_clases * 100) if total_clases > 0 else 0
 
                 # Calcular días desde última clase
                 ultima_clase_result = DataBaseHandle.getRecords("""
-                    SELECT MAX(cc.fecha_programada)
+                    SELECT MAX(cc.fecha_programada) as max_fecha
                     FROM cronograma_clases cc
                     JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
                     JOIN sesion_estudiante se ON sp.id = se.id_sesion
@@ -502,7 +505,7 @@ class DashboardComponent:
                     AND cc.estado = 'realizada'
                 """, (row[0], id_personal))
 
-                ultima_clase = ultima_clase_result[0][0] if ultima_clase_result and ultima_clase_result[0][0] else None
+                ultima_clase = ultima_clase_result[0]['max_fecha'] if ultima_clase_result and ultima_clase_result[0] and ultima_clase_result[0]['max_fecha'] else None
                 dias_ultima_clase = (datetime.now().date() - ultima_clase).days if ultima_clase else None
 
                 estudiantes.append({
@@ -661,10 +664,10 @@ class DashboardComponent:
             """, (hoy.replace(day=1), hoy.replace(day=1)))
 
             sesiones = {
-                'hoy': sesiones_hoy[0][0] if sesiones_hoy else 0,
-                'esta_semana': sesiones_semana[0][0] if sesiones_semana else 0,
-                'completadas_mes': sesiones_mes[0][0] if sesiones_mes else 0,
-                'canceladas_mes': sesiones_mes[0][1] if sesiones_mes else 0
+                'hoy': sesiones_hoy[0]['count'] if sesiones_hoy and sesiones_hoy[0] else 0,
+                'esta_semana': sesiones_semana[0]['count'] if sesiones_semana and sesiones_semana[0] else 0,
+                'completadas_mes': sesiones_mes[0]['completadas'] if sesiones_mes and sesiones_mes[0] else 0,
+                'canceladas_mes': sesiones_mes[0]['canceladas'] if sesiones_mes and sesiones_mes[0] else 0
             }
 
             # Estadísticas generales
@@ -713,10 +716,10 @@ class DashboardComponent:
             """, (id_personal,))
 
             mis_pacientes = {
-                'total': mis_pacientes_stats[0][0] if mis_pacientes_stats else 0,
-                'activos': mis_pacientes_stats[0][1] if mis_pacientes_stats else 0,
-                'dados_alta': mis_pacientes_stats[0][2] if mis_pacientes_stats else 0,
-                'nuevos_este_mes': mis_pacientes_stats[0][3] if mis_pacientes_stats else 0
+                'total': mis_pacientes_stats[0]['total'] if mis_pacientes_stats and mis_pacientes_stats[0] else 0,
+                'activos': mis_pacientes_stats[0]['activos'] if mis_pacientes_stats and mis_pacientes_stats[0] else 0,
+                'dados_alta': mis_pacientes_stats[0]['dados_alta'] if mis_pacientes_stats and mis_pacientes_stats[0] else 0,
+                'nuevos_este_mes': mis_pacientes_stats[0]['nuevos_este_mes'] if mis_pacientes_stats and mis_pacientes_stats[0] else 0
             }
 
             # Sesiones
@@ -733,10 +736,10 @@ class DashboardComponent:
             """, (hoy, hoy - timedelta(days=7), hoy, hoy.replace(day=1), id_personal))
 
             sesiones = {
-                'hoy': sesiones_stats[0][0] if sesiones_stats else 0,
-                'esta_semana': sesiones_stats[0][1] if sesiones_stats else 0,
-                'completadas_mes': sesiones_stats[0][2] if sesiones_stats else 0,
-                'pendientes': sesiones_stats[0][3] if sesiones_stats else 0
+                'hoy': sesiones_stats[0]['hoy'] if sesiones_stats and sesiones_stats[0] else 0,
+                'esta_semana': sesiones_stats[0]['esta_semana'] if sesiones_stats and sesiones_stats[0] else 0,
+                'completadas_mes': sesiones_stats[0]['completadas_mes'] if sesiones_stats and sesiones_stats[0] else 0,
+                'pendientes': sesiones_stats[0]['pendientes'] if sesiones_stats and sesiones_stats[0] else 0
             }
 
             # Agenda de hoy
@@ -754,8 +757,8 @@ class DashboardComponent:
                 AND asist.fecha >= CURRENT_DATE - INTERVAL '30 days'
             """, (id_personal,))
 
-            total_registros = asistencia_stats[0][0] if asistencia_stats else 0
-            asistencias = asistencia_stats[0][1] if asistencia_stats else 0
+            total_registros = asistencia_stats[0]['total_registros'] if asistencia_stats and asistencia_stats[0] else 0
+            asistencias = asistencia_stats[0]['asistencias'] if asistencia_stats and asistencia_stats[0] else 0
             asistencia_promedio = (asistencias / total_registros * 100) if total_registros > 0 else 0
 
             estadisticas = {
@@ -798,10 +801,10 @@ class DashboardComponent:
             """, (id_personal,))
 
             mis_estudiantes = {
-                'total': mis_estudiantes_stats[0][0] if mis_estudiantes_stats else 0,
-                'activos': mis_estudiantes_stats[0][1] if mis_estudiantes_stats else 0,
-                'graduados': mis_estudiantes_stats[0][2] if mis_estudiantes_stats else 0,
-                'nuevos_este_mes': mis_estudiantes_stats[0][3] if mis_estudiantes_stats else 0
+                'total': mis_estudiantes_stats[0]['total'] if mis_estudiantes_stats and mis_estudiantes_stats[0] else 0,
+                'activos': mis_estudiantes_stats[0]['activos'] if mis_estudiantes_stats and mis_estudiantes_stats[0] else 0,
+                'graduados': mis_estudiantes_stats[0]['graduados'] if mis_estudiantes_stats and mis_estudiantes_stats[0] else 0,
+                'nuevos_este_mes': mis_estudiantes_stats[0]['nuevos_este_mes'] if mis_estudiantes_stats and mis_estudiantes_stats[0] else 0
             }
 
             # Clases
@@ -818,10 +821,10 @@ class DashboardComponent:
             """, (hoy, hoy - timedelta(days=7), hoy, hoy.replace(day=1), hoy.replace(day=1), id_personal))
 
             clases = {
-                'hoy': clases_stats[0][0] if clases_stats else 0,
-                'esta_semana': clases_stats[0][1] if clases_stats else 0,
-                'completadas_mes': clases_stats[0][2] if clases_stats else 0,
-                'canceladas_mes': clases_stats[0][3] if clases_stats else 0
+                'hoy': clases_stats[0]['hoy'] if clases_stats and clases_stats[0] else 0,
+                'esta_semana': clases_stats[0]['esta_semana'] if clases_stats and clases_stats[0] else 0,
+                'completadas_mes': clases_stats[0]['completadas_mes'] if clases_stats and clases_stats[0] else 0,
+                'canceladas_mes': clases_stats[0]['canceladas_mes'] if clases_stats and clases_stats[0] else 0
             }
 
             # Horario de hoy
@@ -839,8 +842,8 @@ class DashboardComponent:
                 AND asist.fecha >= CURRENT_DATE - INTERVAL '30 days'
             """, (id_personal,))
 
-            total_registros = asistencia_stats[0][0] if asistencia_stats else 0
-            asistencias = asistencia_stats[0][1] if asistencia_stats else 0
+            total_registros = asistencia_stats[0]['total_registros'] if asistencia_stats and asistencia_stats[0] else 0
+            asistencias = asistencia_stats[0]['asistencias'] if asistencia_stats and asistencia_stats[0] else 0
             asistencia_promedio = (asistencias / total_registros * 100) if total_registros > 0 else 0
 
             estadisticas = {
