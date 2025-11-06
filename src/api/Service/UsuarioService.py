@@ -4,6 +4,7 @@ from src.utils.general.response import response_success, response_error, respons
 from src.utils.general.validators import Validators
 from src.utils.general.security import SecurityUtils
 from src.api.Components.UsuarioComponent import UsuarioComponent
+from src.api.Components.UsuarioCentrosComponent import UsuarioCentrosComponent
 
 
 class UsuarioService:
@@ -71,14 +72,41 @@ class UsuarioService:
 
             # Preparar datos para inserción
             try:
+                # Obtener centros_ids del payload (nuevo campo para multi-centro)
+                centros_ids = data.get('centros_ids', [])
+
+                # Si no se proporciona centros_ids, usar id_centro (compatibilidad)
+                if not centros_ids and data.get('id_centro'):
+                    centros_ids = [int(data['id_centro'])]
+
+                # Si no hay centros, usar centro por defecto (Norte = 1)
+                if not centros_ids:
+                    centros_ids = [1]
+
+                # Validar que centros_ids sea una lista
+                if not isinstance(centros_ids, list):
+                    return response_error("centros_ids debe ser una lista de IDs de centros", 400)
+
+                # Validar que todos los IDs sean numeros enteros positivos
+                try:
+                    centros_ids = [int(c) for c in centros_ids]
+                    if any(c <= 0 for c in centros_ids):
+                        return response_error("Los IDs de centros deben ser numeros positivos", 400)
+                except (ValueError, TypeError):
+                    return response_error("Los IDs de centros deben ser numeros enteros", 400)
+
+                # Usar el primer centro como id_centro predeterminado en tabla usuario (compatibilidad)
+                id_centro_predeterminado = centros_ids[0]
+
                 user_data = {
                     'usuario': data['usuario'].strip(),
                     'contrasenia': hashed_password,
                     'id_persona': int(data['id_persona']),
                     'id_rol': int(data['id_rol']),
-                    'id_centro': int(data['id_centro']) if data.get('id_centro') else 1,
+                    'id_centro': id_centro_predeterminado,
                     'estado': data.get('estado', 'activo'),
-                    'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
+                    'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1),
+                    'centros_ids': centros_ids  # Pasar centros_ids al component
                 }
             except KeyError as e:
                 missing_field = str(e).replace("'", "")
@@ -86,7 +114,7 @@ class UsuarioService:
                     return response_error(f"Campos requeridos faltantes: {missing_field}", 400)
                 return response_error(f"Campo requerido faltante: {missing_field}", 400)
             except ValueError as e:
-                return response_error(f"Valor inválido en campo numérico: {str(e)}", 400)
+                return response_error(f"Valor invalido en campo numerico: {str(e)}", 400)
 
             result = UsuarioComponent.create_usuario(user_data)
 
@@ -125,7 +153,7 @@ class UsuarioService:
 
             # Preparar datos para actualización
             update_data = {}
-            
+
             # Solo agregar campos que están presentes en el request
             if 'usuario' in data and data['usuario']:
                 update_data['usuario'] = data['usuario'].strip()
@@ -139,7 +167,29 @@ class UsuarioService:
                 update_data['id_centro'] = int(data['id_centro'])
             if 'estado' in data:
                 update_data['estado'] = data['estado']
-                
+
+            # Procesar centros_ids si está presente (sistema multi-centro)
+            if 'centros_ids' in data:
+                centros_ids = data.get('centros_ids', [])
+
+                # Validar que centros_ids sea una lista
+                if not isinstance(centros_ids, list):
+                    return response_error("centros_ids debe ser una lista de IDs de centros", 400)
+
+                # Validar que todos los IDs sean numeros enteros positivos
+                try:
+                    centros_ids = [int(c) for c in centros_ids]
+                    if any(c <= 0 for c in centros_ids):
+                        return response_error("Los IDs de centros deben ser numeros positivos", 400)
+                except (ValueError, TypeError):
+                    return response_error("Los IDs de centros deben ser numeros enteros", 400)
+
+                # Si se proporcionan centros, actualizar id_centro con el primero (compatibilidad)
+                if len(centros_ids) > 0:
+                    update_data['id_centro'] = centros_ids[0]
+
+                update_data['centros_ids'] = centros_ids
+
             # Agregar usuario que modifica
             update_data['usuario_modificacion'] = getattr(request, 'current_user', {}).get('id', 1)
 

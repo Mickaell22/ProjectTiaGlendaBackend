@@ -30,7 +30,7 @@ class SecurityUtils:
 
     @staticmethod
     def generate_token(user_data, expires_hours=24):
-        """Generar token JWT"""
+        """Generar token JWT con soporte para multi-centro"""
         try:
             config = get_config()
             secret_key = config.get('secret_jwt')
@@ -44,6 +44,14 @@ class SecurityUtils:
                 'exp': now + timedelta(hours=expires_hours),
                 'iat': now
             }
+
+            # Agregar informacion de centro si esta disponible
+            if 'id_centro' in user_data and user_data['id_centro'] is not None:
+                payload['id_centro'] = user_data['id_centro']
+
+            # Agregar lista de centros disponibles si esta disponible
+            if 'centros_disponibles' in user_data and user_data['centros_disponibles']:
+                payload['centros_disponibles'] = user_data['centros_disponibles']
 
             # Generar token
             token = jwt.encode(payload, secret_key, algorithm='HS256')

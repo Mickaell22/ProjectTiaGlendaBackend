@@ -4,6 +4,7 @@ from src.utils.general.security import SecurityUtils
 from src.utils.general.response import response_error
 from src.utils.general.logs import HandleLogs
 from src.api.Components.LoginComponent import LoginComponent
+from src.api.Components.UsuarioCentrosComponent import UsuarioCentrosComponent
 from src.utils.database.connection_db import DataBaseHandle
 
 
@@ -152,6 +153,45 @@ def token_required(f):
                         HandleLogs.write_error(f"auth_middleware - Error obteniendo personal_id: {str(personal_err)}")
                         # Continue without personal_id - no crítico para autenticación
 
+            # Extraer id_centro y centros_disponibles del token si estan presentes
+            id_centro_token = token_data.get('id_centro')
+            centros_disponibles_token = token_data.get('centros_disponibles', [])
+
+            # Validar acceso al centro si hay un centro seleccionado en el token
+            if id_centro_token:
+                try:
+                    validacion = UsuarioCentrosComponent.validar_acceso_centro(user_info['id'], id_centro_token)
+
+                    if not validacion['success'] or not validacion['data']:
+                        HandleLogs.write_error(f"auth_middleware - Usuario {user_info['id']} no tiene acceso al centro {id_centro_token} del token")
+                        return response_error("No tiene acceso al centro especificado en el token", 403)
+
+                except Exception as centro_err:
+                    HandleLogs.write_error(f"auth_middleware - Error validando acceso a centro: {str(centro_err)}")
+                    return response_error("Error validando acceso al centro", 500)
+
+            # Obtener informacion del centro si esta seleccionado
+            centro_info = None
+            if id_centro_token:
+                try:
+                    query_centro = """
+                        SELECT id, nombre, codigo, turno_principal as turno
+                        FROM centros
+                        WHERE id = %s AND estado = 'activo'
+                    """
+                    centro_result = DataBaseHandle.getRecords(query_centro, (id_centro_token,), size=1)
+
+                    if centro_result:
+                        centro_info = {
+                            'id': centro_result['id'],
+                            'nombre': centro_result['nombre'],
+                            'codigo': centro_result['codigo'],
+                            'turno': centro_result.get('turno')
+                        }
+
+                except Exception as centro_info_err:
+                    HandleLogs.write_error(f"auth_middleware - Error obteniendo info del centro: {str(centro_info_err)}")
+
             # Agregar información del usuario al request
             request.current_user = {
                 'id': user_info['id'],
@@ -165,12 +205,15 @@ def token_required(f):
                 'direccion': user_info.get('direccion'),
                 'fecha_nacimiento': user_info.get('fecha_nacimiento'),
                 'estado': user_info.get('estado', 'activo'),
-                'id_centro': user_info.get('id_centro'),
+                'id_centro': id_centro_token,
+                'centros_disponibles': centros_disponibles_token,
+                'centro': centro_info,
                 'id_persona': user_info.get('id_persona'),
                 'personal_id': personal_id,
-                'centro_nombre': user_info.get('centro_nombre'),
-                'centro_codigo': user_info.get('centro_codigo'),
-                'centro_turno': user_info.get('centro_turno')
+                # Mantener compatibilidad con codigo antiguo
+                'centro_nombre': centro_info['nombre'] if centro_info else user_info.get('centro_nombre'),
+                'centro_codigo': centro_info['codigo'] if centro_info else user_info.get('centro_codigo'),
+                'centro_turno': centro_info.get('turno') if centro_info else user_info.get('centro_turno')
             }
 
             return f(*args, **kwargs)

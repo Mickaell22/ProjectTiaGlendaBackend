@@ -142,9 +142,40 @@ class UsuarioComponent:
                 # Obtener el ID del usuario recién creado
                 id_query = "SELECT id FROM usuario WHERE usuario = %s ORDER BY id DESC LIMIT 1"
                 new_user_data = DataBaseHandle.getRecords(id_query, (data['usuario'],), size=1)
-                
+
                 if new_user_data and new_user_data.get('id'):
                     new_id = new_user_data['id']
+
+                    # IMPORTANTE: Insertar registros en usuario_centros (sistema multi-centro)
+                    centros_ids = data.get('centros_ids', [])
+                    if centros_ids and len(centros_ids) > 0:
+                        usuario_creacion = data.get('usuario_creacion', 1)
+
+                        for idx, id_centro in enumerate(centros_ids):
+                            # El primer centro es el predeterminado
+                            es_predeterminado = (idx == 0)
+
+                            insert_centro_query = """
+                                INSERT INTO usuario_centros (id_usuario, id_centro, es_centro_predeterminado, usuario_creacion)
+                                VALUES (%s, %s, %s, %s)
+                                ON CONFLICT (id_usuario, id_centro) DO NOTHING
+                            """
+
+                            centro_params = (new_id, id_centro, es_predeterminado, usuario_creacion)
+                            DataBaseHandle.ExecuteNonQuery(insert_centro_query, centro_params)
+
+                        HandleLogs.write_log(f"UsuarioComponent.create_usuario - {len(centros_ids)} centros asignados al usuario {new_id}")
+                    else:
+                        # Si no se proporcionaron centros, asignar el centro predeterminado de la tabla usuario
+                        id_centro_default = data.get('id_centro', 1)
+                        insert_centro_query = """
+                            INSERT INTO usuario_centros (id_usuario, id_centro, es_centro_predeterminado, usuario_creacion)
+                            VALUES (%s, %s, TRUE, %s)
+                            ON CONFLICT (id_usuario, id_centro) DO NOTHING
+                        """
+                        DataBaseHandle.ExecuteNonQuery(insert_centro_query, (new_id, id_centro_default, usuario_creacion))
+                        HandleLogs.write_log(f"UsuarioComponent.create_usuario - Centro predeterminado {id_centro_default} asignado al usuario {new_id}")
+
                     # Obtener el usuario creado con información completa
                     new_user = UsuarioComponent.get_usuario_by_id(new_id)
                     HandleLogs.write_log(f"UsuarioComponent.create_usuario - Usuario creado con ID: {new_id}")
@@ -200,6 +231,35 @@ class UsuarioComponent:
             success = DataBaseHandle.ExecuteNonQuery(update_query, params)
 
             if success:
+                # Actualizar centros del usuario si se proporciona centros_ids (sistema multi-centro)
+                if 'centros_ids' in data and data['centros_ids'] is not None:
+                    centros_ids = data['centros_ids']
+                    usuario_modificacion = data.get('usuario_modificacion', 1)
+
+                    # Eliminar todos los centros anteriores del usuario
+                    delete_centros_query = "DELETE FROM usuario_centros WHERE id_usuario = %s"
+                    DataBaseHandle.ExecuteNonQuery(delete_centros_query, (usuario_id,))
+
+                    # Insertar los nuevos centros
+                    if len(centros_ids) > 0:
+                        for idx, id_centro in enumerate(centros_ids):
+                            # El primer centro es el predeterminado
+                            es_predeterminado = (idx == 0)
+
+                            insert_centro_query = """
+                                INSERT INTO usuario_centros (id_usuario, id_centro, es_centro_predeterminado, usuario_creacion)
+                                VALUES (%s, %s, %s, %s)
+                                ON CONFLICT (id_usuario, id_centro) DO UPDATE
+                                SET es_centro_predeterminado = EXCLUDED.es_centro_predeterminado,
+                                    fecha_modificacion = CURRENT_TIMESTAMP,
+                                    usuario_modificacion = %s
+                            """
+
+                            centro_params = (usuario_id, id_centro, es_predeterminado, usuario_modificacion, usuario_modificacion)
+                            DataBaseHandle.ExecuteNonQuery(insert_centro_query, centro_params)
+
+                        HandleLogs.write_log(f"UsuarioComponent.update_usuario - {len(centros_ids)} centros actualizados para usuario {usuario_id}")
+
                 # Obtener datos actualizados
                 updated_user = UsuarioComponent.get_usuario_by_id(usuario_id)
                 HandleLogs.write_log(f"UsuarioComponent.update_usuario - Usuario {usuario_id} actualizado")

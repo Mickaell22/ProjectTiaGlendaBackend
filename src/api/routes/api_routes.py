@@ -150,6 +150,30 @@ def register_routes(app):
         return response_success(None, "Sesion cerrada exitosamente")
 
     # ============================================
+    # RUTAS DE SELECCION DE CENTRO (Multi-centro)
+    # ============================================
+    @app.route('/api/seleccionar-centro', methods=['POST'])
+    @token_required
+    def seleccionar_centro():
+        """Seleccionar centro despues del login"""
+        from src.api.Service.AuthService import AuthService
+        return AuthService.seleccionar_centro()
+
+    @app.route('/api/cambiar-centro', methods=['POST'])
+    @token_required
+    def cambiar_centro():
+        """Cambiar de centro sin hacer logout"""
+        from src.api.Service.AuthService import AuthService
+        return AuthService.cambiar_centro()
+
+    @app.route('/api/mis-centros', methods=['GET'])
+    @token_required
+    def get_mis_centros():
+        """Obtener centros disponibles del usuario autenticado"""
+        from src.api.Service.AuthService import AuthService
+        return AuthService.get_centros_disponibles()
+
+    # ============================================
     # RUTAS DE INFORMACIÓN DEL USUARIO ACTUAL
     # ============================================
     @app.route('/api/me', methods=['GET'])
