@@ -108,7 +108,7 @@ class PacienteService:
             # Normalizar nombres de campos (test usa persona_id, tutor_id pero DB usa id_persona, id_tutor)
             persona_id = data.get('persona_id') or data.get('id_persona')
             tutor_id = data.get('tutor_id') or data.get('id_tutor')
-            
+
             base_data = {
                 'id_persona': int(persona_id),
                 'id_tutor': int(tutor_id),
@@ -117,11 +117,17 @@ class PacienteService:
                 'fecha_inicio_tratamiento': data.get('fecha_inicio_tratamiento'),  # AGREGAR
                 'fecha_fin_tratamiento': data.get('fecha_fin_tratamiento'),  # AGREGAR
                 'estado_tratamiento': data.get('estado_tratamiento'),  # AGREGAR
-                'observaciones_tratamiento': data.get('observaciones_tratamiento'),  # AGREGAR
+                'observaciones_tratamiento': data.get('observaciones_tratamiento'),  # Mapear a motivo_consulta
                 'observaciones': data.get('observaciones'),
+                'alergias': data.get('alergias'),
+                'medicina': data.get('medicina'),
                 'estado': data.get('estado'),
                 'usuario_creacion': data.get('usuario_creacion')
             }
+
+            # Mapear observaciones_tratamiento a motivo_consulta para el backend
+            if base_data.get('observaciones_tratamiento'):
+                base_data['motivo_consulta'] = base_data.get('observaciones_tratamiento')
             
             current_user_id = getattr(request, 'current_user', {}).get('id')
             paciente_data = DataUtils.prepare_create_data(base_data, current_user_id)
@@ -179,6 +185,10 @@ class PacienteService:
             validation_result = Validators.validate_paciente_data(data, is_update=True)
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
+
+            # Mapear observaciones_tratamiento a motivo_consulta si viene del frontend
+            if 'observaciones_tratamiento' in data:
+                data['motivo_consulta'] = data.get('observaciones_tratamiento')
 
             # Preparar datos para actualización usando DataUtils
             data['usuario_modificacion'] = data.get('usuario_modificacion')

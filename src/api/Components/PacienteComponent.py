@@ -17,6 +17,8 @@ class PacienteComponent:
                 pac.estado_tratamiento,
                 pac.observaciones,
                 pac.motivo_consulta as observaciones_tratamiento,
+                pac.alergias,
+                pac.medicina,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
@@ -98,6 +100,8 @@ class PacienteComponent:
                 pac.estado_tratamiento,
                 pac.observaciones,
                 pac.motivo_consulta as observaciones_tratamiento,
+                pac.alergias,
+                pac.medicina,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
@@ -215,9 +219,10 @@ class PacienteComponent:
             insert_query = """
                 INSERT INTO paciente (
                     id_persona, id_tutor, fecha_ingreso, motivo_consulta,
-                    estado_tratamiento, observaciones, estado, id_centro, usuario_creacion
+                    estado_tratamiento, observaciones, alergias, medicina,
+                    estado, id_centro, usuario_creacion
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """
 
@@ -228,9 +233,11 @@ class PacienteComponent:
                 data['id_persona'],
                 data['id_tutor'],
                 data['fecha_ingreso'],
-                data.get('observaciones_tratamiento'),  # usar como motivo_consulta temporalmente
+                data.get('motivo_consulta'),  # Campo motivo_consulta mapeado desde observaciones_tratamiento
                 data.get('estado_tratamiento', 'activo'),
                 data.get('observaciones'),
+                data.get('alergias'),
+                data.get('medicina'),
                 data.get('estado', 'activo'),
                 id_centro,
                 data.get('usuario_creacion')
@@ -307,7 +314,8 @@ class PacienteComponent:
             params = []
 
             allowed_fields = ['id_tutor', 'fecha_ingreso', 'motivo_consulta',
-                            'estado_tratamiento', 'observaciones', 'estado', 'usuario_modificacion']
+                            'estado_tratamiento', 'observaciones', 'alergias', 'medicina',
+                            'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
@@ -614,6 +622,8 @@ class PacienteComponent:
                 pac.fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.alergias,
+                pac.medicina,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
@@ -1383,6 +1393,8 @@ class PacienteComponent:
                 pac.fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.alergias,
+                pac.medicina,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
