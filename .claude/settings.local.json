@@ -17,7 +17,8 @@
       "Bash(findstr /i \"api service auth config\")",
       "Bash(git add:*)",
       "Bash(curl:*)",
-      "Bash(python -m json.tool:*)"
+      "Bash(python -m json.tool:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": [],

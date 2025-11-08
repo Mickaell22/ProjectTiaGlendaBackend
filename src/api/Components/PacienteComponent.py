@@ -52,8 +52,9 @@ class PacienteComponent:
             pacientes = DataBaseHandle.getRecords(query)
 
             if pacientes is not None:
-                # Cargar especialidades para cada paciente
+                # Cargar especialidades y tutores para cada paciente
                 for paciente in pacientes:
+                    # Cargar especialidades
                     especialidades_result = PacienteComponent.get_especialidades_paciente(paciente['id'])
                     if especialidades_result['success'] and especialidades_result['data']:
                         paciente['especialidades'] = especialidades_result['data']
@@ -77,6 +78,27 @@ class PacienteComponent:
                         paciente['especialidad_area'] = None
                         paciente['fecha_inicio_tratamiento'] = None
                         paciente['fecha_fin_tratamiento'] = None
+
+                    # Cargar tutores multiples
+                    tutores_result = PacienteComponent.get_tutores_paciente(paciente['id'])
+                    if tutores_result['success'] and tutores_result['data']:
+                        paciente['tutores'] = tutores_result['data']
+                        paciente['total_tutores'] = len(tutores_result['data'])
+
+                        # Encontrar tutor principal para compatibilidad con codigo antiguo
+                        tutor_principal = next((t for t in tutores_result['data'] if t.get('es_principal')), None)
+                        if tutor_principal:
+                            # Mantener campos antiguos para retrocompatibilidad
+                            paciente['tutor_id'] = tutor_principal['tutor_id']
+                            paciente['nombre_tutor'] = tutor_principal['nombre_completo']
+                            paciente['parentesco'] = tutor_principal['parentesco']
+                            paciente['cedula_tutor'] = tutor_principal['cedula']
+                            paciente['telefono_tutor'] = tutor_principal['telefono']
+                            paciente['correo_tutor'] = tutor_principal['correo']
+                            paciente['direccion_tutor'] = tutor_principal['direccion']
+                    else:
+                        paciente['tutores'] = []
+                        paciente['total_tutores'] = 0
 
                 HandleLogs.write_log(f"PacienteComponent.get_all_pacientes - {len(pacientes)} pacientes encontrados")
                 return internal_response(True, pacientes, "Pacientes obtenidos correctamente")
@@ -158,6 +180,27 @@ class PacienteComponent:
                     paciente['especialidad_area'] = None
                     paciente['fecha_inicio_tratamiento'] = None
                     paciente['fecha_fin_tratamiento'] = None
+
+                # Cargar tutores multiples
+                tutores_result = PacienteComponent.get_tutores_paciente(paciente_id)
+                if tutores_result['success'] and tutores_result['data']:
+                    paciente['tutores'] = tutores_result['data']
+                    paciente['total_tutores'] = len(tutores_result['data'])
+
+                    # Encontrar tutor principal para compatibilidad con codigo antiguo
+                    tutor_principal = next((t for t in tutores_result['data'] if t.get('es_principal')), None)
+                    if tutor_principal:
+                        # Mantener campos antiguos para retrocompatibilidad
+                        paciente['tutor_id'] = tutor_principal['tutor_id']
+                        paciente['nombre_tutor'] = tutor_principal['nombre_completo']
+                        paciente['parentesco'] = tutor_principal['parentesco']
+                        paciente['cedula_tutor'] = tutor_principal['cedula']
+                        paciente['telefono_tutor'] = tutor_principal['telefono']
+                        paciente['correo_tutor'] = tutor_principal['correo']
+                        paciente['direccion_tutor'] = tutor_principal['direccion']
+                else:
+                    paciente['tutores'] = []
+                    paciente['total_tutores'] = 0
 
                 HandleLogs.write_log(f"PacienteComponent.get_paciente_by_id - Paciente {paciente_id} encontrado")
                 return internal_response(True, paciente, "Paciente encontrado")
@@ -246,6 +289,40 @@ class PacienteComponent:
             new_id = DataBaseHandle.ExecuteInsert(insert_query, params)
 
             if new_id:
+                # Crear relacion con el tutor en paciente_tutor (siempre sera el principal)
+                tutor_relacion_query = """
+                    INSERT INTO paciente_tutor (
+                        id_paciente, id_tutor, es_principal, tipo_relacion,
+                        puede_autorizar, puede_retirar, contacto_emergencia,
+                        prioridad_contacto, estado, usuario_creacion
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+
+                # Obtener parentesco del tutor para tipo_relacion
+                tutor_info = DataBaseHandle.getRecords(
+                    "SELECT parentesco FROM tutor WHERE id = %s",
+                    (data['id_tutor'],), size=1
+                )
+
+                tutor_relacion_params = (
+                    new_id,
+                    data['id_tutor'],
+                    True,  # es_principal = True para el primer tutor
+                    tutor_info['parentesco'] if tutor_info else None,
+                    True,  # puede_autorizar
+                    True,  # puede_retirar
+                    True,  # contacto_emergencia
+                    1,     # prioridad_contacto
+                    'activo',
+                    data.get('usuario_creacion')
+                )
+
+                tutor_relacion_success = DataBaseHandle.ExecuteNonQuery(tutor_relacion_query, tutor_relacion_params)
+                if not tutor_relacion_success:
+                    HandleLogs.write_error(f"PacienteComponent.create_paciente - Error asignando tutor al paciente {new_id}")
+                    # No fallar completamente, solo logar el error
+
                 # Si se proporciona especialidad, crear relación en paciente_especialidades
                 if data.get('especialidad_id'):
                     especialidad_query = """
@@ -255,7 +332,7 @@ class PacienteComponent:
                         )
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """
-                    
+
                     especialidad_params = (
                         new_id,
                         data['especialidad_id'],
@@ -265,7 +342,7 @@ class PacienteComponent:
                         'activo',
                         data.get('usuario_creacion')
                     )
-                    
+
                     especialidad_success = DataBaseHandle.ExecuteNonQuery(especialidad_query, especialidad_params)
                     if not especialidad_success:
                         HandleLogs.write_error(f"PacienteComponent.create_paciente - Error asignando especialidad al paciente {new_id}")
@@ -1480,5 +1557,291 @@ class PacienteComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.get_pacientes_asignados_personal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    # =============================================
+    # METODOS PARA MULTIPLES TUTORES POR PACIENTE
+    # =============================================
+
+    @staticmethod
+    def get_tutores_paciente(paciente_id):
+        """Obtener todos los tutores de un paciente"""
+        try:
+            query = """
+            SELECT
+                pt.id as paciente_tutor_id,
+                pt.es_principal,
+                pt.tipo_relacion,
+                pt.fecha_asignacion::DATE as fecha_asignacion,
+                pt.observaciones as observaciones_relacion,
+                pt.puede_autorizar,
+                pt.puede_retirar,
+                pt.contacto_emergencia,
+                pt.prioridad_contacto,
+                pt.estado as estado_relacion,
+                -- Informacion del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                t.ocupacion,
+                t.nombre_empresa,
+                t.telefono_empresa,
+                t.direccion_empresa,
+                -- Informacion de la persona del tutor
+                p.id as persona_id,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
+                p.fecha_nacimiento::DATE as fecha_nacimiento
+            FROM paciente_tutor pt
+            INNER JOIN tutor t ON pt.id_tutor = t.id
+            INNER JOIN persona p ON t.id_persona = p.id
+            WHERE pt.id_paciente = %s AND pt.estado = 'activo'
+            ORDER BY pt.es_principal DESC, pt.prioridad_contacto, p.nombre
+            """
+
+            tutores = DataBaseHandle.getRecords(query, (paciente_id,))
+
+            if tutores is not None:
+                HandleLogs.write_log(f"PacienteComponent.get_tutores_paciente - {len(tutores)} tutores encontrados para paciente {paciente_id}")
+                return internal_response(True, tutores, "Tutores del paciente obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.get_tutores_paciente - Error en consulta para paciente {paciente_id}")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_tutores_paciente - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def agregar_tutor_paciente(paciente_id, tutor_id, data=None):
+        """Agregar un tutor a un paciente"""
+        try:
+            # Verificar que el paciente existe
+            paciente_exists = DataBaseHandle.getRecords(
+                "SELECT id FROM paciente WHERE id = %s",
+                (paciente_id,), size=1
+            )
+            if not paciente_exists:
+                return internal_response(False, None, "El paciente especificado no existe")
+
+            # Verificar que el tutor existe y esta activo
+            tutor_exists = DataBaseHandle.getRecords(
+                "SELECT id, estado FROM tutor WHERE id = %s",
+                (tutor_id,), size=1
+            )
+            if not tutor_exists:
+                return internal_response(False, None, "El tutor especificado no existe")
+
+            if tutor_exists['estado'] != 'activo':
+                return internal_response(False, None, "El tutor debe estar activo")
+
+            # Verificar que no exista ya la relacion
+            existing_relation = DataBaseHandle.getRecords(
+                "SELECT id FROM paciente_tutor WHERE id_paciente = %s AND id_tutor = %s",
+                (paciente_id, tutor_id), size=1
+            )
+            if existing_relation:
+                return internal_response(False, None, "Esta relacion paciente-tutor ya existe")
+
+            # Si es el primer tutor, marcarlo como principal automaticamente
+            tutores_actuales = DataBaseHandle.getRecords(
+                "SELECT COUNT(*) as total FROM paciente_tutor WHERE id_paciente = %s AND estado = 'activo'",
+                (paciente_id,), size=1
+            )
+            es_primer_tutor = tutores_actuales['total'] == 0
+
+            # Insertar relacion
+            insert_query = """
+                INSERT INTO paciente_tutor (
+                    id_paciente, id_tutor, es_principal, tipo_relacion,
+                    puede_autorizar, puede_retirar, contacto_emergencia,
+                    prioridad_contacto, observaciones, estado, usuario_creacion
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+
+            params = (
+                paciente_id,
+                tutor_id,
+                data.get('es_principal', es_primer_tutor) if data else es_primer_tutor,
+                data.get('tipo_relacion') if data else None,
+                data.get('puede_autorizar', True) if data else True,
+                data.get('puede_retirar', True) if data else True,
+                data.get('contacto_emergencia', False) if data else False,
+                data.get('prioridad_contacto', 1) if data else 1,
+                data.get('observaciones') if data else None,
+                'activo',
+                data.get('usuario_creacion') if data else None
+            )
+
+            success = DataBaseHandle.ExecuteNonQuery(insert_query, params)
+
+            if success:
+                # Obtener la relacion creada
+                tutores = PacienteComponent.get_tutores_paciente(paciente_id)
+                HandleLogs.write_log(f"PacienteComponent.agregar_tutor_paciente - Tutor {tutor_id} agregado a paciente {paciente_id}")
+                return internal_response(True, tutores['data'], "Tutor agregado exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.agregar_tutor_paciente - Error agregando tutor {tutor_id} a paciente {paciente_id}")
+                return internal_response(False, None, "Error agregando tutor")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.agregar_tutor_paciente - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def cambiar_tutor_principal(paciente_id, nuevo_tutor_id, usuario_id=None):
+        """Cambiar el tutor principal de un paciente"""
+        try:
+            # Verificar que la relacion existe
+            existing_relation = DataBaseHandle.getRecords(
+                "SELECT id FROM paciente_tutor WHERE id_paciente = %s AND id_tutor = %s AND estado = 'activo'",
+                (paciente_id, nuevo_tutor_id), size=1
+            )
+            if not existing_relation:
+                return internal_response(False, None, "La relacion paciente-tutor no existe o no esta activa")
+
+            # El trigger validar_un_tutor_principal se encarga de quitar el flag de principal de los otros tutores
+            # Solo necesitamos marcar el nuevo como principal
+            update_query = """
+                UPDATE paciente_tutor
+                SET es_principal = TRUE,
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id_paciente = %s AND id_tutor = %s AND estado = 'activo'
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (usuario_id, paciente_id, nuevo_tutor_id))
+
+            if success:
+                HandleLogs.write_log(f"PacienteComponent.cambiar_tutor_principal - Tutor {nuevo_tutor_id} marcado como principal para paciente {paciente_id}")
+                return internal_response(True, {
+                    "paciente_id": paciente_id,
+                    "nuevo_tutor_principal_id": nuevo_tutor_id
+                }, "Tutor principal cambiado exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.cambiar_tutor_principal - Error cambiando tutor principal")
+                return internal_response(False, None, "Error cambiando tutor principal")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.cambiar_tutor_principal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def remover_tutor_paciente(paciente_id, tutor_id, usuario_id=None):
+        """Remover un tutor de un paciente (soft delete)"""
+        try:
+            # Verificar que la relacion existe
+            existing_relation = DataBaseHandle.getRecords(
+                """SELECT id, es_principal FROM paciente_tutor
+                   WHERE id_paciente = %s AND id_tutor = %s AND estado = 'activo'""",
+                (paciente_id, tutor_id), size=1
+            )
+            if not existing_relation:
+                return internal_response(False, None, "La relacion paciente-tutor no existe o no esta activa")
+
+            # Verificar que no es el unico tutor activo
+            tutores_count = DataBaseHandle.getRecords(
+                "SELECT COUNT(*) as total FROM paciente_tutor WHERE id_paciente = %s AND estado = 'activo'",
+                (paciente_id,), size=1
+            )
+            if tutores_count['total'] <= 1:
+                return internal_response(False, None, "No se puede remover el unico tutor del paciente. Agregue otro tutor primero.")
+
+            # Marcar como inactivo
+            update_query = """
+                UPDATE paciente_tutor
+                SET estado = 'inactivo',
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id_paciente = %s AND id_tutor = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (usuario_id, paciente_id, tutor_id))
+
+            if success:
+                # Si era el principal, marcar otro como principal
+                if existing_relation['es_principal']:
+                    # Obtener el primer tutor activo que no sea este
+                    nuevo_principal = DataBaseHandle.getRecords(
+                        """SELECT id_tutor FROM paciente_tutor
+                           WHERE id_paciente = %s AND estado = 'activo'
+                           ORDER BY prioridad_contacto LIMIT 1""",
+                        (paciente_id,), size=1
+                    )
+                    if nuevo_principal:
+                        PacienteComponent.cambiar_tutor_principal(paciente_id, nuevo_principal['id_tutor'], usuario_id)
+
+                HandleLogs.write_log(f"PacienteComponent.remover_tutor_paciente - Tutor {tutor_id} removido de paciente {paciente_id}")
+                return internal_response(True, {
+                    "paciente_id": paciente_id,
+                    "tutor_id": tutor_id
+                }, "Tutor removido exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.remover_tutor_paciente - Error removiendo tutor")
+                return internal_response(False, None, "Error removiendo tutor")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.remover_tutor_paciente - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def actualizar_relacion_tutor(paciente_id, tutor_id, data, usuario_id=None):
+        """Actualizar informacion de la relacion paciente-tutor"""
+        try:
+            # Verificar que la relacion existe
+            existing_relation = DataBaseHandle.getRecords(
+                "SELECT id FROM paciente_tutor WHERE id_paciente = %s AND id_tutor = %s AND estado = 'activo'",
+                (paciente_id, tutor_id), size=1
+            )
+            if not existing_relation:
+                return internal_response(False, None, "La relacion paciente-tutor no existe o no esta activa")
+
+            # Construir query de actualizacion dinamicamente
+            update_fields = []
+            params = []
+
+            allowed_fields = ['tipo_relacion', 'puede_autorizar', 'puede_retirar',
+                            'contacto_emergencia', 'prioridad_contacto', 'observaciones']
+
+            for field in allowed_fields:
+                if field in data and data[field] is not None:
+                    update_fields.append(f"{field} = %s")
+                    params.append(data[field])
+
+            if not update_fields:
+                return internal_response(False, None, "No hay campos para actualizar")
+
+            # Agregar usuario y fecha de modificacion
+            update_fields.append("usuario_modificacion = %s")
+            update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+            params.append(usuario_id)
+
+            # Agregar condiciones WHERE
+            params.extend([paciente_id, tutor_id])
+
+            update_query = f"""
+                UPDATE paciente_tutor
+                SET {', '.join(update_fields)}
+                WHERE id_paciente = %s AND id_tutor = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, params)
+
+            if success:
+                HandleLogs.write_log(f"PacienteComponent.actualizar_relacion_tutor - Relacion actualizada para paciente {paciente_id} y tutor {tutor_id}")
+                # Obtener datos actualizados
+                tutores = PacienteComponent.get_tutores_paciente(paciente_id)
+                return internal_response(True, tutores['data'], "Relacion actualizada exitosamente")
+            else:
+                HandleLogs.write_error(f"PacienteComponent.actualizar_relacion_tutor - Error actualizando relacion")
+                return internal_response(False, None, "Error actualizando relacion")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.actualizar_relacion_tutor - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 

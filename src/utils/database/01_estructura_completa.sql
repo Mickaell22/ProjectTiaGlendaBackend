@@ -326,6 +326,33 @@ CREATE TABLE paciente_especialidades (
     UNIQUE (id_paciente, id_especialidad)
 );
 
+-- 11B. TABLA: PACIENTE_TUTOR (Multiples tutores por paciente)
+CREATE TABLE paciente_tutor (
+    id SERIAL PRIMARY KEY,
+    id_paciente INTEGER NOT NULL,
+    id_tutor INTEGER NOT NULL,
+    es_principal BOOLEAN DEFAULT FALSE,
+    tipo_relacion VARCHAR(50), -- padre, madre, abuelo, tio, tutor_legal, etc.
+    fecha_asignacion DATE DEFAULT CURRENT_DATE,
+    observaciones TEXT,
+    puede_autorizar BOOLEAN DEFAULT TRUE, -- Si puede autorizar tratamientos
+    puede_retirar BOOLEAN DEFAULT TRUE, -- Si puede retirar al paciente
+    contacto_emergencia BOOLEAN DEFAULT FALSE, -- Si es contacto de emergencia
+    prioridad_contacto INTEGER DEFAULT 1, -- Orden de prioridad al contactar (1=primero)
+
+    estado VARCHAR(10) DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo')),
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_tutor) REFERENCES tutor(id) ON DELETE RESTRICT,
+
+    -- Constraint para evitar duplicados
+    UNIQUE (id_paciente, id_tutor)
+);
+
 -- 12. TABLA: DOCUMENTOS_PACIENTE
 CREATE TABLE documentos_paciente (
     id SERIAL PRIMARY KEY,
@@ -808,6 +835,10 @@ CREATE INDEX IF NOT EXISTS idx_paciente_centro ON paciente(id_centro);
 CREATE INDEX IF NOT EXISTS idx_paciente_codigo ON paciente(codigo_paciente);
 CREATE INDEX IF NOT EXISTS idx_paciente_especialidades_paciente ON paciente_especialidades(id_paciente);
 CREATE INDEX IF NOT EXISTS idx_paciente_especialidades_especialidad ON paciente_especialidades(id_especialidad);
+CREATE INDEX IF NOT EXISTS idx_paciente_tutor_paciente ON paciente_tutor(id_paciente);
+CREATE INDEX IF NOT EXISTS idx_paciente_tutor_tutor ON paciente_tutor(id_tutor);
+CREATE INDEX IF NOT EXISTS idx_paciente_tutor_principal ON paciente_tutor(id_paciente, es_principal) WHERE es_principal = TRUE;
+CREATE INDEX IF NOT EXISTS idx_paciente_tutor_emergencia ON paciente_tutor(id_paciente, contacto_emergencia) WHERE contacto_emergencia = TRUE;
 CREATE INDEX IF NOT EXISTS idx_documentos_paciente_paciente ON documentos_paciente(id_paciente);
 CREATE INDEX IF NOT EXISTS idx_documentos_paciente_tipo ON documentos_paciente(tipo_documento);
 
@@ -939,6 +970,11 @@ CREATE TRIGGER trigger_paciente_fecha_modificacion
 
 CREATE TRIGGER trigger_paciente_especialidades_fecha_modificacion
     BEFORE UPDATE ON paciente_especialidades
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+CREATE TRIGGER trigger_paciente_tutor_fecha_modificacion
+    BEFORE UPDATE ON paciente_tutor
     FOR EACH ROW
     EXECUTE FUNCTION actualizar_fecha_modificacion();
 
@@ -2125,6 +2161,155 @@ CREATE TRIGGER trigger_garantizar_centro_predeterminado
     EXECUTE FUNCTION garantizar_centro_predeterminado();
 
 COMMENT ON FUNCTION garantizar_centro_predeterminado() IS 'Garantiza que cada usuario tenga al menos un centro predeterminado';
+
+-- =============================================
+-- FUNCIONES Y TRIGGERS PARA MULTIPLES TUTORES
+-- =============================================
+
+-- Función para validar que solo haya un tutor principal por paciente
+CREATE OR REPLACE FUNCTION validar_un_tutor_principal()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_count INTEGER;
+BEGIN
+    -- Solo validar si se esta marcando como principal
+    IF NEW.es_principal = TRUE THEN
+        -- Contar cuantos tutores principales tiene el paciente (excluyendo el actual)
+        SELECT COUNT(*) INTO v_count
+        FROM paciente_tutor
+        WHERE id_paciente = NEW.id_paciente
+          AND es_principal = TRUE
+          AND estado = 'activo'
+          AND id != COALESCE(NEW.id, 0);
+
+        -- Si ya existe otro principal, remover el flag del anterior automaticamente
+        IF v_count > 0 THEN
+            UPDATE paciente_tutor
+            SET es_principal = FALSE,
+                fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE id_paciente = NEW.id_paciente
+              AND es_principal = TRUE
+              AND estado = 'activo'
+              AND id != COALESCE(NEW.id, 0);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para validar tutor principal
+CREATE TRIGGER trigger_validar_un_tutor_principal
+BEFORE INSERT OR UPDATE ON paciente_tutor
+FOR EACH ROW
+EXECUTE FUNCTION validar_un_tutor_principal();
+
+COMMENT ON FUNCTION validar_un_tutor_principal() IS 'Garantiza que cada paciente tenga solo un tutor marcado como principal';
+
+-- =============================================
+-- VISTAS PARA MULTIPLES TUTORES
+-- =============================================
+
+-- Vista para facilitar consultas de pacientes con sus tutores
+CREATE OR REPLACE VIEW vista_pacientes_tutores AS
+SELECT
+    pac.id as paciente_id,
+    pac.codigo_paciente,
+    CONCAT(p_pac.nombre, ' ', p_pac.apellido) as nombre_paciente,
+    p_pac.cedula as cedula_paciente,
+    pac.estado as estado_paciente,
+    pac.estado_tratamiento,
+
+    -- Informacion del tutor
+    pt.id as paciente_tutor_id,
+    t.id as tutor_id,
+    CONCAT(p_tut.nombre, ' ', p_tut.apellido) as nombre_tutor,
+    p_tut.cedula as cedula_tutor,
+    p_tut.telefono as telefono_tutor,
+    p_tut.correo as correo_tutor,
+
+    -- Relacion
+    pt.es_principal,
+    pt.tipo_relacion,
+    pt.puede_autorizar,
+    pt.puede_retirar,
+    pt.contacto_emergencia,
+    pt.prioridad_contacto,
+    pt.observaciones as observaciones_relacion,
+    pt.estado as estado_relacion,
+
+    -- Informacion adicional del tutor
+    t.ocupacion,
+    t.nombre_empresa,
+    t.telefono_empresa,
+    t.parentesco
+FROM paciente pac
+INNER JOIN persona p_pac ON pac.id_persona = p_pac.id
+LEFT JOIN paciente_tutor pt ON pac.id = pt.id_paciente AND pt.estado = 'activo'
+LEFT JOIN tutor t ON pt.id_tutor = t.id
+LEFT JOIN persona p_tut ON t.id_persona = p_tut.id
+WHERE pac.estado != 'eliminado'
+ORDER BY pac.id, pt.es_principal DESC, pt.prioridad_contacto;
+
+COMMENT ON VIEW vista_pacientes_tutores IS 'Vista consolidada de pacientes con sus tutores multiples';
+
+-- Vista de pacientes con especialidades multiples (actualizacion)
+CREATE OR REPLACE VIEW vista_pacientes_especialidades AS
+SELECT
+    pac.id as paciente_id,
+    pac.codigo_paciente,
+    CONCAT(p.nombre, ' ', p.apellido) as nombre_paciente,
+    p.cedula as cedula_paciente,
+    pac.fecha_ingreso,
+    pac.estado as estado_paciente,
+    pac.estado_tratamiento,
+
+    -- Informacion del centro
+    c.id as centro_id,
+    c.codigo as centro_codigo,
+    c.nombre as centro_nombre,
+
+    -- Especialidades (agregadas via json)
+    json_agg(
+        json_build_object(
+            'especialidad_id', e.id,
+            'especialidad_nombre', e.nombre,
+            'especialidad_area', e.area,
+            'es_principal', pe.es_principal,
+            'prioridad', pe.prioridad,
+            'estado', pe.estado,
+            'fecha_inicio', pe.fecha_inicio_tratamiento
+        ) ORDER BY pe.es_principal DESC, pe.prioridad
+    ) FILTER (WHERE e.id IS NOT NULL) as especialidades,
+
+    -- Tutores (agregados via json)
+    (
+        SELECT json_agg(
+            json_build_object(
+                'tutor_id', t.id,
+                'nombre_tutor', CONCAT(pt_persona.nombre, ' ', pt_persona.apellido),
+                'tipo_relacion', pt.tipo_relacion,
+                'es_principal', pt.es_principal,
+                'telefono', pt_persona.telefono,
+                'correo', pt_persona.correo
+            ) ORDER BY pt.es_principal DESC, pt.prioridad_contacto
+        )
+        FROM paciente_tutor pt
+        INNER JOIN tutor t ON pt.id_tutor = t.id
+        INNER JOIN persona pt_persona ON t.id_persona = pt_persona.id
+        WHERE pt.id_paciente = pac.id AND pt.estado = 'activo'
+    ) as tutores
+
+FROM paciente pac
+INNER JOIN persona p ON pac.id_persona = p.id
+LEFT JOIN centros c ON pac.id_centro = c.id
+LEFT JOIN paciente_especialidades pe ON pac.id = pe.id_paciente AND pe.estado = 'activo'
+LEFT JOIN especialidad e ON pe.id_especialidad = e.id
+WHERE pac.estado != 'eliminado'
+GROUP BY pac.id, p.id, p.nombre, p.apellido, p.cedula, c.id, c.codigo, c.nombre
+ORDER BY c.codigo, p.nombre, p.apellido;
+
+COMMENT ON VIEW vista_pacientes_especialidades IS 'Vista consolidada de pacientes con especialidades y tutores multiples en formato JSON';
 
 -- =============================================
 -- FINALIZACIÓN
