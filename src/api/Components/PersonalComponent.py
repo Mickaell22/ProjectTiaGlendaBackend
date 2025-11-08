@@ -8,11 +8,18 @@ class PersonalComponent:
 
     @staticmethod
     def get_all_personal(centro_id=None):
-        """Obtener todo el personal con información completa incluyendo especialidades (filtrado por centro si se especifica)"""
+        """Obtener todo el personal con información completa incluyendo especialidades (filtrado por centro si se especifica)
+
+        IMPORTANTE: Si un usuario tiene acceso a múltiples centros (tabla usuario_centros),
+        el personal asociado a ese usuario aparecerá en todos los centros a los que tenga acceso.
+        """
         try:
             # Construir query con filtro opcional por centro
+            # La lógica es: mostrar personal si:
+            # 1. Su id_centro coincide con el centro filtrado, O
+            # 2. Su usuario asociado tiene acceso al centro filtrado (en usuario_centros)
             base_query = """
-            SELECT 
+            SELECT DISTINCT
                 p.id,
                 p.id_persona,
                 p.id_especialidad,
@@ -47,11 +54,15 @@ class PersonalComponent:
             LEFT JOIN usuario u ON pe.id = u.id_persona
             LEFT JOIN rol r ON u.id_rol = r.id
             LEFT JOIN centros c ON p.id_centro = c.id
+            LEFT JOIN usuario_centros uc ON u.id = uc.id_usuario
             WHERE p.estado != 'eliminado'"""
-            
+
             if centro_id:
-                query = base_query + " AND p.id_centro = %s ORDER BY c.nombre, pe.nombre, pe.apellido"
-                personal = DataBaseHandle.getRecords(query, (centro_id,))
+                # Filtrar por centro: mostrar si el personal pertenece al centro O si su usuario tiene acceso al centro
+                query = base_query + """
+                AND (p.id_centro = %s OR uc.id_centro = %s)
+                ORDER BY c.nombre, pe.nombre, pe.apellido"""
+                personal = DataBaseHandle.getRecords(query, (centro_id, centro_id))
             else:
                 query = base_query + " ORDER BY c.nombre, pe.nombre, pe.apellido"
                 personal = DataBaseHandle.getRecords(query)
@@ -562,10 +573,14 @@ class PersonalComponent:
 
     @staticmethod
     def get_personal_by_centro(centro_id):
-        """Obtener personal filtrado por centro"""
+        """Obtener personal filtrado por centro
+
+        IMPORTANTE: Si un usuario tiene acceso a múltiples centros (tabla usuario_centros),
+        el personal asociado a ese usuario aparecerá en todos los centros a los que tenga acceso.
+        """
         try:
             query = """
-            SELECT 
+            SELECT DISTINCT
                 p.id,
                 p.id_persona,
                 p.id_especialidad,
@@ -600,11 +615,13 @@ class PersonalComponent:
             LEFT JOIN usuario u ON pe.id = u.id_persona
             LEFT JOIN rol r ON u.id_rol = r.id
             INNER JOIN centros c ON p.id_centro = c.id
-            WHERE p.estado != 'eliminado' AND p.id_centro = %s
+            LEFT JOIN usuario_centros uc ON u.id = uc.id_usuario
+            WHERE p.estado != 'eliminado'
+            AND (p.id_centro = %s OR uc.id_centro = %s)
             ORDER BY pe.nombre, pe.apellido
             """
 
-            personal = DataBaseHandle.getRecords(query, (centro_id,))
+            personal = DataBaseHandle.getRecords(query, (centro_id, centro_id))
 
             if personal is not None:
                 # Para cada miembro del personal, obtener sus especialidades
@@ -694,11 +711,15 @@ class PersonalComponent:
 
     @staticmethod
     def get_personal_by_especialidad(especialidad_id, centro_id=None):
-        """Obtener personal por especialidad, opcionalmente filtrado por centro"""
+        """Obtener personal por especialidad, opcionalmente filtrado por centro
+
+        IMPORTANTE: Si un usuario tiene acceso a múltiples centros (tabla usuario_centros),
+        el personal asociado a ese usuario aparecerá en todos los centros a los que tenga acceso.
+        """
         try:
             if centro_id:
                 query = """
-                SELECT 
+                SELECT DISTINCT
                     p.id,
                     p.cargo as titulo_profesional,
                     p.id_centro,
@@ -715,13 +736,17 @@ class PersonalComponent:
                 INNER JOIN personal_especialidades ps ON p.id = ps.id_personal
                 INNER JOIN especialidad e ON ps.id_especialidad = e.id
                 INNER JOIN centros c ON p.id_centro = c.id
-                WHERE ps.id_especialidad = %s AND p.id_centro = %s AND p.estado = 'activo'
+                LEFT JOIN usuario u ON pe.id = u.id_persona
+                LEFT JOIN usuario_centros uc ON u.id = uc.id_usuario
+                WHERE ps.id_especialidad = %s
+                AND (p.id_centro = %s OR uc.id_centro = %s)
+                AND p.estado = 'activo'
                 ORDER BY pe.nombre, pe.apellido
                 """
-                params = (especialidad_id, centro_id)
+                params = (especialidad_id, centro_id, centro_id)
             else:
                 query = """
-                SELECT 
+                SELECT DISTINCT
                     p.id,
                     p.cargo as titulo_profesional,
                     p.id_centro,
@@ -790,7 +815,11 @@ class PersonalComponent:
 
     @staticmethod
     def get_personal_by_area_and_centro(area, centro_id):
-        """Obtener personal por área y centro específico"""
+        """Obtener personal por área y centro específico
+
+        IMPORTANTE: Si un usuario tiene acceso a múltiples centros (tabla usuario_centros),
+        el personal asociado a ese usuario aparecerá en todos los centros a los que tenga acceso.
+        """
         try:
             HandleLogs.write_log(f"PersonalComponent.get_personal_by_area_and_centro - Área: {area}, Centro: {centro_id}")
 
@@ -825,10 +854,11 @@ class PersonalComponent:
             LEFT JOIN centros c ON p.id_centro = c.id
             LEFT JOIN usuario u ON pe.id = u.id_persona
             LEFT JOIN rol r ON u.id_rol = r.id
+            LEFT JOIN usuario_centros uc ON u.id = uc.id_usuario
             LEFT JOIN personal_especialidades pes ON p.id = pes.id_personal AND pes.estado = 'activo'
             LEFT JOIN especialidad e ON pes.id_especialidad = e.id
             WHERE p.estado = 'activo'
-            AND p.id_centro = %s
+            AND (p.id_centro = %s OR uc.id_centro = %s)
             AND LOWER(e.area) LIKE LOWER(%s)
             GROUP BY p.id, p.id_persona, p.cargo, p.estado, p.id_centro,
                      pe.nombre, pe.apellido, pe.cedula, pe.telefono, pe.correo,
@@ -838,7 +868,7 @@ class PersonalComponent:
             """
 
             area_pattern = f'%{area}%'
-            result = DataBaseHandle.getRecords(query, (centro_id, area_pattern))
+            result = DataBaseHandle.getRecords(query, (centro_id, centro_id, area_pattern))
 
             if result is not None:
                 # Formatear fechas para JSON serialization

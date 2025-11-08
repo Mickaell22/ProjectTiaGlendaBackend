@@ -269,7 +269,11 @@ CREATE TABLE paciente (
     fecha_ingreso DATE NOT NULL,
     motivo_consulta TEXT,
     observaciones TEXT,
-    
+
+    -- Información médica adicional
+      alergias TEXT,
+      medicina TEXT,
+
     -- Control de pausas (Fase 2)
     fecha_inicio_pausa DATE,
     fecha_fin_pausa DATE,
@@ -1777,6 +1781,350 @@ COMMENT ON COLUMN historial_pausas.motivo IS 'Motivo de la pausa';
 COMMENT ON COLUMN historial_pausas.observaciones IS 'Observaciones adicionales';
 COMMENT ON COLUMN historial_pausas.fecha_accion IS 'Fecha y hora en que se realizo la accion';
 COMMENT ON COLUMN historial_pausas.usuario_accion IS 'Usuario que realizo la accion';
+
+-- =====================================================
+-- TRIGGER: Actualizacion automatica de estado de sesion
+-- =====================================================
+-- Este trigger actualiza automaticamente el estado de una sesion de terapia
+-- a 'finalizada' cuando todos sus cronogramas estan completados.
+--
+-- Se ejecuta despues de cada actualizacion en cronograma_sesiones
+-- cuando un cronograma cambia a estado 'completada'.
+-- =====================================================
+
+-- Eliminar trigger y funcion si ya existen (para poder recrearlos)
+DROP TRIGGER IF EXISTS trigger_actualizar_estado_sesion ON cronograma_sesiones;
+DROP FUNCTION IF EXISTS actualizar_estado_sesion_terapia();
+
+-- =====================================================
+-- FUNCION: actualizar_estado_sesion_terapia
+-- =====================================================
+CREATE OR REPLACE FUNCTION actualizar_estado_sesion_terapia()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_sesion_id INTEGER;
+    v_total_cronogramas INTEGER;
+    v_cronogramas_completados INTEGER;
+    v_estado_actual VARCHAR(20);
+BEGIN
+    -- Obtener el ID de la sesion del cronograma actualizado
+    v_sesion_id := NEW.id_sesion;
+
+    -- Obtener el estado actual de la sesion
+    SELECT estado INTO v_estado_actual
+    FROM sesion_terapia
+    WHERE id = v_sesion_id;
+
+    -- Solo proceder si la sesion no esta ya finalizada o cancelada
+    IF v_estado_actual NOT IN ('finalizada', 'cancelada') THEN
+
+        -- Contar total de cronogramas de esta sesion
+        -- (excluyendo los cancelados y reprogramados que no cuentan para el total)
+        SELECT COUNT(*) INTO v_total_cronogramas
+        FROM cronograma_sesiones
+        WHERE id_sesion = v_sesion_id
+          AND estado NOT IN ('cancelada', 'reprogramada');
+
+        -- Contar cronogramas completados
+        SELECT COUNT(*) INTO v_cronogramas_completados
+        FROM cronograma_sesiones
+        WHERE id_sesion = v_sesion_id
+          AND estado = 'completada';
+
+        -- Verificar si todos los cronogramas validos estan completados
+        IF v_total_cronogramas > 0 AND v_cronogramas_completados = v_total_cronogramas THEN
+
+            -- Actualizar el estado de la sesion a 'finalizada'
+            UPDATE sesion_terapia
+            SET estado = 'finalizada',
+                fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE id = v_sesion_id;
+
+            -- Mensaje de log (opcional, para debug en PostgreSQL)
+            RAISE NOTICE 'Sesion % marcada como finalizada automaticamente (% de % cronogramas completados)',
+                v_sesion_id, v_cronogramas_completados, v_total_cronogramas;
+        END IF;
+
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- TRIGGER: trigger_actualizar_estado_sesion
+-- =====================================================
+-- Se ejecuta DESPUES de cada UPDATE en cronograma_sesiones
+-- Solo cuando el estado cambia a 'completada'
+CREATE TRIGGER trigger_actualizar_estado_sesion
+    AFTER UPDATE ON cronograma_sesiones
+    FOR EACH ROW
+    WHEN (NEW.estado = 'completada' AND OLD.estado != 'completada')
+    EXECUTE FUNCTION actualizar_estado_sesion_terapia();
+
+-- =====================================================
+-- COMENTARIOS
+-- =====================================================
+COMMENT ON FUNCTION actualizar_estado_sesion_terapia() IS
+'Funcion que actualiza automaticamente el estado de una sesion de terapia a finalizada cuando todos sus cronogramas estan completados';
+
+COMMENT ON TRIGGER trigger_actualizar_estado_sesion ON cronograma_sesiones IS
+'Trigger que ejecuta la actualizacion automatica del estado de sesion cuando un cronograma se marca como completada';
+
+-- =====================================================
+-- TRIGGER: Actualizacion automatica de estado de sesion pedagogica
+-- =====================================================
+-- Este trigger actualiza automaticamente el estado de una sesion pedagogica
+-- a 'finalizada' cuando todas sus clases del cronograma estan completadas.
+--
+-- Se ejecuta despues de cada INSERT, UPDATE o DELETE en cronograma_clases
+-- cuando todas las clases tienen estado 'realizada'.
+-- =====================================================
+
+-- Eliminar trigger y funcion si ya existen (para poder recrearlos)
+DROP TRIGGER IF EXISTS trigger_actualizar_estado_sesion_pedagogica ON cronograma_clases;
+DROP FUNCTION IF EXISTS actualizar_estado_sesion_pedagogica();
+
+-- =====================================================
+-- FUNCION: actualizar_estado_sesion_pedagogica
+-- =====================================================
+CREATE OR REPLACE FUNCTION actualizar_estado_sesion_pedagogica()
+RETURNS TRIGGER AS $$
+DECLARE
+    total_clases INTEGER;
+    clases_completadas INTEGER;
+    sesion_id_actual INTEGER;
+    estado_actual VARCHAR(50);
+BEGIN
+    -- Obtener el ID de la sesion (NEW para INSERT/UPDATE, OLD para DELETE)
+    IF TG_OP = 'DELETE' THEN
+        sesion_id_actual := OLD.id_sesion;
+    ELSE
+        sesion_id_actual := NEW.id_sesion;
+    END IF;
+
+    -- Obtener el estado actual de la sesion
+    SELECT estado INTO estado_actual
+    FROM sesion_pedagogica
+    WHERE id = sesion_id_actual;
+
+    -- Solo proceder si la sesion no esta cancelada o ya finalizada
+    IF estado_actual NOT IN ('cancelada', 'finalizada') THEN
+        -- Contar total de clases programadas para esta sesion
+        SELECT COUNT(*) INTO total_clases
+        FROM cronograma_clases
+        WHERE id_sesion = sesion_id_actual;
+
+        -- Contar clases completadas (estado = 'realizada')
+        SELECT COUNT(*) INTO clases_completadas
+        FROM cronograma_clases
+        WHERE id_sesion = sesion_id_actual
+          AND estado = 'realizada';
+
+        -- Si todas las clases estan completadas y hay al menos una clase
+        IF total_clases > 0 AND clases_completadas = total_clases THEN
+            -- Actualizar el estado de la sesion a 'finalizada'
+            UPDATE sesion_pedagogica
+            SET estado = 'finalizada',
+                fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE id = sesion_id_actual;
+
+            RAISE NOTICE 'Sesion pedagogica % finalizada automaticamente: % de % clases completadas',
+                         sesion_id_actual, clases_completadas, total_clases;
+        END IF;
+    END IF;
+
+    -- Retornar el registro apropiado segun la operacion
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- TRIGGER: trigger_actualizar_estado_sesion_pedagogica
+-- =====================================================
+-- Se ejecuta DESPUES de cada INSERT, UPDATE o DELETE en cronograma_clases
+CREATE TRIGGER trigger_actualizar_estado_sesion_pedagogica
+AFTER INSERT OR UPDATE OR DELETE ON cronograma_clases
+FOR EACH ROW
+EXECUTE FUNCTION actualizar_estado_sesion_pedagogica();
+
+-- =====================================================
+-- COMENTARIOS
+-- =====================================================
+COMMENT ON FUNCTION actualizar_estado_sesion_pedagogica() IS
+'Funcion que verifica si todas las clases de una sesion pedagogica estan completadas y actualiza el estado de la sesion a finalizada';
+
+COMMENT ON TRIGGER trigger_actualizar_estado_sesion_pedagogica ON cronograma_clases IS
+'Trigger que actualiza automaticamente el estado de una sesion pedagogica a finalizada cuando todas sus clases estan completadas';
+
+-- =============================================
+-- SISTEMA MULTI-CENTRO PARA USUARIOS
+-- =============================================
+
+-- Crear tabla de relacion usuario-centros
+CREATE TABLE IF NOT EXISTS usuario_centros (
+    id SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL,
+    id_centro INTEGER NOT NULL,
+
+    -- Control de centro predeterminado
+    es_centro_predeterminado BOOLEAN DEFAULT FALSE,
+
+    -- Auditoría
+    fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_creacion INTEGER,
+    usuario_modificacion INTEGER,
+
+    -- Claves foráneas
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_centro) REFERENCES centros(id) ON DELETE CASCADE,
+
+    -- Constraint para evitar duplicados
+    UNIQUE(id_usuario, id_centro)
+);
+
+-- Crear índices para optimizar consultas
+CREATE INDEX IF NOT EXISTS idx_usuario_centros_usuario ON usuario_centros(id_usuario);
+CREATE INDEX IF NOT EXISTS idx_usuario_centros_centro ON usuario_centros(id_centro);
+CREATE INDEX IF NOT EXISTS idx_usuario_centros_predeterminado ON usuario_centros(id_usuario, es_centro_predeterminado);
+
+-- Trigger para actualizar fecha_modificacion
+CREATE TRIGGER trigger_usuario_centros_fecha_modificacion
+    BEFORE UPDATE ON usuario_centros
+    FOR EACH ROW
+    EXECUTE FUNCTION actualizar_fecha_modificacion();
+
+-- Comentarios
+COMMENT ON TABLE usuario_centros IS 'Relacion de usuarios con multiples centros de atencion';
+COMMENT ON COLUMN usuario_centros.es_centro_predeterminado IS 'Indica si este es el centro predeterminado del usuario al iniciar sesion';
+
+-- Funcion para obtener centros de un usuario
+CREATE OR REPLACE FUNCTION get_centros_usuario(p_id_usuario INTEGER)
+RETURNS TABLE (
+    id INTEGER,
+    nombre VARCHAR(100),
+    codigo VARCHAR(10),
+    direccion VARCHAR(255),
+    telefono VARCHAR(15),
+    es_predeterminado BOOLEAN
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        c.id,
+        c.nombre,
+        c.codigo,
+        c.direccion,
+        c.telefono,
+        uc.es_centro_predeterminado as es_predeterminado
+    FROM usuario_centros uc
+    INNER JOIN centros c ON uc.id_centro = c.id
+    WHERE uc.id_usuario = p_id_usuario
+    AND c.estado = 'activo'
+    ORDER BY uc.es_centro_predeterminado DESC, c.nombre ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION get_centros_usuario(INTEGER) IS 'Obtiene la lista de centros disponibles para un usuario';
+
+-- Funcion para validar acceso a centro
+CREATE OR REPLACE FUNCTION validar_acceso_centro(
+    p_id_usuario INTEGER,
+    p_id_centro INTEGER
+) RETURNS BOOLEAN AS $$
+DECLARE
+    v_tiene_acceso BOOLEAN;
+BEGIN
+    SELECT EXISTS(
+        SELECT 1
+        FROM usuario_centros
+        WHERE id_usuario = p_id_usuario
+        AND id_centro = p_id_centro
+    ) INTO v_tiene_acceso;
+
+    RETURN v_tiene_acceso;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION validar_acceso_centro(INTEGER, INTEGER) IS 'Valida si un usuario tiene acceso a un centro especifico';
+
+-- Funcion para establecer centro predeterminado
+CREATE OR REPLACE FUNCTION establecer_centro_predeterminado(
+    p_id_usuario INTEGER,
+    p_id_centro INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+    IF NOT validar_acceso_centro(p_id_usuario, p_id_centro) THEN
+        RAISE EXCEPTION 'El usuario no tiene acceso al centro especificado';
+    END IF;
+
+    UPDATE usuario_centros
+    SET es_centro_predeterminado = FALSE
+    WHERE id_usuario = p_id_usuario;
+
+    UPDATE usuario_centros
+    SET es_centro_predeterminado = TRUE
+    WHERE id_usuario = p_id_usuario
+    AND id_centro = p_id_centro;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION establecer_centro_predeterminado(INTEGER, INTEGER) IS 'Establece el centro predeterminado para un usuario';
+
+-- Trigger para garantizar un centro predeterminado
+CREATE OR REPLACE FUNCTION garantizar_centro_predeterminado()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_count_centros INTEGER;
+    v_count_predeterminados INTEGER;
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        SELECT COUNT(*) INTO v_count_centros
+        FROM usuario_centros
+        WHERE id_usuario = NEW.id_usuario;
+
+        IF v_count_centros = 1 THEN
+            NEW.es_centro_predeterminado = TRUE;
+        END IF;
+
+        IF NEW.es_centro_predeterminado = TRUE THEN
+            UPDATE usuario_centros
+            SET es_centro_predeterminado = FALSE
+            WHERE id_usuario = NEW.id_usuario
+            AND id != NEW.id;
+        END IF;
+    END IF;
+
+    IF TG_OP = 'UPDATE' AND OLD.es_centro_predeterminado = TRUE AND NEW.es_centro_predeterminado = FALSE THEN
+        SELECT COUNT(*) INTO v_count_predeterminados
+        FROM usuario_centros
+        WHERE id_usuario = NEW.id_usuario
+        AND es_centro_predeterminado = TRUE
+        AND id != NEW.id;
+
+        IF v_count_predeterminados = 0 THEN
+            NEW.es_centro_predeterminado = TRUE;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_garantizar_centro_predeterminado
+    BEFORE INSERT OR UPDATE ON usuario_centros
+    FOR EACH ROW
+    EXECUTE FUNCTION garantizar_centro_predeterminado();
+
+COMMENT ON FUNCTION garantizar_centro_predeterminado() IS 'Garantiza que cada usuario tenga al menos un centro predeterminado';
 
 -- =============================================
 -- FINALIZACIÓN

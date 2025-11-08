@@ -10,8 +10,9 @@ class TutorComponent:
         """Obtener todos los tutores con información completa"""
         try:
             query = """
-            SELECT 
+            SELECT
                 t.id,
+                t.id_persona,
                 p.nombre,
                 p.apellido,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
@@ -32,9 +33,9 @@ class TutorComponent:
             FROM tutor t
             INNER JOIN persona p ON t.id_persona = p.id
             LEFT JOIN paciente pac ON t.id = pac.id_tutor
-            GROUP BY t.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo, 
+            GROUP BY t.id, t.id_persona, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
                      p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
-                     t.telefono_empresa, t.nombre_empresa, t.estado, 
+                     t.telefono_empresa, t.nombre_empresa, t.estado,
                      t.fecha_creacion, t.fecha_modificacion
             ORDER BY p.nombre, p.apellido
             """
@@ -303,8 +304,9 @@ class TutorComponent:
         """Obtener solo tutores activos (útil para combos/selects)"""
         try:
             query = """
-            SELECT 
+            SELECT
                 t.id,
+                t.id_persona,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
                 p.apellido,
@@ -419,6 +421,7 @@ class TutorComponent:
             query = """
             SELECT DISTINCT
                 t.id,
+                t.id_persona,
                 p.nombre,
                 p.apellido,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
@@ -443,7 +446,7 @@ class TutorComponent:
                 SELECT 1 FROM paciente pac2
                 WHERE pac2.id_tutor = t.id AND pac2.id_centro = %s
             )
-            GROUP BY t.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
+            GROUP BY t.id, t.id_persona, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
                      p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
                      t.telefono_empresa, t.nombre_empresa, t.estado,
                      t.fecha_creacion, t.fecha_modificacion
@@ -470,6 +473,7 @@ class TutorComponent:
             query = """
             SELECT DISTINCT
                 t.id,
+                t.id_persona,
                 p.nombre,
                 p.apellido,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
@@ -503,7 +507,7 @@ class TutorComponent:
                 AND sped.id_educador = %s
                 AND sped.id_centro = %s
             )
-            GROUP BY t.id, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
+            GROUP BY t.id, t.id_persona, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
                      p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,
                      t.telefono_empresa, t.nombre_empresa, t.estado,
                      t.fecha_creacion, t.fecha_modificacion
