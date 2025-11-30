@@ -72,23 +72,25 @@ class PersonalService:
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Preparar datos para inserción
+            # Preparar datos para inserción (SOLO los campos que el frontend envía)
             current_user = getattr(request, 'current_user', {})
             personal_data = {
                 'id_persona': int(data['id_persona']),
-                'id_especialidad': int(data.get('id_especialidad')),
-                'fecha_ingreso': data.get('fecha_ingreso'),
-                'cargo': data.get('cargo', '').strip() if data.get('cargo') else None,
-                'tipo_contrato': data.get('tipo_contrato'),
-                'id_centro': int(data.get('id_centro')),
+                'id_especialidad': int(data['id_especialidad']),
+                'fecha_ingreso': data['fecha_ingreso'],
+                'titulo_profesional': data['titulo_profesional'].strip() if data.get('titulo_profesional') else None,
+                'cargo': data['cargo'].strip() if data.get('cargo') else None,
+                'tipo_contrato': data['tipo_contrato'],
+                'id_centro': int(data['id_centro']),
+                'estado': 'activo',  # Siempre activo al crear
                 'usuario_creacion': current_user.get('id', 1)
             }
-            
-            # Campos opcionales
+
+            # Campos opcionales que el frontend puede enviar
             if data.get('fecha_salida'):
-                personal_data['fecha_salida'] = data.get('fecha_salida')
+                personal_data['fecha_salida'] = data['fecha_salida']
             if data.get('observaciones'):
-                personal_data['observaciones'] = data.get('observaciones').strip()
+                personal_data['observaciones'] = data['observaciones'].strip()
 
             result = PersonalComponent.create_personal(personal_data)
 

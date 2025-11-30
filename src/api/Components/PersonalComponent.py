@@ -70,19 +70,28 @@ class PersonalComponent:
             if personal is not None:
                 # Para cada miembro del personal, obtener sus especialidades
                 for i, personal_item in enumerate(personal):
+                    # Combinar especialidad principal + especialidades adicionales
                     query_especialidades = """
-                    SELECT 
+                    SELECT DISTINCT
                         e.id,
                         e.nombre,
                         e.area,
-                        ps.fecha_creacion as fecha_asignacion
-                    FROM personal_especialidades ps
-                    INNER JOIN especialidad e ON ps.id_especialidad = e.id
-                    WHERE ps.id_personal = %s AND e.estado = 'activo'
-                    ORDER BY e.area, e.nombre
+                        CASE
+                            WHEN e.id = p.id_especialidad THEN p.fecha_creacion
+                            ELSE ps.fecha_creacion
+                        END as fecha_asignacion,
+                        CASE
+                            WHEN e.id = p.id_especialidad THEN TRUE
+                            ELSE FALSE
+                        END as es_principal
+                    FROM especialidad e
+                    LEFT JOIN personal p ON e.id = p.id_especialidad AND p.id = %s
+                    LEFT JOIN personal_especialidades ps ON e.id = ps.id_especialidad AND ps.id_personal = %s
+                    WHERE (p.id = %s OR ps.id_personal = %s) AND e.estado = 'activo'
+                    ORDER BY es_principal DESC, e.area, e.nombre
                     """
-                    
-                    especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
+
+                    especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'], personal_item['id'], personal_item['id'], personal_item['id']))
                     personal[i]['especialidades'] = especialidades if especialidades else []
 
                 filter_msg = f" (filtrados por centro {centro_id})" if centro_id else ""
@@ -130,20 +139,28 @@ class PersonalComponent:
             personal = DataBaseHandle.getRecords(query_personal, (personal_id,), size=1)
 
             if personal:
-                # Obtener especialidades del personal
+                # Obtener especialidades del personal (principal + adicionales)
                 query_especialidades = """
-                SELECT 
+                SELECT DISTINCT
                     e.id,
                     e.nombre,
                     e.area,
-                    ps.fecha_creacion as fecha_asignacion
-                FROM personal_especialidades ps
-                INNER JOIN especialidad e ON ps.id_especialidad = e.id
-                WHERE ps.id_personal = %s AND e.estado = 'activo'
-                ORDER BY e.area, e.nombre
+                    CASE
+                        WHEN e.id = p.id_especialidad THEN p.fecha_creacion
+                        ELSE ps.fecha_creacion
+                    END as fecha_asignacion,
+                    CASE
+                        WHEN e.id = p.id_especialidad THEN TRUE
+                        ELSE FALSE
+                    END as es_principal
+                FROM especialidad e
+                LEFT JOIN personal p ON e.id = p.id_especialidad AND p.id = %s
+                LEFT JOIN personal_especialidades ps ON e.id = ps.id_especialidad AND ps.id_personal = %s
+                WHERE (p.id = %s OR ps.id_personal = %s) AND e.estado = 'activo'
+                ORDER BY es_principal DESC, e.area, e.nombre
                 """
 
-                especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_id,))
+                especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_id, personal_id, personal_id, personal_id))
                 personal['especialidades'] = especialidades if especialidades else []
 
                 HandleLogs.write_log(f"PersonalComponent.get_personal_by_id - Personal {personal_id} encontrado")
