@@ -151,11 +151,20 @@ class Validators:
 
         # Campos requeridos para crear usuario
         if not is_update:
+            # Validar campos basicos (excepto centro)
             required_validation = Validators.validate_required_fields(
-                data, ['usuario', 'contrasenia', 'id_persona', 'id_rol', 'id_centro']
+                data, ['usuario', 'contrasenia', 'id_persona', 'id_rol']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
+
+            # Validar que exista al menos uno: id_centro O centros_ids
+            if 'id_centro' not in data and 'centros_ids' not in data:
+                errors.append("Debe proporcionar id_centro o centros_ids")
+            elif 'centros_ids' in data:
+                # Si se proporciona centros_ids, validar que sea una lista no vacia
+                if not isinstance(data['centros_ids'], list) or len(data['centros_ids']) == 0:
+                    errors.append("centros_ids debe ser una lista no vacia de IDs de centros")
 
         # Validar usuario si está presente
         if 'usuario' in data and data['usuario']:

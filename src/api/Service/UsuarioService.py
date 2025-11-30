@@ -59,6 +59,22 @@ class UsuarioService:
         try:
             data = request.get_json()
             HandleLogs.write_log("UsuarioService.create_usuario - Iniciando")
+            HandleLogs.write_log(f"UsuarioService.create_usuario - Datos recibidos: {data}")
+
+            # Validar que se recibieron datos
+            if not data:
+                HandleLogs.write_error("UsuarioService.create_usuario - No se recibieron datos")
+                return response_error("No se recibieron datos en el request", 400)
+
+            # Normalizar nombres de campos del frontend al backend
+            if 'nombre_usuario' in data and 'usuario' not in data:
+                data['usuario'] = data['nombre_usuario']
+            if 'persona_id' in data and 'id_persona' not in data:
+                data['id_persona'] = data['persona_id']
+            if 'rol_id' in data and 'id_rol' not in data:
+                data['id_rol'] = data['rol_id']
+            if 'centro_id' in data and 'id_centro' not in data:
+                data['id_centro'] = data['centro_id']
 
             # Validar datos de usuario
             validation_result = Validators.validate_usuario_data(data, is_update=False)
@@ -138,6 +154,16 @@ class UsuarioService:
 
             if not usuario_id or usuario_id <= 0:
                 return response_error("ID de usuario invalido", 400)
+
+            # Normalizar nombres de campos del frontend al backend
+            if 'nombre_usuario' in data and 'usuario' not in data:
+                data['usuario'] = data['nombre_usuario']
+            if 'persona_id' in data and 'id_persona' not in data:
+                data['id_persona'] = data['persona_id']
+            if 'rol_id' in data and 'id_rol' not in data:
+                data['id_rol'] = data['rol_id']
+            if 'centro_id' in data and 'id_centro' not in data:
+                data['id_centro'] = data['centro_id']
 
             # Validar datos (para actualización)
             validation_result = Validators.validate_usuario_data(data, is_update=True)

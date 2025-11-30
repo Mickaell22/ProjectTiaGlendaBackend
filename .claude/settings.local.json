@@ -18,14 +18,17 @@
       "Bash(git add:*)",
       "Bash(curl:*)",
       "Bash(python -m json.tool:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(more:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
-      "C:\\Users\\ASUS\\Desktop\\Proyecto\\Project D",
-      "C:\\Users\\ASUS\\Desktop\\Proyecto\\Project F"
+      "C:\\Users\\ASUS\\Desktop\\Proyecto Tia Glenda\\Project D",
+      "C:\\Users\\ASUS\\Desktop\\Proyecto Tia Glenda\\Project F"
     ]
   }
 }
