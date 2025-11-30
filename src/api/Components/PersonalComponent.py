@@ -182,25 +182,34 @@ class PersonalComponent:
             if persona_check['success'] and persona_check['data']:
                 return internal_response(False, None, "Esta persona ya está registrada como personal")
 
-            # Insertar nuevo personal  
+            # Insertar nuevo personal con TODOS los campos que el servicio envía
             insert_query = """
-                INSERT INTO personal (id_persona, id_especialidad, id_centro, fecha_ingreso, cargo, estado, usuario_creacion)
-                VALUES (%s, %s, %s, CURRENT_DATE, %s, %s, %s)
+                INSERT INTO personal (
+                    id_persona,
+                    id_especialidad,
+                    id_centro,
+                    fecha_ingreso,
+                    fecha_salida,
+                    titulo_profesional,
+                    cargo,
+                    tipo_contrato,
+                    observaciones,
+                    estado,
+                    usuario_creacion
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
-
-            # Get default specialty ID if not provided
-            default_especialidad_id = data.get('id_especialidad')
-            if not default_especialidad_id:
-                # Try to get the first available specialty
-                especialidad_query = "SELECT id FROM especialidad WHERE estado = 'activo' ORDER BY id LIMIT 1"
-                especialidad_result = DataBaseHandle.getRecords(especialidad_query, size=1)
-                default_especialidad_id = especialidad_result['id'] if especialidad_result else 1
 
             params = (
                 data['id_persona'],
-                default_especialidad_id,
-                data.get('id_centro'),  # Centro del usuario actual
-                data.get('titulo_profesional', '').strip() if data.get('titulo_profesional') else None,
+                data['id_especialidad'],
+                data['id_centro'],
+                data['fecha_ingreso'],  # Usar la fecha que viene del frontend
+                data.get('fecha_salida'),  # Puede ser NULL
+                data.get('titulo_profesional'),  # Puede ser NULL
+                data.get('cargo'),  # Puede ser NULL
+                data.get('tipo_contrato'),
+                data.get('observaciones'),  # Puede ser NULL
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
             )
@@ -244,11 +253,11 @@ class PersonalComponent:
             update_fields = []
             params = []
 
-            allowed_fields = ['id_persona', 'id_especialidad', 'numero_registro', 'fecha_ingreso', 'fecha_salida', 'cargo', 'tipo_contrato', 'salario', 'observaciones', 'id_centro', 'estado', 'usuario_modificacion']
+            allowed_fields = ['id_persona', 'id_especialidad', 'numero_registro', 'fecha_ingreso', 'fecha_salida', 'titulo_profesional', 'cargo', 'tipo_contrato', 'salario', 'observaciones', 'id_centro', 'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
-                    if field in ['cargo', 'observaciones'] and isinstance(data[field], str):
+                    if field in ['titulo_profesional', 'cargo', 'observaciones'] and isinstance(data[field], str):
                         # Campos de texto que necesitan strip
                         if data[field].strip():
                             update_fields.append(f"{field} = %s")
