@@ -149,7 +149,7 @@ Thumbs.db
 
 # Logs
 *.log
-src/utils/general/LOGS/*.log
+src/utils/general/LOGS/
 
 # Local config files
 config.local.cfg

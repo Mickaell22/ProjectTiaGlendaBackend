@@ -21,7 +21,9 @@
       "Bash(tree:*)",
       "Bash(more:*)",
       "Bash(pip install:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(timeout:*)",
+      "Bash(ping:*)"
     ],
     "deny": [],
     "ask": [],
