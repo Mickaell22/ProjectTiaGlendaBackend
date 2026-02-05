@@ -95,12 +95,8 @@ class PersonalService:
             result = PersonalComponent.create_personal(personal_data)
 
             if result['success']:
-                personal_id = result['data']['id']
-                
-                # Obtener el personal creado 
-                updated_result = PersonalComponent.get_personal_by_id(personal_id)
                 HandleLogs.write_log("PersonalService.create_personal - Personal creado exitosamente")
-                return response_inserted(updated_result['data'], "Personal creado exitosamente")
+                return response_inserted(result['data'], "Personal creado exitosamente")
             else:
                 HandleLogs.write_error(f"PersonalService.create_personal - Error: {result['message']}")
                 return response_error(result['message'], 400)
@@ -190,6 +186,28 @@ class PersonalService:
 
         except Exception as e:
             HandleLogs.write_error(f"PersonalService.delete_personal - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def reactivate_personal(personal_id):
+        """Reactivar personal previamente desactivado"""
+        try:
+            HandleLogs.write_log(f"PersonalService.reactivate_personal - ID: {personal_id}")
+
+            if not personal_id or personal_id <= 0:
+                return response_error("ID de personal invalido", 400)
+
+            result = PersonalComponent.reactivate_personal(personal_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonalService.reactivate_personal - Personal {personal_id} reactivado")
+                return response_success(result['data'], "Personal reactivado exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonalService.reactivate_personal - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalService.reactivate_personal - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod

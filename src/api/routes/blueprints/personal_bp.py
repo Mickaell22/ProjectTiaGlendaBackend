@@ -49,6 +49,13 @@ def delete_personal(personal_id):
     return PersonalService.delete_personal(personal_id)
 
 
+@personal_bp.route('/personal/<int:personal_id>/reactivar', methods=['PUT'])
+@admin_required
+def reactivate_personal(personal_id):
+    from src.api.Service.PersonalService import PersonalService
+    return PersonalService.reactivate_personal(personal_id)
+
+
 @personal_bp.route('/personal/area/<area>', methods=['GET'])
 @token_required
 def get_personal_by_area(area):
@@ -98,35 +105,36 @@ def remove_especialidad_from_personal(personal_id, especialidad_id):
 @token_required
 def get_personal_especialidades_multiples(personal_id):
     from src.api.Service.PersonalService import PersonalService
-    return PersonalService.get_especialidades_personal(personal_id)
+    return PersonalService.get_personal_especialidades(personal_id)
 
 
 @personal_bp.route('/personal/<int:personal_id>/especialidades-multiples', methods=['POST'])
 @admin_required
 def agregar_especialidad_personal(personal_id):
     from src.api.Service.PersonalService import PersonalService
-    return PersonalService.agregar_especialidad_personal(personal_id)
+    return PersonalService.assign_especialidad(personal_id)
 
 
 @personal_bp.route('/personal/<int:personal_id>/especialidades-multiples/<int:especialidad_id>', methods=['DELETE'])
 @admin_required
 def remover_especialidad_personal(personal_id, especialidad_id):
     from src.api.Service.PersonalService import PersonalService
-    return PersonalService.remover_especialidad_personal(personal_id, especialidad_id)
+    return PersonalService.remove_especialidad(personal_id, especialidad_id)
 
 
 @personal_bp.route('/personal/por-especialidad/<int:especialidad_id>', methods=['GET'])
 @token_required
 def get_personal_por_especialidad(especialidad_id):
     from src.api.Service.PersonalService import PersonalService
-    return PersonalService.get_personal_por_especialidad(especialidad_id)
+    centro_id = request.args.get('centro_id', type=int)
+    return PersonalService.get_personal_by_especialidad(especialidad_id, centro_id)
 
 
-@personal_bp.route('/personal/especialidades-disponibles', methods=['GET'])
+@personal_bp.route('/personal/<int:personal_id>/especialidades-disponibles', methods=['GET'])
 @token_required
-def get_especialidades_disponibles_personal():
+def get_especialidades_disponibles_personal(personal_id):
     from src.api.Service.PersonalService import PersonalService
-    return PersonalService.get_especialidades_disponibles()
+    return PersonalService.get_especialidades_disponibles(personal_id)
 
 
 # ============================================

@@ -7,6 +7,21 @@ from src.utils.general.centro_middleware import CentroMiddleware
 class PersonalComponent:
 
     @staticmethod
+    def _convert_dates(record):
+        """Convertir campos DATE/TIMESTAMP a string para JSON serialization"""
+        if not record:
+            return record
+        from datetime import date, datetime, time as time_type
+        for key, value in list(record.items()):
+            if isinstance(value, datetime):
+                record[key] = value.isoformat()
+            elif isinstance(value, date):
+                record[key] = value.isoformat()
+            elif isinstance(value, time_type):
+                record[key] = str(value)
+        return record
+
+    @staticmethod
     def get_all_personal(centro_id=None):
         """Obtener todo el personal con información completa incluyendo especialidades (filtrado por centro si se especifica)
 
@@ -70,6 +85,8 @@ class PersonalComponent:
             if personal is not None:
                 # Para cada miembro del personal, obtener sus especialidades
                 for i, personal_item in enumerate(personal):
+                    PersonalComponent._convert_dates(personal_item)
+
                     # Combinar especialidad principal + especialidades adicionales
                     query_especialidades = """
                     SELECT DISTINCT
@@ -92,6 +109,9 @@ class PersonalComponent:
                     """
 
                     especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'], personal_item['id'], personal_item['id'], personal_item['id']))
+                    if especialidades:
+                        for esp in especialidades:
+                            PersonalComponent._convert_dates(esp)
                     personal[i]['especialidades'] = especialidades if especialidades else []
 
                 filter_msg = f" (filtrados por centro {centro_id})" if centro_id else ""
@@ -109,11 +129,21 @@ class PersonalComponent:
     def get_personal_by_id(personal_id):
         """Obtener un miembro del personal por ID con todas sus especialidades"""
         try:
-            # Obtener información básica del personal
+            # Obtener informacion completa del personal
             query_personal = """
-            SELECT 
+            SELECT
                 p.id,
+                p.id_persona,
+                p.id_especialidad,
+                p.numero_registro,
+                p.fecha_ingreso,
+                p.fecha_salida,
                 p.cargo as titulo_profesional,
+                p.cargo,
+                p.tipo_contrato,
+                p.salario,
+                p.observaciones,
+                p.id_centro,
                 p.estado,
                 p.fecha_creacion,
                 p.fecha_modificacion,
@@ -128,17 +158,23 @@ class PersonalComponent:
                 pe.fecha_nacimiento,
                 u.id as usuario_id,
                 u.usuario as nombre_usuario,
-                r.nombre as rol_usuario
+                r.nombre as rol_usuario,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
+                c.turno_principal as centro_turno
             FROM personal p
             INNER JOIN persona pe ON p.id_persona = pe.id
             LEFT JOIN usuario u ON pe.id = u.id_persona
             LEFT JOIN rol r ON u.id_rol = r.id
+            LEFT JOIN centros c ON p.id_centro = c.id
             WHERE p.id = %s
             """
 
             personal = DataBaseHandle.getRecords(query_personal, (personal_id,), size=1)
 
             if personal:
+                PersonalComponent._convert_dates(personal)
+
                 # Obtener especialidades del personal (principal + adicionales)
                 query_especialidades = """
                 SELECT DISTINCT
@@ -161,6 +197,9 @@ class PersonalComponent:
                 """
 
                 especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_id, personal_id, personal_id, personal_id))
+                if especialidades:
+                    for esp in especialidades:
+                        PersonalComponent._convert_dates(esp)
                 personal['especialidades'] = especialidades if especialidades else []
 
                 HandleLogs.write_log(f"PersonalComponent.get_personal_by_id - Personal {personal_id} encontrado")
@@ -253,7 +292,7 @@ class PersonalComponent:
             update_fields = []
             params = []
 
-            allowed_fields = ['id_persona', 'id_especialidad', 'numero_registro', 'fecha_ingreso', 'fecha_salida', 'titulo_profesional', 'cargo', 'tipo_contrato', 'salario', 'observaciones', 'id_centro', 'estado', 'usuario_modificacion']
+            allowed_fields = ['id_especialidad', 'numero_registro', 'fecha_ingreso', 'fecha_salida', 'titulo_profesional', 'cargo', 'tipo_contrato', 'salario', 'observaciones', 'id_centro', 'estado', 'usuario_modificacion']
 
             for field in allowed_fields:
                 if field in data and data[field] is not None:
@@ -335,6 +374,39 @@ class PersonalComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
+    def reactivate_personal(personal_id):
+        """Reactivar personal previamente desactivado"""
+        try:
+            check_query = "SELECT id, estado FROM personal WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (personal_id,), size=1)
+
+            if not existing:
+                return internal_response(False, None, "Personal no encontrado")
+
+            if existing['estado'] == 'activo':
+                return internal_response(False, None, "El personal ya esta activo")
+
+            update_query = """
+                UPDATE personal
+                SET estado = 'activo', fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (personal_id,))
+
+            if success:
+                HandleLogs.write_log(f"PersonalComponent.reactivate_personal - Personal {personal_id} reactivado")
+                return internal_response(True, {"id": personal_id, "estado": "activo"},
+                                         "Personal reactivado exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonalComponent.reactivate_personal - Error reactivando personal {personal_id}")
+                return internal_response(False, None, "Error reactivando personal")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonalComponent.reactivate_personal - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
     def check_persona_is_personal(id_persona, exclude_id=None):
         """Verificar si una persona ya está registrada como personal"""
         try:
@@ -346,7 +418,7 @@ class PersonalComponent:
                 params = (id_persona,)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            return internal_response(True, existing is not None and bool(existing), "Consulta ejecutada")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonalComponent.check_persona_is_personal - Error: {str(e)}")
@@ -652,8 +724,10 @@ class PersonalComponent:
             if personal is not None:
                 # Para cada miembro del personal, obtener sus especialidades
                 for i, personal_item in enumerate(personal):
+                    PersonalComponent._convert_dates(personal_item)
+
                     query_especialidades = """
-                    SELECT 
+                    SELECT
                         e.id,
                         e.nombre,
                         e.area,
@@ -663,8 +737,11 @@ class PersonalComponent:
                     WHERE ps.id_personal = %s AND e.estado = 'activo'
                     ORDER BY e.area, e.nombre
                     """
-                    
+
                     especialidades = DataBaseHandle.getRecords(query_especialidades, (personal_item['id'],))
+                    if especialidades:
+                        for esp in especialidades:
+                            PersonalComponent._convert_dates(esp)
                     personal[i]['especialidades'] = especialidades if especialidades else []
                     personal[i]['total_especialidades'] = len(personal[i]['especialidades'])
 

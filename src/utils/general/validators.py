@@ -351,7 +351,7 @@ class Validators:
         # Campos requeridos para crear personal
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['id_persona']
+                data, ['id_persona', 'id_especialidad', 'id_centro', 'fecha_ingreso', 'tipo_contrato']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
@@ -371,23 +371,31 @@ class Validators:
             if not titulo_validation['valid']:
                 errors.append(titulo_validation['message'])
         
-        # Validar cargo si está presente
+        # Validar cargo si esta presente
         if 'cargo' in data and data['cargo']:
             if len(data['cargo'].strip()) < 3:
                 errors.append("El cargo debe tener al menos 3 caracteres")
 
-        # Validar estado si está presente
+        # Validar estado si esta presente
         if 'estado' in data and data['estado']:
-            valid_states = ['activo', 'inactivo']
+            valid_states = ['activo', 'inactivo', 'vacaciones', 'licencia']
             if data['estado'] not in valid_states:
                 errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
 
-        # Validar IDs numéricos
-        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        # Validar tipo_contrato si esta presente
+        if 'tipo_contrato' in data and data['tipo_contrato']:
+            valid_contratos = ['indefinido', 'temporal', 'honorarios', 'practicante']
+            if data['tipo_contrato'] not in valid_contratos:
+                errors.append(f"Tipo de contrato debe ser uno de: {', '.join(valid_contratos)}")
+
+        # Validar IDs numericos
+        numeric_fields = ['usuario_creacion', 'usuario_modificacion', 'id_especialidad', 'id_centro']
         for field in numeric_fields:
             if field in data and data[field]:
                 try:
-                    int(data[field])
+                    val = int(data[field])
+                    if val <= 0:
+                        errors.append(f"{field} debe ser un numero positivo")
                 except (ValueError, TypeError):
                     errors.append(f"{field} debe ser un numero entero")
 
