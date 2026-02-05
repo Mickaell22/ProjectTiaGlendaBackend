@@ -95,11 +95,15 @@ class EspecialidadService:
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Preparar datos para inserción
+            # Validar que id_centro este presente
+            if 'id_centro' not in data or data['id_centro'] is None:
+                return response_error("El campo id_centro es requerido", 400)
+
+            # Preparar datos para insercion
             especialidad_data = {
                 'nombre': data['nombre'].strip(),
                 'area': data['area'],
-                'id_centro': data['id_centro'],  # Requerido para nuevas especialidades
+                'id_centro': data['id_centro'],
                 'estado': data.get('estado', 'activo'),
                 'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1)
             }
@@ -168,6 +172,28 @@ class EspecialidadService:
 
         except Exception as e:
             HandleLogs.write_error(f"EspecialidadService.delete_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def activate_especialidad(especialidad_id):
+        """Reactivar especialidad"""
+        try:
+            HandleLogs.write_log(f"EspecialidadService.activate_especialidad - ID: {especialidad_id}")
+
+            if especialidad_id is None or especialidad_id <= 0:
+                return response_error("ID de especialidad invalido", 400)
+
+            result = EspecialidadComponent.activate_especialidad(especialidad_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"EspecialidadService.activate_especialidad - Especialidad {especialidad_id} reactivada")
+                return response_success(result['data'], "Especialidad reactivada exitosamente")
+            else:
+                HandleLogs.write_error(f"EspecialidadService.activate_especialidad - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"EspecialidadService.activate_especialidad - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod

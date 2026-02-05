@@ -275,33 +275,33 @@ class Validators:
         # Campos requeridos para crear especialidad
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['nombre', 'area']
+                data, ['nombre', 'area', 'id_centro']
             )
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
 
-        # Validar nombre si está presente
+        # Validar nombre si esta presente
         if 'nombre' in data and data['nombre']:
             name_validation = Validators.validate_especialidad_name(data['nombre'])
             if not name_validation['valid']:
                 errors.append(name_validation['message'])
 
-        # Validar área si está presente
+        # Validar area si esta presente
         if 'area' in data and data['area']:
             area_validation = Validators.validate_area(data['area'])
             if not area_validation['valid']:
                 errors.append(area_validation['message'])
 
-        # Validar estado si está presente
+        # Validar estado si esta presente
         if 'estado' in data and data['estado']:
             valid_states = ['activo', 'inactivo']
             if data['estado'] not in valid_states:
                 errors.append(f"Estado debe ser uno de: {', '.join(valid_states)}")
 
-        # Validar IDs numéricos
-        numeric_fields = ['usuario_creacion', 'usuario_modificacion']
+        # Validar IDs numericos
+        numeric_fields = ['id_centro', 'usuario_creacion', 'usuario_modificacion']
         for field in numeric_fields:
-            if field in data and data[field]:
+            if field in data and data[field] is not None:
                 try:
                     int(data[field])
                 except (ValueError, TypeError):

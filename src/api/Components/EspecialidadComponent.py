@@ -131,23 +131,32 @@ class EspecialidadComponent:
         """Obtener una especialidad por ID"""
         try:
             query = """
-            SELECT 
+            SELECT
                 e.id,
                 e.nombre,
                 e.area,
                 e.estado,
+                e.id_centro,
+                c.nombre as centro_nombre,
+                c.codigo as centro_codigo,
                 e.fecha_creacion,
                 e.fecha_modificacion,
                 COUNT(pe.id) as personal_asignado
             FROM especialidad e
+            LEFT JOIN centros c ON e.id_centro = c.id
             LEFT JOIN personal_especialidades pe ON e.id = pe.id_especialidad
             WHERE e.id = %s
-            GROUP BY e.id, e.nombre, e.area, e.estado, e.fecha_creacion, e.fecha_modificacion
+            GROUP BY e.id, e.nombre, e.area, e.estado, e.id_centro, c.nombre, c.codigo, e.fecha_creacion, e.fecha_modificacion
             """
 
             especialidad = DataBaseHandle.getRecords(query, (especialidad_id,), size=1)
 
-            if especialidad is not None:
+            if especialidad:
+                # Convertir fechas a string para JSON
+                if especialidad.get('fecha_creacion'):
+                    especialidad['fecha_creacion'] = str(especialidad['fecha_creacion'])
+                if especialidad.get('fecha_modificacion'):
+                    especialidad['fecha_modificacion'] = str(especialidad['fecha_modificacion'])
                 HandleLogs.write_log(f"EspecialidadComponent.get_especialidad_by_id - Especialidad {especialidad_id} encontrada")
                 return internal_response(True, especialidad, "Especialidad encontrada")
             else:
@@ -162,10 +171,10 @@ class EspecialidadComponent:
     def create_especialidad(data):
         """Crear una nueva especialidad"""
         try:
-            # Verificar si el nombre ya existe en la misma área y centro
-            nombre_check = EspecialidadComponent.check_nombre_exists(data['nombre'], data['area'], data['id_centro'])
+            # Verificar si el nombre ya existe en el mismo centro
+            nombre_check = EspecialidadComponent.check_nombre_exists(data['nombre'], data['id_centro'])
             if nombre_check['success'] and nombre_check['data']:
-                return internal_response(False, None, f"Ya existe una especialidad con ese nombre en el área {data['area']} para este centro")
+                return internal_response(False, None, "Ya existe una especialidad con ese nombre en este centro")
 
             # Insertar nueva especialidad
             insert_query = """
@@ -201,20 +210,22 @@ class EspecialidadComponent:
     def update_especialidad(especialidad_id, data):
         """Actualizar una especialidad existente"""
         try:
-            # Verificar si la especialidad existe
-            check_query = "SELECT id FROM especialidad WHERE id = %s"
+            # Verificar si la especialidad existe y obtener id_centro actual
+            check_query = "SELECT id, id_centro FROM especialidad WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (especialidad_id,), size=1)
 
             if not existing:
                 return internal_response(False, None, "Especialidad no encontrada")
 
-            # Verificar nombre duplicado en la misma área y centro (excluyendo la especialidad actual)
-            if 'nombre' in data and 'area' in data and 'id_centro' in data:
+            # Verificar nombre duplicado en el mismo centro (excluyendo la especialidad actual)
+            if 'nombre' in data:
+                # Usar id_centro del data si viene, sino usar el actual
+                id_centro_verificar = data.get('id_centro', existing['id_centro'])
                 nombre_check = EspecialidadComponent.check_nombre_exists(
-                    data['nombre'], data['area'], data['id_centro'], exclude_id=especialidad_id
+                    data['nombre'], id_centro_verificar, exclude_id=especialidad_id
                 )
                 if nombre_check['success'] and nombre_check['data']:
-                    return internal_response(False, None, f"Ya existe una especialidad con ese nombre en el área {data['area']} para este centro")
+                    return internal_response(False, None, "Ya existe una especialidad con ese nombre en este centro")
 
             # Construir query de actualización dinámicamente
             update_fields = []
@@ -310,18 +321,57 @@ class EspecialidadComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def check_nombre_exists(nombre, area, id_centro, exclude_id=None):
-        """Verificar si un nombre de especialidad ya existe en la misma área y centro"""
+    def activate_especialidad(especialidad_id):
+        """Reactivar especialidad"""
+        try:
+            # Verificar si la especialidad existe
+            check_query = "SELECT id, estado FROM especialidad WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (especialidad_id,), size=1)
+
+            if not existing:
+                return internal_response(False, None, "Especialidad no encontrada")
+
+            if existing['estado'] == 'activo':
+                return internal_response(False, None, "Especialidad ya esta activa")
+
+            # Reactivar especialidad
+            update_query = """
+                UPDATE especialidad
+                SET estado = 'activo', fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (especialidad_id,))
+
+            if success:
+                HandleLogs.write_log(f"EspecialidadComponent.activate_especialidad - Especialidad {especialidad_id} reactivada")
+                return internal_response(True, {"id": especialidad_id, "estado": "activo"},
+                                         "Especialidad reactivada exitosamente")
+            else:
+                HandleLogs.write_error(f"EspecialidadComponent.activate_especialidad - Error reactivando especialidad {especialidad_id}")
+                return internal_response(False, None, "Error reactivando especialidad")
+
+        except Exception as e:
+            HandleLogs.write_error(f"EspecialidadComponent.activate_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def check_nombre_exists(nombre, id_centro, exclude_id=None):
+        """Verificar si un nombre de especialidad ya existe en el mismo centro
+        Nota: El constraint UNIQUE en BD es (nombre, id_centro), no incluye area
+        """
         try:
             if exclude_id:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id_centro = %s AND id != %s"
-                params = (nombre, area, id_centro, exclude_id)
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND id_centro = %s AND id != %s"
+                params = (nombre, id_centro, exclude_id)
             else:
-                query = "SELECT id FROM especialidad WHERE nombre = %s AND area = %s AND id_centro = %s"
-                params = (nombre, area, id_centro)
+                query = "SELECT id FROM especialidad WHERE nombre = %s AND id_centro = %s"
+                params = (nombre, id_centro)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            # getRecords devuelve dict si encuentra, None o {} si no encuentra
+            exists = existing is not None and bool(existing)
+            return internal_response(True, exists, "Consulta ejecutada")
 
         except Exception as e:
             HandleLogs.write_error(f"EspecialidadComponent.check_nombre_exists - Error: {str(e)}")
