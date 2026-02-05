@@ -302,6 +302,28 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
+    def get_pacientes_por_especialidad(especialidad_id):
+        """Obtener pacientes que tienen una especialidad especifica"""
+        try:
+            HandleLogs.write_log(f"PacienteService.get_pacientes_por_especialidad - Especialidad ID: {especialidad_id}")
+
+            if not especialidad_id or especialidad_id <= 0:
+                return response_error("ID de especialidad invalido", 400)
+
+            result = PacienteComponent.get_pacientes_por_especialidad(especialidad_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PacienteService.get_pacientes_por_especialidad - Pacientes obtenidos para especialidad {especialidad_id}")
+                return response_success(result['data'], "Pacientes por especialidad obtenidos correctamente")
+            else:
+                HandleLogs.write_error(f"PacienteService.get_pacientes_por_especialidad - Error: {result['message']}")
+                return response_error("Error obteniendo pacientes por especialidad", 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteService.get_pacientes_por_especialidad - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
     def upload_documento(paciente_id):
         """Subir documento PDF para un paciente"""
         try:
@@ -574,30 +596,35 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
-    def agregar_especialidad_paciente():
+    def agregar_especialidad_paciente(paciente_id=None):
         """Agregar una especialidad a un paciente"""
         try:
             data = request.get_json()
             HandleLogs.write_log("PacienteService.agregar_especialidad_paciente - Iniciando")
 
-            # Validar datos requeridos - aceptar ambos formatos de campos
-            paciente_id = data.get('paciente_id') or data.get('id_paciente')
+            # Aceptar paciente_id de parametro URL o del body
+            if paciente_id is None:
+                paciente_id = data.get('paciente_id') or data.get('id_paciente')
             especialidad_id = data.get('especialidad_id') or data.get('id_especialidad')
-            
+
             if not paciente_id:
                 return response_error("Campo requerido faltante: paciente_id o id_paciente", 400)
             if not especialidad_id:
                 return response_error("Campo requerido faltante: especialidad_id o id_especialidad", 400)
+
+            paciente_id = int(paciente_id)
+            especialidad_id = int(especialidad_id)
+
             fecha_inicio_tratamiento = data.get('fecha_inicio_tratamiento')
             observaciones = data.get('observaciones')
-            usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
+            usuario_id = getattr(request, 'current_user', {}).get('id', 1)
 
             # Validar IDs
-            if not isinstance(paciente_id, int) or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+            if paciente_id <= 0:
+                return response_error("ID de paciente invalido", 400)
 
-            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
-                return response_error("ID de especialidad inválido", 400)
+            if especialidad_id <= 0:
+                return response_error("ID de especialidad invalido", 400)
 
             result = PacienteComponent.agregar_especialidad_paciente(
                 paciente_id, especialidad_id, fecha_inicio_tratamiento, observaciones, usuario_id
@@ -610,6 +637,8 @@ class PacienteService:
                 HandleLogs.write_error(f"PacienteService.agregar_especialidad_paciente - Error: {result['message']}")
                 return response_error(result['message'], 400)
 
+        except (ValueError, TypeError):
+            return response_error("IDs deben ser numeros enteros validos", 400)
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.agregar_especialidad_paciente - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
@@ -652,28 +681,33 @@ class PacienteService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
-    def remover_especialidad_paciente():
+    def remover_especialidad_paciente(paciente_id=None, especialidad_id=None):
         """Remover una especialidad de un paciente"""
         try:
-            data = request.get_json()
             HandleLogs.write_log("PacienteService.remover_especialidad_paciente - Iniciando")
 
-            # Validar datos requeridos
-            required_validation = Validators.validate_required_fields(
-                data, ['paciente_id', 'especialidad_id']
-            )
-            if not required_validation['valid']:
-                return response_error(required_validation['message'], 400)
+            # Si no se pasaron por parametro, obtener del body
+            if paciente_id is None or especialidad_id is None:
+                data = request.get_json()
+                if paciente_id is None:
+                    paciente_id = data.get('paciente_id') or data.get('id_paciente')
+                if especialidad_id is None:
+                    especialidad_id = data.get('especialidad_id') or data.get('id_especialidad')
 
-            paciente_id = data['paciente_id']
-            especialidad_id = data['especialidad_id']
+            if not paciente_id:
+                return response_error("Campo requerido faltante: paciente_id", 400)
+            if not especialidad_id:
+                return response_error("Campo requerido faltante: especialidad_id", 400)
 
             # Validar IDs
-            if not isinstance(paciente_id, int) or paciente_id <= 0:
-                return response_error("ID de paciente inválido", 400)
+            paciente_id = int(paciente_id)
+            especialidad_id = int(especialidad_id)
 
-            if not isinstance(especialidad_id, int) or especialidad_id <= 0:
-                return response_error("ID de especialidad inválido", 400)
+            if paciente_id <= 0:
+                return response_error("ID de paciente invalido", 400)
+
+            if especialidad_id <= 0:
+                return response_error("ID de especialidad invalido", 400)
 
             result = PacienteComponent.remover_especialidad_paciente(paciente_id, especialidad_id)
 
@@ -684,6 +718,8 @@ class PacienteService:
                 HandleLogs.write_error(f"PacienteService.remover_especialidad_paciente - Error: {result['message']}")
                 return response_error(result['message'], 400)
 
+        except (ValueError, TypeError):
+            return response_error("IDs deben ser numeros enteros validos", 400)
         except Exception as e:
             HandleLogs.write_error(f"PacienteService.remover_especialidad_paciente - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)

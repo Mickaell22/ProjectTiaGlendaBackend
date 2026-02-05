@@ -513,8 +513,16 @@ class Validators:
         # Campos requeridos para crear paciente
         if not is_update:
             required_validation = Validators.validate_required_fields(
-                data, ['persona_id', 'tutor_id', 'especialidad_id', 'fecha_ingreso', 'fecha_inicio_tratamiento']
+                data, ['fecha_ingreso']
             )
+            # Verificar persona_id o id_persona
+            persona_id = data.get('persona_id') or data.get('id_persona')
+            if not persona_id:
+                errors.append("Campo requerido faltante: persona_id o id_persona")
+            # Verificar tutor_id o id_tutor
+            tutor_id = data.get('tutor_id') or data.get('id_tutor')
+            if not tutor_id:
+                errors.append("Campo requerido faltante: tutor_id o id_tutor")
             if not required_validation['valid']:
                 errors.append(required_validation['message'])
 

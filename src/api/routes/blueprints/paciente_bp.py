@@ -91,7 +91,7 @@ def get_pacientes_por_especialidad(especialidad_id):
 @token_required
 def assign_especialidad_paciente(paciente_id):
     from src.api.Service.PacienteService import PacienteService
-    return PacienteService.agregar_especialidad_paciente()
+    return PacienteService.agregar_especialidad_paciente(paciente_id)
 
 
 @paciente_bp.route('/pacientes/<int:paciente_id>/especialidades', methods=['GET'])
@@ -105,7 +105,7 @@ def get_paciente_especialidades(paciente_id):
 @token_required
 def remove_especialidad_paciente(paciente_id, especialidad_id):
     from src.api.Service.PacienteService import PacienteService
-    return PacienteService.remover_especialidad_paciente()
+    return PacienteService.remover_especialidad_paciente(paciente_id, especialidad_id)
 
 
 @paciente_bp.route('/pacientes/<int:paciente_id>/especialidad-principal', methods=['PUT'])
@@ -337,3 +337,68 @@ def get_estadisticas_documentos():
     if result['success']:
         return response_success(result['data'], result['message'])
     return response_error(result['message'], 500)
+
+
+# ============================================
+# GESTION DE TUTORES DE PACIENTES
+# ============================================
+@paciente_bp.route('/pacientes/<int:paciente_id>/tutores', methods=['GET'])
+@token_required
+def get_tutores_paciente(paciente_id):
+    from src.api.Components.PacienteComponent import PacienteComponent
+    result = PacienteComponent.get_tutores_paciente(paciente_id)
+    if result['success']:
+        return response_success(result['data'], result['message'])
+    return response_error(result['message'], 500)
+
+
+@paciente_bp.route('/pacientes/<int:paciente_id>/tutores', methods=['POST'])
+@token_required
+def agregar_tutor_paciente(paciente_id):
+    from src.api.Components.PacienteComponent import PacienteComponent
+    data = request.get_json()
+    tutor_id = data.get('tutor_id') or data.get('id_tutor')
+    if not tutor_id:
+        return response_error("Campo requerido faltante: tutor_id", 400)
+    result = PacienteComponent.agregar_tutor_paciente(paciente_id, int(tutor_id), data)
+    if result['success']:
+        return response_success(result['data'], result['message'])
+    return response_error(result['message'], 400)
+
+
+@paciente_bp.route('/pacientes/<int:paciente_id>/tutores/<int:tutor_id>', methods=['PUT'])
+@token_required
+def actualizar_relacion_tutor(paciente_id, tutor_id):
+    from src.api.Components.PacienteComponent import PacienteComponent
+    data = request.get_json()
+    usuario_id = getattr(request, 'current_user', {}).get('id')
+    result = PacienteComponent.actualizar_relacion_tutor(paciente_id, tutor_id, data, usuario_id)
+    if result['success']:
+        return response_success(result['data'], result['message'])
+    return response_error(result['message'], 400)
+
+
+@paciente_bp.route('/pacientes/<int:paciente_id>/tutores/<int:tutor_id>', methods=['DELETE'])
+@token_required
+def remover_tutor_paciente(paciente_id, tutor_id):
+    from src.api.Components.PacienteComponent import PacienteComponent
+    usuario_id = getattr(request, 'current_user', {}).get('id')
+    result = PacienteComponent.remover_tutor_paciente(paciente_id, tutor_id, usuario_id)
+    if result['success']:
+        return response_success(result['data'], result['message'])
+    return response_error(result['message'], 400)
+
+
+@paciente_bp.route('/pacientes/<int:paciente_id>/tutor-principal', methods=['PUT'])
+@token_required
+def cambiar_tutor_principal(paciente_id):
+    from src.api.Components.PacienteComponent import PacienteComponent
+    data = request.get_json()
+    nuevo_tutor_id = data.get('nuevo_tutor_id') or data.get('tutor_id')
+    if not nuevo_tutor_id:
+        return response_error("Campo requerido faltante: nuevo_tutor_id", 400)
+    usuario_id = getattr(request, 'current_user', {}).get('id')
+    result = PacienteComponent.cambiar_tutor_principal(paciente_id, int(nuevo_tutor_id), usuario_id)
+    if result['success']:
+        return response_success(result['data'], result['message'])
+    return response_error(result['message'], 400)

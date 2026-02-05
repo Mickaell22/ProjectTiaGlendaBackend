@@ -45,7 +45,7 @@ class PacienteComponent:
             INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
             INNER JOIN persona pt ON t.id_persona = pt.id
-            WHERE pac.estado != 'eliminado'
+            WHERE pac.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """
 
@@ -434,41 +434,61 @@ class PacienteComponent:
         """Cambiar estado del paciente (activo, inactivo, alta, derivado)"""
         try:
             # Verificar si el paciente existe
-            check_query = "SELECT id, estado FROM paciente WHERE id = %s"
+            check_query = "SELECT id, estado, estado_tratamiento FROM paciente WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (paciente_id,), size=1)
 
             if not existing:
                 return internal_response(False, None, "Paciente no encontrado")
 
-            # Verificar estados válidos
-            valid_states = ['activo', 'inactivo', 'alta', 'derivado', 'eliminado']
+            # Verificar estados validos (DB CHECK permite: activo, inactivo)
+            # 'alta' y 'derivado' se mapean a inactivo + estado_tratamiento correspondiente
+            valid_states = ['activo', 'inactivo', 'alta', 'derivado']
             if nuevo_estado not in valid_states:
-                return internal_response(False, None, f"Estado inválido. Debe ser uno de: {', '.join(valid_states)}")
+                return internal_response(False, None, f"Estado invalido. Debe ser uno de: {', '.join(valid_states)}")
 
-            if existing['estado'] == nuevo_estado:
-                return internal_response(False, None, f"Paciente ya está en estado {nuevo_estado}")
+            if existing['estado'] == nuevo_estado and nuevo_estado in ['activo', 'inactivo']:
+                return internal_response(False, None, f"Paciente ya esta en estado {nuevo_estado}")
 
-            # Si se da de alta o se deriva, finalizar tratamiento activo
+            # Mapear estados clinicos a valores validos de BD
             if nuevo_estado in ['alta', 'derivado']:
-                finalize_query = """
-                    UPDATE paciente 
-                    SET estado_tratamiento = 'completado', fecha_fin_tratamiento = CURRENT_DATE, fecha_modificacion = CURRENT_TIMESTAMP
-                    WHERE id = %s AND estado_tratamiento = 'activo'
+                # Alta/derivado: paciente pasa a inactivo con tratamiento finalizado
+                update_query = """
+                    UPDATE paciente
+                    SET estado = 'inactivo',
+                        estado_tratamiento = 'finalizado',
+                        observaciones = CASE
+                            WHEN observaciones IS NULL THEN %s
+                            ELSE observaciones || ' | ' || %s
+                        END,
+                        fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id = %s
                     """
-                DataBaseHandle.ExecuteNonQuery(finalize_query, (paciente_id,))
+                nota = f"Estado cambiado a {nuevo_estado} el {'{}'}"
+                import datetime
+                nota = f"Estado cambiado a {nuevo_estado} el {datetime.date.today().isoformat()}"
+                success = DataBaseHandle.ExecuteNonQuery(update_query, (nota, nota, paciente_id))
 
-            # Cambiar estado del paciente
-            update_query = """
-                UPDATE paciente 
-                SET estado = %s, fecha_modificacion = CURRENT_TIMESTAMP
-                WHERE id = %s
-                """
-
-            success = DataBaseHandle.ExecuteNonQuery(update_query, (nuevo_estado, paciente_id))
+                # Finalizar especialidades activas del paciente
+                finalize_esp_query = """
+                    UPDATE paciente_especialidades
+                    SET estado = 'completado',
+                        fecha_fin_tratamiento = CURRENT_DATE,
+                        fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id_paciente = %s AND estado = 'activo'
+                    """
+                DataBaseHandle.ExecuteNonQuery(finalize_esp_query, (paciente_id,))
+            else:
+                # Estados simples: activo/inactivo
+                update_query = """
+                    UPDATE paciente
+                    SET estado = %s, fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    """
+                success = DataBaseHandle.ExecuteNonQuery(update_query, (nuevo_estado, paciente_id))
 
             if success:
                 HandleLogs.write_log(
-                    f"PacienteComponent.change_estado_paciente - Paciente {paciente_id} cambió a estado {nuevo_estado}")
+                    f"PacienteComponent.change_estado_paciente - Paciente {paciente_id} cambio a estado {nuevo_estado}")
                 return internal_response(True, {"id": paciente_id, "estado": nuevo_estado},
                                          f"Estado del paciente cambiado a {nuevo_estado}")
             else:
@@ -482,17 +502,17 @@ class PacienteComponent:
 
     @staticmethod
     def check_persona_is_paciente(id_persona, exclude_id=None):
-        """Verificar si una persona ya está registrada como paciente"""
+        """Verificar si una persona ya esta registrada como paciente"""
         try:
             if exclude_id:
-                query = "SELECT id FROM paciente WHERE id_persona = %s AND id != %s"
+                query = "SELECT id FROM paciente WHERE id_persona = %s AND id != %s AND estado = 'activo'"
                 params = (id_persona, exclude_id)
             else:
-                query = "SELECT id FROM paciente WHERE id_persona = %s"
+                query = "SELECT id FROM paciente WHERE id_persona = %s AND estado = 'activo'"
                 params = (id_persona,)
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            return internal_response(True, existing is not None and bool(existing), "Consulta ejecutada")
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.check_persona_is_paciente - Error: {str(e)}")
@@ -500,17 +520,17 @@ class PacienteComponent:
 
     @staticmethod
     def get_pacientes_by_tutor(tutor_id):
-        """Obtener pacientes de un tutor específico"""
+        """Obtener pacientes de un tutor especifico"""
         try:
             query = """
-            SELECT 
+            SELECT
                 pac.id,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado,
                 pac.estado_tratamiento,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
-                -- Información del paciente (persona)
+                -- Informacion del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
@@ -519,8 +539,8 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
-                -- Información del tutor
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
@@ -531,19 +551,24 @@ class PacienteComponent:
             INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
             INNER JOIN persona pt ON t.id_persona = pt.id
-            WHERE pac.id_tutor = %s AND pac.estado != 'eliminado'
+            WHERE pac.id_tutor = %s AND pac.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """
 
             pacientes = DataBaseHandle.getRecords(query, (tutor_id,))
 
             if pacientes is not None:
-                # Formatear los datos para mantener compatibilidad con el frontend
                 for paciente in pacientes:
-                    # Agregar especialidades vacías por ahora (se pueden cargar por separado si es necesario)
-                    paciente['especialidades'] = []
-                    paciente['total_especialidades'] = 0
-                    paciente['especialidades_activas'] = 0
+                    # Cargar especialidades
+                    especialidades_result = PacienteComponent.get_especialidades_paciente(paciente['id'])
+                    if especialidades_result['success'] and especialidades_result['data']:
+                        paciente['especialidades'] = especialidades_result['data']
+                        paciente['total_especialidades'] = len(especialidades_result['data'])
+                        paciente['especialidades_activas'] = len([e for e in especialidades_result['data'] if e.get('estado') == 'activo'])
+                    else:
+                        paciente['especialidades'] = []
+                        paciente['total_especialidades'] = 0
+                        paciente['especialidades_activas'] = 0
 
                 HandleLogs.write_log(
                     f"PacienteComponent.get_pacientes_by_tutor - {len(pacientes)} pacientes del tutor {tutor_id} encontrados")
@@ -559,16 +584,16 @@ class PacienteComponent:
 
     @staticmethod
     def get_estadisticas_pacientes():
-        """Obtener estadísticas de pacientes"""
+        """Obtener estadisticas de pacientes"""
         try:
             query = """
-            SELECT 
+            SELECT
                 COUNT(*) as total_pacientes,
                 COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos,
                 COUNT(CASE WHEN pac.estado = 'inactivo' THEN 1 END) as pacientes_inactivos,
-                COUNT(CASE WHEN pac.estado = 'alta' THEN 1 END) as pacientes_alta,
-                COUNT(CASE WHEN pac.estado = 'derivado' THEN 1 END) as pacientes_derivados,
-                AVG(EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.fecha_nacimiento))) as edad_promedio
+                COUNT(CASE WHEN pac.estado_tratamiento = 'finalizado' THEN 1 END) as pacientes_finalizados,
+                COUNT(CASE WHEN pac.estado_tratamiento = 'pausado' THEN 1 END) as pacientes_pausados,
+                COALESCE(ROUND(AVG(EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.fecha_nacimiento)))::NUMERIC, 1), 0) as edad_promedio
             FROM paciente pac
             INNER JOIN persona p ON pac.id_persona = p.id
             """
@@ -658,8 +683,72 @@ class PacienteComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
+    def get_pacientes_por_especialidad(especialidad_id):
+        """Obtener pacientes que tienen una especialidad especifica asignada"""
+        try:
+            query = """
+            SELECT
+                pac.id,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
+                pac.estado_tratamiento,
+                pac.observaciones,
+                pac.motivo_consulta as observaciones_tratamiento,
+                pac.alergias,
+                pac.medicina,
+                pac.estado,
+                pac.fecha_creacion,
+                pac.fecha_modificacion,
+                -- Informacion del paciente (persona)
+                p.id as persona_id,
+                CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
+                p.nombre,
+                p.apellido,
+                p.cedula,
+                p.telefono,
+                p.correo,
+                p.direccion,
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
+                t.id as tutor_id,
+                t.parentesco,
+                CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
+                pt.telefono as telefono_tutor,
+                pt.correo as correo_tutor,
+                -- Informacion de la especialidad
+                pe.es_principal,
+                pe.fecha_inicio_tratamiento::DATE as fecha_inicio_tratamiento,
+                pe.fecha_fin_tratamiento::DATE as fecha_fin_tratamiento,
+                pe.estado as estado_especialidad,
+                e.nombre as especialidad_nombre,
+                e.area as especialidad_area
+            FROM paciente pac
+            INNER JOIN persona p ON pac.id_persona = p.id
+            INNER JOIN tutor t ON pac.id_tutor = t.id
+            INNER JOIN persona pt ON t.id_persona = pt.id
+            INNER JOIN paciente_especialidades pe ON pac.id = pe.id_paciente
+            INNER JOIN especialidad e ON pe.id_especialidad = e.id
+            WHERE pe.id_especialidad = %s
+                AND pe.estado = 'activo'
+                AND pac.estado = 'activo'
+            ORDER BY p.nombre, p.apellido
+            """
+
+            pacientes = DataBaseHandle.getRecords(query, (especialidad_id,))
+
+            if pacientes is not None:
+                HandleLogs.write_log(f"PacienteComponent.get_pacientes_por_especialidad - {len(pacientes)} pacientes encontrados para especialidad {especialidad_id}")
+                return internal_response(True, pacientes, "Pacientes por especialidad obtenidos correctamente")
+            else:
+                HandleLogs.write_error("PacienteComponent.get_pacientes_por_especialidad - Error en consulta")
+                return internal_response(False, None, "Error ejecutando consulta")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent.get_pacientes_por_especialidad - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
     def delete_paciente(paciente_id):
-        """Eliminar un paciente (soft delete - cambiar estado a eliminado)"""
+        """Eliminar un paciente (soft delete - cambiar estado a inactivo)"""
         try:
             # Verificar si el paciente existe
             check_query = "SELECT id, estado FROM paciente WHERE id = %s"
@@ -668,18 +757,31 @@ class PacienteComponent:
             if not existing:
                 return internal_response(False, None, "Paciente no encontrado")
 
-            # En lugar de eliminar físicamente, cambiar estado a 'eliminado'
+            if existing['estado'] == 'inactivo':
+                return internal_response(False, None, "El paciente ya esta inactivo")
+
+            # Soft delete: cambiar estado a 'inactivo' y tratamiento a 'suspendido'
             update_query = """
-                UPDATE paciente 
-                SET estado = 'eliminado', fecha_modificacion = CURRENT_TIMESTAMP
+                UPDATE paciente
+                SET estado = 'inactivo',
+                    estado_tratamiento = 'suspendido',
+                    fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id = %s
                 """
 
             success = DataBaseHandle.ExecuteNonQuery(update_query, (paciente_id,))
 
             if success:
-                HandleLogs.write_log(f"PacienteComponent.delete_paciente - Paciente {paciente_id} marcado como eliminado")
-                return internal_response(True, {"id": paciente_id, "estado": "eliminado"}, "Paciente eliminado exitosamente")
+                # Inactivar especialidades activas del paciente
+                inactivar_esp_query = """
+                    UPDATE paciente_especialidades
+                    SET estado = 'inactivo', fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id_paciente = %s AND estado = 'activo'
+                    """
+                DataBaseHandle.ExecuteNonQuery(inactivar_esp_query, (paciente_id,))
+
+                HandleLogs.write_log(f"PacienteComponent.delete_paciente - Paciente {paciente_id} marcado como inactivo")
+                return internal_response(True, {"id": paciente_id, "estado": "inactivo"}, "Paciente eliminado exitosamente")
             else:
                 HandleLogs.write_error(f"PacienteComponent.delete_paciente - Error eliminando paciente {paciente_id}")
                 return internal_response(False, None, "Error eliminando paciente")
@@ -690,25 +792,26 @@ class PacienteComponent:
 
     @staticmethod
     def get_all_pacientes_by_centro(centro_id):
-        """Obtener todos los pacientes de un centro específico"""
+        """Obtener todos los pacientes de un centro especifico"""
         try:
             query = """
             SELECT
                 pac.id,
                 pac.id_centro,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.motivo_consulta as observaciones_tratamiento,
                 pac.alergias,
                 pac.medicina,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
                 -- Campos de pausa
-                pac.fecha_inicio_pausa,
-                pac.fecha_fin_pausa,
+                pac.fecha_inicio_pausa::DATE as fecha_inicio_pausa,
+                pac.fecha_fin_pausa::DATE as fecha_fin_pausa,
                 pac.motivo_pausa,
-                -- Información del paciente (persona)
+                -- Informacion del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
@@ -717,15 +820,14 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
-                -- Información del tutor
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
                 pt.telefono as telefono_tutor,
                 pt.correo as correo_tutor,
-                -- Sin especialidad directa (se maneja por tabla paciente_especialidades)
-                -- Información del centro
+                -- Informacion del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
             FROM paciente pac
@@ -733,31 +835,58 @@ class PacienteComponent:
             INNER JOIN tutor t ON pac.id_tutor = t.id
             INNER JOIN persona pt ON t.id_persona = pt.id
             LEFT JOIN centros c ON pac.id_centro = c.id
-            WHERE pac.estado != 'eliminado' AND pac.id_centro = %s
+            WHERE pac.estado = 'activo' AND pac.id_centro = %s
             ORDER BY p.nombre, p.apellido
             """
 
             pacientes = DataBaseHandle.getRecords(query, (centro_id,))
 
             if pacientes is not None:
-                # Formatear los datos para mantener compatibilidad con el frontend
+                # Cargar especialidades y tutores para cada paciente
                 for paciente in pacientes:
-                    # Temporarily commented out especialidad logic
-                    if False:  # paciente['especialidad_id']:
-                        paciente['especialidades'] = [{
-                            'id': paciente['especialidad_id'],
-                            'nombre': paciente['especialidad_nombre'],
-                            'area': paciente['especialidad_area'],
-                            'estado_tratamiento': paciente['estado_tratamiento'],
-                            'fecha_inicio': paciente['fecha_inicio_tratamiento'],
-                            'fecha_fin': paciente['fecha_fin_tratamiento']
-                        }]
-                        paciente['total_especialidades'] = 1
-                        paciente['especialidades_activas'] = 1 if paciente['estado_tratamiento'] == 'activo' else 0
+                    # Cargar especialidades
+                    especialidades_result = PacienteComponent.get_especialidades_paciente(paciente['id'])
+                    if especialidades_result['success'] and especialidades_result['data']:
+                        paciente['especialidades'] = especialidades_result['data']
+                        paciente['total_especialidades'] = len(especialidades_result['data'])
+                        paciente['especialidades_activas'] = len([e for e in especialidades_result['data'] if e.get('estado') == 'activo'])
+
+                        # Encontrar especialidad principal para compatibilidad
+                        especialidad_principal = next((e for e in especialidades_result['data'] if e.get('es_principal')), None)
+                        if especialidad_principal:
+                            paciente['especialidad_id'] = especialidad_principal['id_especialidad']
+                            paciente['especialidad_nombre'] = especialidad_principal['especialidad_nombre']
+                            paciente['especialidad_area'] = especialidad_principal['especialidad_area']
+                            paciente['fecha_inicio_tratamiento'] = especialidad_principal['fecha_inicio_tratamiento']
+                            paciente['fecha_fin_tratamiento'] = especialidad_principal['fecha_fin_tratamiento']
                     else:
                         paciente['especialidades'] = []
                         paciente['total_especialidades'] = 0
                         paciente['especialidades_activas'] = 0
+                        paciente['especialidad_id'] = None
+                        paciente['especialidad_nombre'] = None
+                        paciente['especialidad_area'] = None
+                        paciente['fecha_inicio_tratamiento'] = None
+                        paciente['fecha_fin_tratamiento'] = None
+
+                    # Cargar tutores multiples
+                    tutores_result = PacienteComponent.get_tutores_paciente(paciente['id'])
+                    if tutores_result['success'] and tutores_result['data']:
+                        paciente['tutores'] = tutores_result['data']
+                        paciente['total_tutores'] = len(tutores_result['data'])
+
+                        tutor_principal = next((t for t in tutores_result['data'] if t.get('es_principal')), None)
+                        if tutor_principal:
+                            paciente['tutor_id'] = tutor_principal['tutor_id']
+                            paciente['nombre_tutor'] = tutor_principal['nombre_completo']
+                            paciente['parentesco'] = tutor_principal['parentesco']
+                            paciente['cedula_tutor'] = tutor_principal['cedula']
+                            paciente['telefono_tutor'] = tutor_principal['telefono']
+                            paciente['correo_tutor'] = tutor_principal['correo']
+                            paciente['direccion_tutor'] = tutor_principal['direccion']
+                    else:
+                        paciente['tutores'] = []
+                        paciente['total_tutores'] = 0
 
                 HandleLogs.write_log(f"PacienteComponent.get_all_pacientes_by_centro - {len(pacientes)} pacientes encontrados para centro {centro_id}")
                 return internal_response(True, pacientes, "Pacientes obtenidos correctamente")
@@ -771,17 +900,22 @@ class PacienteComponent:
 
     @staticmethod
     def get_paciente_by_id_and_centro(paciente_id, centro_id):
-        """Obtener un paciente específico validando que pertenezca al centro"""
+        """Obtener un paciente especifico validando que pertenezca al centro"""
         try:
             query = """
-            SELECT 
+            SELECT
                 pac.id,
                 pac.id_centro,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.motivo_consulta as observaciones_tratamiento,
+                pac.alergias,
+                pac.medicina,
                 pac.estado,
-                -- Información del paciente (persona)
+                pac.fecha_creacion,
+                pac.fecha_modificacion,
+                -- Informacion del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
@@ -790,17 +924,16 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
-                -- Información del tutor
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
                 pt.cedula as cedula_tutor,
                 pt.telefono as telefono_tutor,
                 pt.correo as correo_tutor,
-                pt.direccion as direccion_tutor
-                -- Sin especialidad directa (se maneja por tabla paciente_especialidades),
-                -- Información del centro
+                pt.direccion as direccion_tutor,
+                -- Informacion del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
             FROM paciente pac
@@ -808,33 +941,60 @@ class PacienteComponent:
             INNER JOIN tutor t ON pac.id_tutor = t.id
             INNER JOIN persona pt ON t.id_persona = pt.id
             LEFT JOIN centros c ON pac.id_centro = c.id
-            WHERE pac.id = %s AND pac.id_centro = %s AND pac.estado != 'eliminado'
+            WHERE pac.id = %s AND pac.id_centro = %s AND pac.estado = 'activo'
             """
 
             paciente = DataBaseHandle.getRecords(query, (paciente_id, centro_id), size=1)
 
             if paciente:
-                if paciente['especialidad_id']:
-                    paciente['especialidades'] = [{
-                        'id': paciente['especialidad_id'],
-                        'nombre': paciente['especialidad_nombre'],
-                        'area': paciente['especialidad_area'],
-                        'estado_tratamiento': paciente['estado_tratamiento'],
-                        'fecha_inicio': paciente['fecha_inicio_tratamiento'],
-                        'fecha_fin': paciente['fecha_fin_tratamiento']
-                    }]
-                    paciente['total_especialidades'] = 1
-                    paciente['especialidades_activas'] = 1 if paciente['estado_tratamiento'] == 'activo' else 0
+                # Cargar especialidades
+                especialidades_result = PacienteComponent.get_especialidades_paciente(paciente_id)
+                if especialidades_result['success'] and especialidades_result['data']:
+                    paciente['especialidades'] = especialidades_result['data']
+                    paciente['total_especialidades'] = len(especialidades_result['data'])
+                    paciente['especialidades_activas'] = len([e for e in especialidades_result['data'] if e.get('estado') == 'activo'])
+
+                    especialidad_principal = next((e for e in especialidades_result['data'] if e.get('es_principal')), None)
+                    if especialidad_principal:
+                        paciente['especialidad_id'] = especialidad_principal['id_especialidad']
+                        paciente['especialidad_nombre'] = especialidad_principal['especialidad_nombre']
+                        paciente['especialidad_area'] = especialidad_principal['especialidad_area']
+                        paciente['fecha_inicio_tratamiento'] = especialidad_principal['fecha_inicio_tratamiento']
+                        paciente['fecha_fin_tratamiento'] = especialidad_principal['fecha_fin_tratamiento']
                 else:
                     paciente['especialidades'] = []
                     paciente['total_especialidades'] = 0
                     paciente['especialidades_activas'] = 0
+                    paciente['especialidad_id'] = None
+                    paciente['especialidad_nombre'] = None
+                    paciente['especialidad_area'] = None
+                    paciente['fecha_inicio_tratamiento'] = None
+                    paciente['fecha_fin_tratamiento'] = None
+
+                # Cargar tutores multiples
+                tutores_result = PacienteComponent.get_tutores_paciente(paciente_id)
+                if tutores_result['success'] and tutores_result['data']:
+                    paciente['tutores'] = tutores_result['data']
+                    paciente['total_tutores'] = len(tutores_result['data'])
+
+                    tutor_principal = next((t for t in tutores_result['data'] if t.get('es_principal')), None)
+                    if tutor_principal:
+                        paciente['tutor_id'] = tutor_principal['tutor_id']
+                        paciente['nombre_tutor'] = tutor_principal['nombre_completo']
+                        paciente['parentesco'] = tutor_principal['parentesco']
+                        paciente['cedula_tutor'] = tutor_principal['cedula']
+                        paciente['telefono_tutor'] = tutor_principal['telefono']
+                        paciente['correo_tutor'] = tutor_principal['correo']
+                        paciente['direccion_tutor'] = tutor_principal['direccion']
+                else:
+                    paciente['tutores'] = []
+                    paciente['total_tutores'] = 0
 
                 HandleLogs.write_log(f"PacienteComponent.get_paciente_by_id_and_centro - Paciente {paciente_id} encontrado en centro {centro_id}")
                 return internal_response(True, paciente, "Paciente encontrado")
             else:
                 HandleLogs.write_log(f"PacienteComponent.get_paciente_by_id_and_centro - Paciente {paciente_id} no encontrado en centro {centro_id}")
-                return internal_response(False, None, "Paciente no encontrado en el centro especificado")
+                return internal_response(True, None, "Paciente no encontrado en el centro especificado")
 
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.get_paciente_by_id_and_centro - Error: {str(e)}")
@@ -938,16 +1098,36 @@ class PacienteComponent:
 
     @staticmethod
     def remover_especialidad_paciente(paciente_id, especialidad_id):
-        """Remover una especialidad de un paciente (marcándola como eliminada)"""
+        """Remover una especialidad de un paciente (marcarla como inactiva)"""
         try:
-            query_update = """
-            UPDATE paciente_especialidades 
-            SET estado = 'eliminado', fecha_modificacion = CURRENT_TIMESTAMP
-            WHERE paciente_id = %s AND especialidad_id = %s AND estado = 'activo'
+            # Verificar que la relacion existe y esta activa
+            query_check = """
+            SELECT id, es_principal FROM paciente_especialidades
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
             """
-            
+            existing = DataBaseHandle.getRecords(query_check, (paciente_id, especialidad_id), size=1)
+
+            if not existing:
+                return internal_response(False, None, "La especialidad no esta asignada a este paciente o ya fue removida")
+
+            # No permitir remover la unica especialidad principal
+            if existing.get('es_principal'):
+                count_query = """
+                SELECT COUNT(*) as total FROM paciente_especialidades
+                WHERE id_paciente = %s AND estado = 'activo'
+                """
+                count_result = DataBaseHandle.getRecords(count_query, (paciente_id,), size=1)
+                if count_result and count_result['total'] <= 1:
+                    return internal_response(False, None, "No se puede remover la unica especialidad del paciente")
+
+            query_update = """
+            UPDATE paciente_especialidades
+            SET estado = 'inactivo', fecha_modificacion = CURRENT_TIMESTAMP
+            WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
+            """
+
             success = DataBaseHandle.ExecuteNonQuery(query_update, (paciente_id, especialidad_id))
-            
+
             if success:
                 HandleLogs.write_log(f"PacienteComponent.remover_especialidad_paciente - Especialidad {especialidad_id} removida de paciente {paciente_id}")
                 return internal_response(True, {"paciente_id": paciente_id, "especialidad_id": especialidad_id}, "Especialidad removida exitosamente")
@@ -1339,17 +1519,17 @@ class PacienteComponent:
             query_general = """
             SELECT
                 pac.id,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
                 pac.estado,
-                pac.fecha_inicio_pausa,
-                pac.fecha_fin_pausa,
+                pac.fecha_inicio_pausa::DATE as fecha_inicio_pausa,
+                pac.fecha_fin_pausa::DATE as fecha_fin_pausa,
                 pac.motivo_pausa,
                 NULL as observaciones_pausa_general,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
-                -- Información del paciente (persona)
+                -- Informacion del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
@@ -1358,8 +1538,8 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
-                -- Información del tutor
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
@@ -1367,30 +1547,30 @@ class PacienteComponent:
                 pt.correo as correo_tutor,
                 -- Tipo de pausa
                 'general' as tipo_pausa,
-                NULL as especialidad_id,
-                NULL as especialidad_nombre
+                NULL::INTEGER as especialidad_id,
+                NULL::VARCHAR as especialidad_nombre
             FROM paciente pac
             INNER JOIN persona p ON pac.id_persona = p.id
             INNER JOIN tutor t ON pac.id_tutor = t.id
             INNER JOIN persona pt ON t.id_persona = pt.id
-            WHERE pac.fecha_inicio_pausa IS NOT NULL AND pac.estado != 'eliminado'
+            WHERE pac.fecha_inicio_pausa IS NOT NULL AND pac.estado = 'activo'
 
             UNION ALL
 
             -- Pacientes con especialidades pausadas
             SELECT
                 pac.id,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
                 pac.estado,
-                pe.fecha_inicio_pausa_esp as fecha_inicio_pausa,
-                pe.fecha_fin_pausa_esp as fecha_fin_pausa,
+                pe.fecha_inicio_pausa_esp::DATE as fecha_inicio_pausa,
+                pe.fecha_fin_pausa_esp::DATE as fecha_fin_pausa,
                 pe.motivo_pausa_esp as motivo_pausa,
                 NULL as observaciones_pausa_general,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
-                -- Información del paciente (persona)
+                -- Informacion del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
@@ -1399,8 +1579,8 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
-                -- Información del tutor
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
@@ -1417,8 +1597,8 @@ class PacienteComponent:
             INNER JOIN paciente_especialidades pe ON pac.id = pe.id_paciente
             INNER JOIN especialidad e ON pe.id_especialidad = e.id
             WHERE pe.estado_pausa IN ('pausado_especialidad', 'pausado_general')
-                AND pac.estado != 'eliminado'
-                AND pe.estado != 'eliminado'
+                AND pac.estado = 'activo'
+                AND pe.estado = 'activo'
 
             ORDER BY nombre_completo, tipo_pausa
             """
@@ -1435,7 +1615,7 @@ class PacienteComponent:
                 FROM paciente pac
                 LEFT JOIN paciente_especialidades pe ON pac.id = pe.id_paciente AND pe.estado_pausa IN ('pausado_especialidad', 'pausado_general')
                 WHERE (pac.fecha_inicio_pausa IS NOT NULL OR pe.estado_pausa IN ('pausado_especialidad', 'pausado_general'))
-                    AND pac.estado != 'eliminado'
+                    AND pac.estado = 'activo'
                 """
 
                 estadisticas = DataBaseHandle.getRecords(query_stats, size=1)
@@ -1461,25 +1641,26 @@ class PacienteComponent:
 
     @staticmethod
     def get_pacientes_asignados_personal(personal_id, centro_id):
-        """Obtener pacientes que tienen sesiones asignadas a un personal específico (terapeuta/pedagogo)"""
+        """Obtener pacientes que tienen sesiones asignadas a un personal especifico (terapeuta/pedagogo)"""
         try:
             query = """
             SELECT DISTINCT
                 pac.id,
                 pac.id_centro,
-                pac.fecha_ingreso,
+                pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
+                pac.motivo_consulta as observaciones_tratamiento,
                 pac.alergias,
                 pac.medicina,
                 pac.estado,
                 pac.fecha_creacion,
                 pac.fecha_modificacion,
                 -- Campos de pausa
-                pac.fecha_inicio_pausa,
-                pac.fecha_fin_pausa,
+                pac.fecha_inicio_pausa::DATE as fecha_inicio_pausa,
+                pac.fecha_fin_pausa::DATE as fecha_fin_pausa,
                 pac.motivo_pausa,
-                -- Información del paciente (persona)
+                -- Informacion del paciente (persona)
                 p.id as persona_id,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
@@ -1488,14 +1669,14 @@ class PacienteComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
-                -- Información del tutor
+                p.fecha_nacimiento::DATE as fecha_nacimiento,
+                -- Informacion del tutor
                 t.id as tutor_id,
                 t.parentesco,
                 CONCAT(pt.nombre, ' ', pt.apellido) as nombre_tutor,
                 pt.telefono as telefono_tutor,
                 pt.correo as correo_tutor,
-                -- Información del centro
+                -- Informacion del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
             FROM paciente pac
@@ -1503,25 +1684,25 @@ class PacienteComponent:
             INNER JOIN tutor t ON pac.id_tutor = t.id
             INNER JOIN persona pt ON t.id_persona = pt.id
             LEFT JOIN centros c ON pac.id_centro = c.id
-            WHERE pac.estado != 'eliminado'
+            WHERE pac.estado = 'activo'
                 AND pac.id_centro = %s
                 AND (
-                    -- Pacientes con sesiones terapéuticas asignadas al personal
+                    -- Pacientes con sesiones terapeuticas asignadas al personal
                     EXISTS (
                         SELECT 1 FROM sesion_terapia st
                         INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
                         WHERE sp.id_paciente = pac.id
                             AND st.id_terapeuta = %s
-                            AND st.estado != 'eliminado'
+                            AND st.estado = 'activo'
                     )
                     OR
-                    -- Pacientes con sesiones pedagógicas asignadas al personal
+                    -- Pacientes con sesiones pedagogicas asignadas al personal
                     EXISTS (
                         SELECT 1 FROM sesion_pedagogica spe
                         INNER JOIN sesion_estudiante se ON spe.id = se.id_sesion
                         WHERE se.id_paciente = pac.id
                             AND spe.id_educador = %s
-                            AND spe.estado != 'eliminado'
+                            AND spe.estado = 'activo'
                     )
                 )
             ORDER BY p.nombre, p.apellido
@@ -1530,24 +1711,38 @@ class PacienteComponent:
             pacientes = DataBaseHandle.getRecords(query, (centro_id, personal_id, personal_id))
 
             if pacientes is not None:
-                # Formatear los datos para mantener compatibilidad con el frontend
+                # Cargar especialidades y tutores para cada paciente
                 for paciente in pacientes:
-                    # Temporarily commented out especialidad logic
-                    if False:  # paciente['especialidad_id']:
-                        paciente['especialidades'] = [{
-                            'id': paciente['especialidad_id'],
-                            'nombre': paciente['especialidad_nombre'],
-                            'area': paciente['especialidad_area'],
-                            'estado_tratamiento': paciente['estado_tratamiento'],
-                            'fecha_inicio': paciente['fecha_inicio_tratamiento'],
-                            'fecha_fin': paciente['fecha_fin_tratamiento']
-                        }]
-                        paciente['total_especialidades'] = 1
-                        paciente['especialidades_activas'] = 1 if paciente['estado_tratamiento'] == 'activo' else 0
+                    especialidades_result = PacienteComponent.get_especialidades_paciente(paciente['id'])
+                    if especialidades_result['success'] and especialidades_result['data']:
+                        paciente['especialidades'] = especialidades_result['data']
+                        paciente['total_especialidades'] = len(especialidades_result['data'])
+                        paciente['especialidades_activas'] = len([e for e in especialidades_result['data'] if e.get('estado') == 'activo'])
+
+                        especialidad_principal = next((e for e in especialidades_result['data'] if e.get('es_principal')), None)
+                        if especialidad_principal:
+                            paciente['especialidad_id'] = especialidad_principal['id_especialidad']
+                            paciente['especialidad_nombre'] = especialidad_principal['especialidad_nombre']
+                            paciente['especialidad_area'] = especialidad_principal['especialidad_area']
+                            paciente['fecha_inicio_tratamiento'] = especialidad_principal['fecha_inicio_tratamiento']
+                            paciente['fecha_fin_tratamiento'] = especialidad_principal['fecha_fin_tratamiento']
                     else:
                         paciente['especialidades'] = []
                         paciente['total_especialidades'] = 0
                         paciente['especialidades_activas'] = 0
+                        paciente['especialidad_id'] = None
+                        paciente['especialidad_nombre'] = None
+                        paciente['especialidad_area'] = None
+                        paciente['fecha_inicio_tratamiento'] = None
+                        paciente['fecha_fin_tratamiento'] = None
+
+                    tutores_result = PacienteComponent.get_tutores_paciente(paciente['id'])
+                    if tutores_result['success'] and tutores_result['data']:
+                        paciente['tutores'] = tutores_result['data']
+                        paciente['total_tutores'] = len(tutores_result['data'])
+                    else:
+                        paciente['tutores'] = []
+                        paciente['total_tutores'] = 0
 
                 HandleLogs.write_log(f"PacienteComponent.get_pacientes_asignados_personal - {len(pacientes)} pacientes encontrados para personal {personal_id} en centro {centro_id}")
                 return internal_response(True, pacientes, "Pacientes asignados obtenidos correctamente")
