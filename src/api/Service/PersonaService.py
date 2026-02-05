@@ -83,9 +83,7 @@ class PersonaService:
                 'direccion': data.get('direccion', '').strip() if data.get('direccion') else None,
                 'fecha_nacimiento': data.get('fecha_nacimiento') if data.get('fecha_nacimiento') else None,
                 'estado': data.get('estado', 'activo'),
-                'usuario_creacion': current_user.get('id', 1),
-                # Agregar contexto del centro para logging/auditoria
-                'centro_creacion': current_user.get('id_centro')
+                'usuario_creacion': current_user.get('id', 1)
             }
 
             result = PersonaComponent.create_persona(persona_data)
@@ -156,6 +154,28 @@ class PersonaService:
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaService.delete_persona - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def reactivate_persona(persona_id):
+        """Reactivar persona inactiva"""
+        try:
+            HandleLogs.write_log(f"PersonaService.reactivate_persona - ID: {persona_id}")
+
+            if not persona_id or persona_id <= 0:
+                return response_error("ID de persona invalido", 400)
+
+            result = PersonaComponent.reactivate_persona(persona_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"PersonaService.reactivate_persona - Persona {persona_id} reactivada")
+                return response_success(result['data'], "Persona reactivada exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonaService.reactivate_persona - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonaService.reactivate_persona - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod

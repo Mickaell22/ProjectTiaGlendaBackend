@@ -42,6 +42,13 @@ def delete_persona(persona_id):
     return PersonaService.delete_persona(persona_id)
 
 
+@persona_bp.route('/personas/<int:persona_id>/reactivar', methods=['PUT'])
+@admin_required
+def reactivate_persona(persona_id):
+    from src.api.Service.PersonaService import PersonaService
+    return PersonaService.reactivate_persona(persona_id)
+
+
 @persona_bp.route('/personas/disponibles', methods=['GET'])
 @admin_required
 def get_personas_disponibles():

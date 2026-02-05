@@ -24,9 +24,9 @@ class PersonaComponent:
                     p.direccion,
                     p.fecha_nacimiento::DATE as fecha_nacimiento,
                     p.estado,
-                    p.fecha_creacion,
-                    p.fecha_modificacion,
-                    CASE 
+                    p.fecha_creacion::TEXT as fecha_creacion,
+                    p.fecha_modificacion::TEXT as fecha_modificacion,
+                    CASE
                         WHEN u.id IS NOT NULL THEN 'Si'
                         ELSE 'No'
                     END as tiene_usuario,
@@ -48,12 +48,11 @@ class PersonaComponent:
                 LEFT JOIN paciente pac ON p.id = pac.id_persona AND pac.id_centro = %s
                 -- Incluir personas que son tutores de pacientes del centro
                 LEFT JOIN (
-                    SELECT DISTINCT pt.nombre as tutor_nombre, pt.apellido as tutor_apellido, pt.cedula as tutor_cedula, t.id
+                    SELECT DISTINCT t.id, t.id_persona
                     FROM tutor t
-                    INNER JOIN persona pt ON t.id_persona = pt.id
                     INNER JOIN paciente pac_t ON t.id = pac_t.id_tutor
                     WHERE pac_t.id_centro = %s
-                ) tut ON p.cedula = tut.tutor_cedula
+                ) tut ON p.id = tut.id_persona
                 WHERE (
                     u.id_centro = %s OR 
                     per.id_centro = %s OR 
@@ -78,9 +77,9 @@ class PersonaComponent:
                     p.direccion,
                     p.fecha_nacimiento::DATE as fecha_nacimiento,
                     p.estado,
-                    p.fecha_creacion,
-                    p.fecha_modificacion,
-                    CASE 
+                    p.fecha_creacion::TEXT as fecha_creacion,
+                    p.fecha_modificacion::TEXT as fecha_modificacion,
+                    CASE
                         WHEN u.id IS NOT NULL THEN 'Si'
                         ELSE 'No'
                     END as tiene_usuario,
@@ -124,9 +123,9 @@ class PersonaComponent:
                 p.direccion,
                 p.fecha_nacimiento::DATE as fecha_nacimiento,
                 p.estado,
-                p.fecha_creacion,
-                p.fecha_modificacion,
-                CASE 
+                p.fecha_creacion::TEXT as fecha_creacion,
+                p.fecha_modificacion::TEXT as fecha_modificacion,
+                CASE
                     WHEN u.id IS NOT NULL THEN 'Si'
                     ELSE 'No'
                 END as tiene_usuario,
@@ -150,8 +149,8 @@ class PersonaComponent:
                     HandleLogs.write_log(f"PersonaComponent.get_persona_by_id - Persona {id_persona} no encontrada")
                     return internal_response(True, None, "Persona no encontrada")
             else:
-                HandleLogs.write_error(f"PersonaComponent.get_persona_by_id - Error en consulta: {result['message']}")
-                return internal_response(False, None, f"Error en consulta: {result['message']}")
+                HandleLogs.write_error(f"PersonaComponent.get_persona_by_id - Error en consulta: {result['error']}")
+                return internal_response(False, None, f"Error en consulta: {result['error']}")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaComponent.get_persona_by_id - Error: {str(e)}")
@@ -241,21 +240,41 @@ class PersonaComponent:
             update_fields = []
             params = []
 
-            allowed_fields = [
-                'nombre', 'apellido', 'cedula', 'telefono', 'correo',
-                'direccion', 'fecha_nacimiento', 'estado', 'usuario_modificacion'
-            ]
+            # Campos requeridos (no pueden ser NULL)
+            required_fields = ['nombre', 'apellido', 'cedula']
+            # Campos opcionales (pueden ser NULL)
+            nullable_fields = ['telefono', 'correo', 'direccion', 'fecha_nacimiento']
+            # Campos de control
+            control_fields = ['estado', 'usuario_modificacion']
+
+            allowed_fields = required_fields + nullable_fields + control_fields
 
             for field in allowed_fields:
-                if field in data and data[field] is not None:
-                    # Limpiar strings
-                    if field in ['nombre', 'apellido', 'cedula', 'telefono', 'correo', 'direccion']:
-                        if data[field].strip():
-                            update_fields.append(f"{field} = %s")
-                            params.append(data[field].strip())
+                if field not in data:
+                    continue
+
+                value = data[field]
+
+                if field in required_fields:
+                    # Campos requeridos: solo actualizar si tienen valor
+                    if value is not None and isinstance(value, str) and value.strip():
+                        update_fields.append(f"{field} = %s")
+                        params.append(value.strip())
+                elif field in nullable_fields:
+                    # Campos opcionales: permitir setear NULL con valor vacio o None
+                    if value is None or (isinstance(value, str) and not value.strip()):
+                        update_fields.append(f"{field} = NULL")
+                    elif isinstance(value, str) and value.strip():
+                        update_fields.append(f"{field} = %s")
+                        params.append(value.strip())
                     else:
                         update_fields.append(f"{field} = %s")
-                        params.append(data[field])
+                        params.append(value)
+                else:
+                    # Campos de control
+                    if value is not None:
+                        update_fields.append(f"{field} = %s")
+                        params.append(value)
 
             if not update_fields:
                 return internal_response(False, None, "No hay campos para actualizar")
@@ -301,13 +320,37 @@ class PersonaComponent:
             if existing['estado'] == 'inactivo':
                 return internal_response(False, None, "Persona ya esta inactiva")
 
-            # Verificar si la persona tiene un usuario asociado
-            user_check = "SELECT id, estado FROM usuario WHERE id_persona = %s"
+            # Verificar si la persona tiene un usuario activo asociado
+            user_check = "SELECT id, estado FROM usuario WHERE id_persona = %s AND estado = 'activo'"
             user_exists = DataBaseHandle.getRecords(user_check, (id_persona,), size=1)
 
-            if user_exists and user_exists['estado'] == 'activo':
+            if user_exists:
                 return internal_response(False, None,
                     "No se puede desactivar la persona porque tiene un usuario activo asociado")
+
+            # Verificar si la persona tiene un registro de personal activo
+            personal_check = "SELECT id, estado FROM personal WHERE id_persona = %s AND estado = 'activo'"
+            personal_exists = DataBaseHandle.getRecords(personal_check, (id_persona,), size=1)
+
+            if personal_exists:
+                return internal_response(False, None,
+                    "No se puede desactivar la persona porque tiene un registro de personal activo asociado")
+
+            # Verificar si la persona tiene un registro de paciente activo
+            paciente_check = "SELECT id, estado FROM paciente WHERE id_persona = %s AND estado = 'activo'"
+            paciente_exists = DataBaseHandle.getRecords(paciente_check, (id_persona,), size=1)
+
+            if paciente_exists:
+                return internal_response(False, None,
+                    "No se puede desactivar la persona porque tiene un registro de paciente activo asociado")
+
+            # Verificar si la persona es tutor activo
+            tutor_check = "SELECT id, estado FROM tutor WHERE id_persona = %s AND estado = 'activo'"
+            tutor_exists = DataBaseHandle.getRecords(tutor_check, (id_persona,), size=1)
+
+            if tutor_exists:
+                return internal_response(False, None,
+                    "No se puede desactivar la persona porque tiene un registro de tutor activo asociado")
 
             # Desactivar persona
             update_query = """
@@ -331,6 +374,39 @@ class PersonaComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
+    def reactivate_persona(id_persona):
+        """Reactivar persona inactiva"""
+        try:
+            check_query = "SELECT id, estado FROM persona WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (id_persona,), size=1)
+
+            if not existing:
+                return internal_response(False, None, "Persona no encontrada")
+
+            if existing['estado'] == 'activo':
+                return internal_response(False, None, "La persona ya esta activa")
+
+            update_query = """
+                UPDATE persona
+                SET estado = 'activo', fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (id_persona,))
+
+            if success:
+                HandleLogs.write_log(f"PersonaComponent.reactivate_persona - Persona {id_persona} reactivada")
+                return internal_response(True, {"id": id_persona, "estado": "activo"},
+                                         "Persona reactivada exitosamente")
+            else:
+                HandleLogs.write_error(f"PersonaComponent.reactivate_persona - Error reactivando persona {id_persona}")
+                return internal_response(False, None, "Error reactivando persona")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PersonaComponent.reactivate_persona - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
     def check_cedula_exists(cedula, exclude_id=None):
         """Verificar si una cedula ya existe"""
         try:
@@ -341,8 +417,13 @@ class PersonaComponent:
                 query = "SELECT id FROM persona WHERE cedula = %s"
                 params = (cedula,)
 
-            existing = DataBaseHandle.getRecords(query, params, size=1)
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            result = DataBaseHandle.getRecordsWithStatus(query, params, size=1)
+            if result['success']:
+                exists = result['data'] is not None and bool(result['data'])
+                return internal_response(True, exists, "Consulta ejecutada")
+            else:
+                HandleLogs.write_error(f"PersonaComponent.check_cedula_exists - Error BD: {result['error']}")
+                return internal_response(False, None, f"Error en consulta: {result['error']}")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaComponent.check_cedula_exists - Error: {str(e)}")
@@ -359,8 +440,13 @@ class PersonaComponent:
                 query = "SELECT id FROM persona WHERE correo = %s"
                 params = (email,)
 
-            existing = DataBaseHandle.getRecords(query, params, size=1)
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            result = DataBaseHandle.getRecordsWithStatus(query, params, size=1)
+            if result['success']:
+                exists = result['data'] is not None and bool(result['data'])
+                return internal_response(True, exists, "Consulta ejecutada")
+            else:
+                HandleLogs.write_error(f"PersonaComponent.check_email_exists - Error BD: {result['error']}")
+                return internal_response(False, None, f"Error en consulta: {result['error']}")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaComponent.check_email_exists - Error: {str(e)}")
@@ -391,8 +477,8 @@ class PersonaComponent:
                 HandleLogs.write_log(f"PersonaComponent.get_personas_disponibles_para_usuario - {len(personas)} personas disponibles")
                 return internal_response(True, personas, "Personas disponibles obtenidas")
             else:
-                HandleLogs.write_error(f"PersonaComponent.get_personas_disponibles_para_usuario - Error: {result['message']}")
-                return internal_response(False, None, f"Error ejecutando consulta: {result['message']}")
+                HandleLogs.write_error(f"PersonaComponent.get_personas_disponibles_para_usuario - Error: {result['error']}")
+                return internal_response(False, None, f"Error ejecutando consulta: {result['error']}")
 
         except Exception as e:
             HandleLogs.write_error(f"PersonaComponent.get_personas_disponibles_para_usuario - Error: {str(e)}")
