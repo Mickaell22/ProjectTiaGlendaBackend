@@ -179,7 +179,7 @@ class Validators:
                 errors.append(password_validation['message'])
 
         # Validar IDs numéricos
-        numeric_fields = ['id_persona', 'id_rol', 'usuario_creacion', 'usuario_modificacion']
+        numeric_fields = ['id_persona', 'id_rol', 'id_centro', 'usuario_creacion', 'usuario_modificacion']
         for field in numeric_fields:
             if field in data and data[field]:
                 try:

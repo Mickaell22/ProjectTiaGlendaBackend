@@ -43,6 +43,13 @@ def delete_usuario(usuario_id):
     return UsuarioService.delete_usuario(usuario_id)
 
 
+@usuario_bp.route('/usuarios/<int:usuario_id>/reactivar', methods=['PUT'])
+@admin_required
+def reactivate_usuario(usuario_id):
+    from src.api.Service.UsuarioService import UsuarioService
+    return UsuarioService.reactivate_usuario(usuario_id)
+
+
 @usuario_bp.route('/usuarios/<int:usuario_id>/cambiar-contrasenia', methods=['PUT'])
 @token_required
 def change_user_password(usuario_id):

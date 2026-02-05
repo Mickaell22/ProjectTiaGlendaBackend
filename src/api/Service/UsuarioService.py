@@ -59,7 +59,6 @@ class UsuarioService:
         try:
             data = request.get_json()
             HandleLogs.write_log("UsuarioService.create_usuario - Iniciando")
-            HandleLogs.write_log(f"UsuarioService.create_usuario - Datos recibidos: {data}")
 
             # Validar que se recibieron datos
             if not data:
@@ -81,12 +80,12 @@ class UsuarioService:
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Hashear contraseña
+            # Hashear contrasenia
             hashed_password = SecurityUtils.hash_password(data['contrasenia'])
             if not hashed_password:
                 return response_error("Error procesando contrasena", 500)
 
-            # Preparar datos para inserción
+            # Preparar datos para insercion
             try:
                 # Obtener centros_ids del payload (nuevo campo para multi-centro)
                 centros_ids = data.get('centros_ids', [])
@@ -122,7 +121,7 @@ class UsuarioService:
                     'id_centro': id_centro_predeterminado,
                     'estado': data.get('estado', 'activo'),
                     'usuario_creacion': getattr(request, 'current_user', {}).get('id', 1),
-                    'centros_ids': centros_ids  # Pasar centros_ids al component
+                    'centros_ids': centros_ids
                 }
             except KeyError as e:
                 missing_field = str(e).replace("'", "")
@@ -165,26 +164,26 @@ class UsuarioService:
             if 'centro_id' in data and 'id_centro' not in data:
                 data['id_centro'] = data['centro_id']
 
-            # Validar datos (para actualización)
+            # Validar datos (para actualizacion)
             validation_result = Validators.validate_usuario_data(data, is_update=True)
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Si se actualiza la contraseña, hashearla
+            # Si se actualiza la contrasenia, hashearla
             if 'contrasenia' in data and data['contrasenia']:
                 hashed_password = SecurityUtils.hash_password(data['contrasenia'])
                 if not hashed_password:
                     return response_error("Error procesando contrasena", 500)
                 data['contrasenia'] = hashed_password
 
-            # Preparar datos para actualización
+            # Preparar datos para actualizacion
             update_data = {}
 
-            # Solo agregar campos que están presentes en el request
+            # Solo agregar campos que estan presentes en el request
             if 'usuario' in data and data['usuario']:
                 update_data['usuario'] = data['usuario'].strip()
             if 'contrasenia' in data and data['contrasenia']:
-                update_data['contrasenia'] = data['contrasenia']  # Ya hasheada arriba
+                update_data['contrasenia'] = data['contrasenia']
             if 'id_persona' in data:
                 update_data['id_persona'] = int(data['id_persona'])
             if 'id_rol' in data:
@@ -194,7 +193,7 @@ class UsuarioService:
             if 'estado' in data:
                 update_data['estado'] = data['estado']
 
-            # Procesar centros_ids si está presente (sistema multi-centro)
+            # Procesar centros_ids si esta presente (sistema multi-centro)
             if 'centros_ids' in data:
                 centros_ids = data.get('centros_ids', [])
 
@@ -234,7 +233,7 @@ class UsuarioService:
 
     @staticmethod
     def delete_usuario(usuario_id):
-        """Desactivar usuario (eliminación lógica)"""
+        """Desactivar usuario (eliminacion logica)"""
         try:
             HandleLogs.write_log(f"UsuarioService.delete_usuario - ID: {usuario_id}")
 
@@ -259,53 +258,68 @@ class UsuarioService:
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
+    def reactivate_usuario(usuario_id):
+        """Reactivar un usuario inactivo"""
+        try:
+            HandleLogs.write_log(f"UsuarioService.reactivate_usuario - ID: {usuario_id}")
+
+            if not usuario_id or usuario_id <= 0:
+                return response_error("ID de usuario invalido", 400)
+
+            result = UsuarioComponent.reactivate_usuario(usuario_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"UsuarioService.reactivate_usuario - Usuario {usuario_id} reactivado")
+                return response_success(result['data'], "Usuario reactivado exitosamente")
+            else:
+                HandleLogs.write_error(f"UsuarioService.reactivate_usuario - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"UsuarioService.reactivate_usuario - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
     def change_password(usuario_id, password_data):
-        """Cambiar contraseña de usuario"""
+        """Cambiar contrasenia de usuario"""
         try:
             HandleLogs.write_log(f"UsuarioService.change_password - ID: {usuario_id}")
-            HandleLogs.write_log(f"Datos recibidos en password_data: {password_data}")
 
             if not usuario_id or usuario_id <= 0:
                 return response_error("ID de usuario invalido", 400)
 
             # Validar datos de entrada
             if not password_data:
-                HandleLogs.write_error("No se recibió password_data")
-                return response_error("Datos de contraseña requeridos", 400)
+                HandleLogs.write_error("UsuarioService.change_password - No se recibio password_data")
+                return response_error("Datos de contrasenia requeridos", 400)
 
             nueva_contrasenia = password_data.get('nueva_contrasenia')
             confirmar_contrasenia = password_data.get('confirmar_contrasenia')
 
-            HandleLogs.write_log(
-                f"nueva_contrasenia: {nueva_contrasenia}, confirmar_contrasenia: {confirmar_contrasenia}")
-
             if not nueva_contrasenia:
-                HandleLogs.write_error("No se recibió nueva_contrasenia")
-                return response_error("Nueva contraseña requerida", 400)
+                HandleLogs.write_error("UsuarioService.change_password - No se recibio nueva_contrasenia")
+                return response_error("Nueva contrasenia requerida", 400)
 
             if not confirmar_contrasenia:
-                HandleLogs.write_error("No se recibió confirmar_contrasenia")
-                return response_error("Confirmación de contraseña requerida", 400)
+                HandleLogs.write_error("UsuarioService.change_password - No se recibio confirmar_contrasenia")
+                return response_error("Confirmacion de contrasenia requerida", 400)
 
             if nueva_contrasenia != confirmar_contrasenia:
-                HandleLogs.write_error("Las contraseñas no coinciden")
-                return response_error("Las contraseñas no coinciden", 400)
+                HandleLogs.write_error("UsuarioService.change_password - Las contrasenias no coinciden")
+                return response_error("Las contrasenias no coinciden", 400)
 
-            # Validar fortaleza de contraseña
-            from src.utils.general.validators import Validators
+            # Validar fortaleza de contrasenia
             password_validation = Validators.validate_password(nueva_contrasenia)
-            HandleLogs.write_log(f"Resultado validación: {password_validation}")
             if not password_validation['valid']:
-                HandleLogs.write_error(f"Validación fallida: {password_validation['message']}")
+                HandleLogs.write_error(f"UsuarioService.change_password - Validacion fallida: {password_validation['message']}")
                 return response_error(password_validation['message'], 400)
 
-            # Cambiar contraseña
+            # Cambiar contrasenia
             result = UsuarioComponent.change_password(usuario_id, nueva_contrasenia)
-            HandleLogs.write_log(f"Resultado cambio: {result}")
 
             if result['success']:
-                HandleLogs.write_log(f"UsuarioService.change_password - Contraseña cambiada para usuario {usuario_id}")
-                return response_success(None, "Contraseña actualizada exitosamente")
+                HandleLogs.write_log(f"UsuarioService.change_password - Contrasenia cambiada para usuario {usuario_id}")
+                return response_success(None, "Contrasenia actualizada exitosamente")
             else:
                 HandleLogs.write_error(f"UsuarioService.change_password - Error: {result['message']}")
                 return response_error(result['message'], 400)

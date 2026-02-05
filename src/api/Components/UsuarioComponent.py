@@ -7,10 +7,10 @@ class UsuarioComponent:
 
     @staticmethod
     def get_all_usuarios():
-        """Obtener todos los usuarios con información completa incluyendo centro"""
+        """Obtener todos los usuarios con informacion completa incluyendo centro"""
         try:
             query = """
-            SELECT 
+            SELECT
                 u.id,
                 u.usuario,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
@@ -20,24 +20,23 @@ class UsuarioComponent:
                 p.telefono,
                 p.correo,
                 p.direccion,
-                p.fecha_nacimiento,
+                p.fecha_nacimiento::TEXT as fecha_nacimiento,
                 r.id as rol_id,
                 r.nombre as rol,
                 r.nombre as rol_nombre,
                 u.id_persona,
                 u.foto_perfil,
                 u.estado,
-                u.fecha_creacion,
-                u.fecha_modificacion,
-                u.fecha_ultimo_acceso,
-                -- Información del centro
+                u.fecha_creacion::TEXT as fecha_creacion,
+                u.fecha_modificacion::TEXT as fecha_modificacion,
+                u.fecha_ultimo_acceso::TEXT as fecha_ultimo_acceso,
                 c.id as centro_id,
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo,
                 c.turno_principal as centro_turno,
-                CASE 
-                    WHEN c.codigo = 'NORTE' THEN '🌅 Centro Norte'
-                    WHEN c.codigo = 'SUR' THEN '🌆 Centro Sur'
+                CASE
+                    WHEN c.codigo = 'NORTE' THEN 'Centro Norte'
+                    WHEN c.codigo = 'SUR' THEN 'Centro Sur'
                     ELSE c.nombre
                 END as centro_display
             FROM usuario u
@@ -62,10 +61,10 @@ class UsuarioComponent:
 
     @staticmethod
     def get_usuario_by_id(usuario_id):
-        """Obtener un usuario por ID con información del centro"""
+        """Obtener un usuario por ID con informacion del centro"""
         try:
             query = """
-            SELECT 
+            SELECT
                 u.id,
                 u.usuario,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
@@ -74,21 +73,24 @@ class UsuarioComponent:
                 p.cedula,
                 p.telefono,
                 p.correo,
-                p.fecha_nacimiento,
-                r.nombre as rol,
+                p.direccion,
+                p.fecha_nacimiento::TEXT as fecha_nacimiento,
                 r.id as rol_id,
+                r.nombre as rol,
+                r.nombre as rol_nombre,
+                u.id_persona,
                 u.foto_perfil,
                 u.estado,
-                u.fecha_creacion,
-                u.fecha_modificacion,
-                -- Información del centro
+                u.fecha_creacion::TEXT as fecha_creacion,
+                u.fecha_modificacion::TEXT as fecha_modificacion,
+                u.fecha_ultimo_acceso::TEXT as fecha_ultimo_acceso,
                 c.id as centro_id,
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo,
                 c.turno_principal as centro_turno,
-                CASE 
-                    WHEN c.codigo = 'NORTE' THEN '🌅 Centro Norte'
-                    WHEN c.codigo = 'SUR' THEN '🌆 Centro Sur'
+                CASE
+                    WHEN c.codigo = 'NORTE' THEN 'Centro Norte'
+                    WHEN c.codigo = 'SUR' THEN 'Centro Sur'
                     ELSE c.nombre
                 END as centro_display
             FROM usuario u
@@ -131,7 +133,7 @@ class UsuarioComponent:
                 data['contrasenia'],
                 data['id_persona'],
                 data['id_rol'],
-                data.get('id_centro', 1),  # Default to Centro Norte (id=1)
+                data.get('id_centro', 1),
                 data.get('estado', 'activo'),
                 data.get('usuario_creacion', 1)
             )
@@ -139,20 +141,18 @@ class UsuarioComponent:
             success = DataBaseHandle.ExecuteNonQuery(insert_query, params)
 
             if success:
-                # Obtener el ID del usuario recién creado
+                # Obtener el ID del usuario recien creado
                 id_query = "SELECT id FROM usuario WHERE usuario = %s ORDER BY id DESC LIMIT 1"
                 new_user_data = DataBaseHandle.getRecords(id_query, (data['usuario'],), size=1)
 
                 if new_user_data and new_user_data.get('id'):
                     new_id = new_user_data['id']
+                    usuario_creacion = data.get('usuario_creacion', 1)
 
-                    # IMPORTANTE: Insertar registros en usuario_centros (sistema multi-centro)
+                    # Insertar registros en usuario_centros (sistema multi-centro)
                     centros_ids = data.get('centros_ids', [])
                     if centros_ids and len(centros_ids) > 0:
-                        usuario_creacion = data.get('usuario_creacion', 1)
-
                         for idx, id_centro in enumerate(centros_ids):
-                            # El primer centro es el predeterminado
                             es_predeterminado = (idx == 0)
 
                             insert_centro_query = """
@@ -166,7 +166,7 @@ class UsuarioComponent:
 
                         HandleLogs.write_log(f"UsuarioComponent.create_usuario - {len(centros_ids)} centros asignados al usuario {new_id}")
                     else:
-                        # Si no se proporcionaron centros, asignar el centro predeterminado de la tabla usuario
+                        # Si no se proporcionaron centros, asignar el centro predeterminado
                         id_centro_default = data.get('id_centro', 1)
                         insert_centro_query = """
                             INSERT INTO usuario_centros (id_usuario, id_centro, es_centro_predeterminado, usuario_creacion)
@@ -176,7 +176,7 @@ class UsuarioComponent:
                         DataBaseHandle.ExecuteNonQuery(insert_centro_query, (new_id, id_centro_default, usuario_creacion))
                         HandleLogs.write_log(f"UsuarioComponent.create_usuario - Centro predeterminado {id_centro_default} asignado al usuario {new_id}")
 
-                    # Obtener el usuario creado con información completa
+                    # Obtener el usuario creado con informacion completa
                     new_user = UsuarioComponent.get_usuario_by_id(new_id)
                     HandleLogs.write_log(f"UsuarioComponent.create_usuario - Usuario creado con ID: {new_id}")
                     return internal_response(True, new_user['data'], "Usuario creado exitosamente")
@@ -199,10 +199,16 @@ class UsuarioComponent:
             check_query = "SELECT id FROM usuario WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (usuario_id,), size=1)
 
-            if not existing:
+            if existing is None or not bool(existing):
                 return internal_response(False, None, "Usuario no encontrado")
 
-            # Construir query de actualización dinámicamente
+            # Si se cambia el username, verificar que no exista otro con ese nombre
+            if 'usuario' in data and data['usuario'] is not None:
+                username_check = UsuarioComponent.check_username_exists(data['usuario'], exclude_id=usuario_id)
+                if username_check['success'] and username_check['data']:
+                    return internal_response(False, None, "El nombre de usuario ya existe")
+
+            # Construir query de actualizacion dinamicamente
             update_fields = []
             params = []
 
@@ -216,14 +222,10 @@ class UsuarioComponent:
             if not update_fields:
                 return internal_response(False, None, "No hay campos para actualizar")
 
-            # Agregar fecha de modificación
-            update_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
-
-            # Agregar ID del usuario al final
             params.append(usuario_id)
 
             update_query = f"""
-                UPDATE usuario 
+                UPDATE usuario
                 SET {', '.join(update_fields)}
                 WHERE id = %s
                 """
@@ -243,7 +245,6 @@ class UsuarioComponent:
                     # Insertar los nuevos centros
                     if len(centros_ids) > 0:
                         for idx, id_centro in enumerate(centros_ids):
-                            # El primer centro es el predeterminado
                             es_predeterminado = (idx == 0)
 
                             insert_centro_query = """
@@ -274,22 +275,20 @@ class UsuarioComponent:
 
     @staticmethod
     def deactivate_usuario(usuario_id):
-        """Desactivar usuario (eliminación lógica)"""
+        """Desactivar usuario (eliminacion logica)"""
         try:
-            # Verificar si el usuario existe
             check_query = "SELECT id, estado FROM usuario WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (usuario_id,), size=1)
 
-            if not existing:
+            if existing is None or not bool(existing):
                 return internal_response(False, None, "Usuario no encontrado")
 
             if existing['estado'] == 'inactivo':
                 return internal_response(False, None, "Usuario ya esta inactivo")
 
-            # Desactivar usuario
             update_query = """
-                UPDATE usuario 
-                SET estado = 'inactivo', fecha_modificacion = CURRENT_TIMESTAMP
+                UPDATE usuario
+                SET estado = 'inactivo'
                 WHERE id = %s
                 """
 
@@ -308,6 +307,39 @@ class UsuarioComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
+    def reactivate_usuario(usuario_id):
+        """Reactivar un usuario inactivo"""
+        try:
+            check_query = "SELECT id, estado FROM usuario WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (usuario_id,), size=1)
+
+            if existing is None or not bool(existing):
+                return internal_response(False, None, "Usuario no encontrado")
+
+            if existing['estado'] == 'activo':
+                return internal_response(False, None, "Usuario ya esta activo")
+
+            update_query = """
+                UPDATE usuario
+                SET estado = 'activo'
+                WHERE id = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (usuario_id,))
+
+            if success:
+                HandleLogs.write_log(f"UsuarioComponent.reactivate_usuario - Usuario {usuario_id} reactivado")
+                return internal_response(True, {"id": usuario_id, "estado": "activo"},
+                                         "Usuario reactivado exitosamente")
+            else:
+                HandleLogs.write_error(f"UsuarioComponent.reactivate_usuario - Error reactivando usuario {usuario_id}")
+                return internal_response(False, None, "Error reactivando usuario")
+
+        except Exception as e:
+            HandleLogs.write_error(f"UsuarioComponent.reactivate_usuario - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
     def check_username_exists(username, exclude_id=None):
         """Verificar si un nombre de usuario ya existe"""
         try:
@@ -320,7 +352,7 @@ class UsuarioComponent:
 
             existing = DataBaseHandle.getRecords(query, params, size=1)
 
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            return internal_response(True, existing is not None and bool(existing), "Consulta ejecutada")
 
         except Exception as e:
             HandleLogs.write_error(f"UsuarioComponent.check_username_exists - Error: {str(e)}")
@@ -328,62 +360,38 @@ class UsuarioComponent:
 
     @staticmethod
     def change_password(usuario_id, nueva_contrasenia):
-        """Cambiar la contraseña de un usuario"""
+        """Cambiar la contrasenia de un usuario"""
         try:
             from src.utils.general.security import SecurityUtils
-            
-            # Verificar que el usuario existe y está activo
+
             check_query = "SELECT id, estado FROM usuario WHERE id = %s"
             existing_user = DataBaseHandle.getRecords(check_query, (usuario_id,), size=1)
-            
-            if not existing_user:
+
+            if existing_user is None or not bool(existing_user):
                 HandleLogs.write_error(f"UsuarioComponent.change_password - Usuario {usuario_id} no encontrado")
                 return internal_response(False, None, "Usuario no encontrado")
-            
+
             if existing_user['estado'] != 'activo':
-                HandleLogs.write_error(f"UsuarioComponent.change_password - Usuario {usuario_id} no está activo")
-                return internal_response(False, None, "Usuario no está activo")
-            
-            # Hash de la nueva contraseña
+                HandleLogs.write_error(f"UsuarioComponent.change_password - Usuario {usuario_id} no esta activo")
+                return internal_response(False, None, "Usuario no esta activo")
+
             hashed_password = SecurityUtils.hash_password(nueva_contrasenia)
-            
-            # Actualizar la contraseña
+
             update_query = """
-                UPDATE usuario 
-                SET contrasenia = %s, fecha_modificacion = CURRENT_TIMESTAMP
+                UPDATE usuario
+                SET contrasenia = %s
                 WHERE id = %s
                 """
-            
+
             success = DataBaseHandle.ExecuteNonQuery(update_query, (hashed_password, usuario_id))
-            
+
             if success:
-                HandleLogs.write_log(f"UsuarioComponent.change_password - Contraseña actualizada para usuario {usuario_id}")
-                return internal_response(True, {"id": usuario_id}, "Contraseña actualizada exitosamente")
+                HandleLogs.write_log(f"UsuarioComponent.change_password - Contrasenia actualizada para usuario {usuario_id}")
+                return internal_response(True, {"id": usuario_id}, "Contrasenia actualizada exitosamente")
             else:
-                HandleLogs.write_error(f"UsuarioComponent.change_password - Error actualizando contraseña para usuario {usuario_id}")
-                return internal_response(False, None, "Error actualizando contraseña")
-                
+                HandleLogs.write_error(f"UsuarioComponent.change_password - Error actualizando contrasenia para usuario {usuario_id}")
+                return internal_response(False, None, "Error actualizando contrasenia")
+
         except Exception as e:
             HandleLogs.write_error(f"UsuarioComponent.change_password - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
