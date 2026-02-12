@@ -463,8 +463,8 @@ class Validators:
 
         # Validar nombre_empresa si está presente
         if 'nombre_empresa' in data and data['nombre_empresa'] and data['nombre_empresa'].strip():
-            if len(data['nombre_empresa'].strip()) > 100:
-                errors.append("Nombre de empresa no puede tener más de 100 caracteres")
+            if len(data['nombre_empresa'].strip()) > 150:
+                errors.append("Nombre de empresa no puede tener mas de 150 caracteres")
 
         # Validar telefono_empresa si está presente
         if 'telefono_empresa' in data and data['telefono_empresa'] and data['telefono_empresa'].strip():

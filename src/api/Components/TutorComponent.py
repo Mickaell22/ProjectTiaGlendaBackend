@@ -7,7 +7,7 @@ class TutorComponent:
 
     @staticmethod
     def get_all_tutores():
-        """Obtener todos los tutores con información completa"""
+        """Obtener todos los tutores con informacion completa"""
         try:
             query = """
             SELECT
@@ -26,8 +26,8 @@ class TutorComponent:
                 t.telefono_empresa,
                 t.nombre_empresa,
                 t.estado,
-                t.fecha_creacion,
-                t.fecha_modificacion,
+                t.fecha_creacion::TEXT as fecha_creacion,
+                t.fecha_modificacion::TEXT as fecha_modificacion,
                 COUNT(pac.id) as total_pacientes,
                 COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
             FROM tutor t
@@ -55,11 +55,10 @@ class TutorComponent:
 
     @staticmethod
     def get_tutor_by_id(tutor_id):
-        """Obtener un tutor por ID con información completa y sus pacientes"""
+        """Obtener un tutor por ID con informacion completa y sus pacientes"""
         try:
-            # Obtener información básica del tutor
             query_tutor = """
-            SELECT 
+            SELECT
                 t.id,
                 t.id_persona,
                 p.nombre,
@@ -75,8 +74,8 @@ class TutorComponent:
                 t.telefono_empresa,
                 t.nombre_empresa,
                 t.estado,
-                t.fecha_creacion,
-                t.fecha_modificacion
+                t.fecha_creacion::TEXT as fecha_creacion,
+                t.fecha_modificacion::TEXT as fecha_modificacion
             FROM tutor t
             INNER JOIN persona p ON t.id_persona = p.id
             WHERE t.id = %s
@@ -87,9 +86,9 @@ class TutorComponent:
             if tutor:
                 # Obtener pacientes del tutor
                 query_pacientes = """
-                SELECT 
+                SELECT
                     pac.id,
-                    pac.fecha_ingreso,
+                    pac.fecha_ingreso::TEXT as fecha_ingreso,
                     pac.estado,
                     pac.codigo_paciente,
                     pp.id as persona_id,
@@ -97,7 +96,7 @@ class TutorComponent:
                     pp.nombre,
                     pp.apellido,
                     pp.cedula,
-                    pp.fecha_nacimiento
+                    pp.fecha_nacimiento::TEXT as fecha_nacimiento
                 FROM paciente pac
                 INNER JOIN persona pp ON pac.id_persona = pp.id
                 WHERE pac.id_tutor = %s
@@ -121,32 +120,34 @@ class TutorComponent:
     def create_tutor(data):
         """Crear un nuevo tutor usando una persona existente"""
         try:
-            # Verificar que se proporcione el ID de persona
             if 'id_persona' not in data or not data['id_persona']:
                 return internal_response(False, None, "Debe proporcionar el ID de persona")
 
             persona_id = data['id_persona']
 
-            # Verificar si la persona existe y está activa
+            # Verificar si la persona existe y esta activa
             persona_existente = DataBaseHandle.getRecords(
                 "SELECT id, nombre, apellido, cedula FROM persona WHERE id = %s AND estado = 'activo'",
                 (persona_id,), size=1
             )
             if not persona_existente:
-                return internal_response(False, None, "La persona especificada no existe o no está activa")
+                return internal_response(False, None, "La persona especificada no existe o no esta activa")
 
-            # Verificar si la persona ya es tutor
+            # Verificar si la persona ya es tutor (activo o inactivo)
             tutor_existente = DataBaseHandle.getRecords(
-                "SELECT id FROM tutor WHERE id_persona = %s",
+                "SELECT id, estado FROM tutor WHERE id_persona = %s",
                 (persona_id,), size=1
             )
             if tutor_existente:
-                return internal_response(False, None, "Esta persona ya está registrada como tutor")
+                if tutor_existente['estado'] == 'inactivo':
+                    return internal_response(False, None,
+                        "Esta persona ya fue registrada como tutor pero esta inactiva. Use la opcion de reactivar")
+                return internal_response(False, None, "Esta persona ya esta registrada como tutor")
 
             # Insertar en tutor
             insert_tutor_query = """
                 INSERT INTO tutor (
-                    id_persona, parentesco, ocupacion, direccion_empresa, 
+                    id_persona, parentesco, ocupacion, direccion_empresa,
                     telefono_empresa, nombre_empresa, estado, usuario_creacion
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -167,7 +168,6 @@ class TutorComponent:
             tutor_id = DataBaseHandle.ExecuteInsert(insert_tutor_query, tutor_params)
 
             if tutor_id:
-                # Obtener el tutor creado con información completa
                 new_tutor = TutorComponent.get_tutor_by_id(tutor_id)
                 HandleLogs.write_log(f"TutorComponent.create_tutor - Tutor creado con ID: {tutor_id} para persona ID: {persona_id}")
                 return internal_response(True, new_tutor['data'], "Tutor creado exitosamente")
@@ -183,49 +183,41 @@ class TutorComponent:
     def update_tutor(tutor_id, data):
         """Actualizar un tutor existente"""
         try:
-            # Verificar si el tutor existe y obtener id_persona
             check_query = "SELECT id, id_persona FROM tutor WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (tutor_id,), size=1)
 
             if not existing:
                 return internal_response(False, None, "Tutor no encontrado")
 
-            persona_id = existing['id_persona']
-
-            # Solo actualizar campos específicos del tutor
             tutor_fields = []
             tutor_params = []
 
-            # Campos permitidos para actualización en tabla tutor
-            tutor_allowed = ['parentesco', 'ocupacion', 'direccion_empresa', 
+            tutor_allowed = ['parentesco', 'ocupacion', 'direccion_empresa',
                              'telefono_empresa', 'nombre_empresa', 'estado',
                              'usuario_modificacion']
-            
+
             for field in tutor_allowed:
                 if field in data and data[field] is not None:
                     tutor_fields.append(f"{field} = %s")
                     tutor_params.append(data[field])
 
-            # Verificar si hay campos para actualizar
             if not tutor_fields:
                 return internal_response(False, None, "No hay campos para actualizar")
 
-            # Actualizar tutor
             tutor_fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
             tutor_params.append(tutor_id)
-            
+
             tutor_query = f"""
-                UPDATE tutor 
+                UPDATE tutor
                 SET {', '.join(tutor_fields)}
                 WHERE id = %s
                 """
-            
+
             tutor_success = DataBaseHandle.ExecuteNonQuery(tutor_query, tutor_params)
             if not tutor_success:
                 HandleLogs.write_error(f"TutorComponent.update_tutor - Error actualizando tutor {tutor_id}")
                 return internal_response(False, None, "Error actualizando datos de tutor")
 
-            # Obtener datos actualizados
             updated_tutor = TutorComponent.get_tutor_by_id(tutor_id)
             HandleLogs.write_log(f"TutorComponent.update_tutor - Tutor {tutor_id} actualizado")
             return internal_response(True, updated_tutor['data'], "Tutor actualizado exitosamente")
@@ -236,9 +228,8 @@ class TutorComponent:
 
     @staticmethod
     def deactivate_tutor(tutor_id):
-        """Desactivar tutor (eliminación lógica)"""
+        """Desactivar tutor (eliminacion logica)"""
         try:
-            # Verificar si el tutor existe
             check_query = "SELECT id, estado FROM tutor WHERE id = %s"
             existing = DataBaseHandle.getRecords(check_query, (tutor_id,), size=1)
 
@@ -246,23 +237,22 @@ class TutorComponent:
                 return internal_response(False, None, "Tutor no encontrado")
 
             if existing['estado'] == 'inactivo':
-                return internal_response(False, None, "Tutor ya está inactivo")
+                return internal_response(False, None, "Tutor ya esta inactivo")
 
             # Verificar si tiene pacientes activos
             patients_check = """
-                SELECT COUNT(*) as total 
-                FROM paciente 
+                SELECT COUNT(*) as total
+                FROM paciente
                 WHERE id_tutor = %s AND estado = 'activo'
             """
             active_patients = DataBaseHandle.getRecords(patients_check, (tutor_id,), size=1)
 
             if active_patients and active_patients['total'] > 0:
                 return internal_response(False, None,
-                                         f"No se puede desactivar el tutor porque tiene {active_patients['total']} paciente(s) activo(s)")
+                    f"No se puede desactivar el tutor porque tiene {active_patients['total']} paciente(s) activo(s)")
 
-            # Desactivar tutor
             update_query = """
-                UPDATE tutor 
+                UPDATE tutor
                 SET estado = 'inactivo', fecha_modificacion = CURRENT_TIMESTAMP
                 WHERE id = %s
                 """
@@ -282,26 +272,54 @@ class TutorComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def check_cedula_exists(cedula, exclude_id=None):
-        """Verificar si ya existe un tutor con la cédula especificada"""
+    def reactivate_tutor(tutor_id):
+        """Reactivar tutor previamente desactivado"""
         try:
-            if exclude_id:
-                query = "SELECT id FROM tutor WHERE cedula = %s AND id != %s"
-                params = (cedula, exclude_id)
-            else:
-                query = "SELECT id FROM tutor WHERE cedula = %s"
-                params = (cedula,)
+            check_query = "SELECT id, estado FROM tutor WHERE id = %s"
+            existing = DataBaseHandle.getRecords(check_query, (tutor_id,), size=1)
 
-            existing = DataBaseHandle.getRecords(query, params, size=1)
-            return internal_response(True, existing is not None, "Consulta ejecutada")
+            if not existing:
+                return internal_response(False, None, "Tutor no encontrado")
+
+            if existing['estado'] == 'activo':
+                return internal_response(False, None, "El tutor ya esta activo")
+
+            update_query = """
+                UPDATE tutor
+                SET estado = 'activo', fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s
+                """
+
+            success = DataBaseHandle.ExecuteNonQuery(update_query, (tutor_id,))
+
+            if success:
+                HandleLogs.write_log(f"TutorComponent.reactivate_tutor - Tutor {tutor_id} reactivado")
+                return internal_response(True, {"id": tutor_id, "estado": "activo"},
+                                         "Tutor reactivado exitosamente")
+            else:
+                HandleLogs.write_error(f"TutorComponent.reactivate_tutor - Error reactivando tutor {tutor_id}")
+                return internal_response(False, None, "Error reactivando tutor")
 
         except Exception as e:
-            HandleLogs.write_error(f"TutorComponent.check_cedula_exists - Error: {str(e)}")
+            HandleLogs.write_error(f"TutorComponent.reactivate_tutor - Error: {str(e)}")
+            return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def check_persona_es_tutor(persona_id):
+        """Verificar si una persona ya esta registrada como tutor"""
+        try:
+            query = "SELECT id, estado FROM tutor WHERE id_persona = %s"
+            existing = DataBaseHandle.getRecords(query, (persona_id,), size=1)
+            result = existing is not None and bool(existing)
+            return internal_response(True, result, "Consulta ejecutada")
+
+        except Exception as e:
+            HandleLogs.write_error(f"TutorComponent.check_persona_es_tutor - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
     def get_tutores_activos():
-        """Obtener solo tutores activos (útil para combos/selects)"""
+        """Obtener solo tutores activos (util para combos/selects)"""
         try:
             query = """
             SELECT
@@ -334,14 +352,14 @@ class TutorComponent:
 
     @staticmethod
     def get_estadisticas_tutores():
-        """Obtener estadísticas de tutores"""
+        """Obtener estadisticas de tutores"""
         try:
             query = """
-            SELECT 
+            SELECT
                 COUNT(*) as total_tutores,
                 COUNT(CASE WHEN t.estado = 'activo' THEN 1 END) as tutores_activos,
                 COUNT(CASE WHEN t.estado = 'inactivo' THEN 1 END) as tutores_inactivos,
-                AVG(pacientes_por_tutor.total_pacientes) as promedio_pacientes_por_tutor
+                COALESCE(AVG(pacientes_por_tutor.total_pacientes), 0) as promedio_pacientes_por_tutor
             FROM tutor t
             LEFT JOIN (
                 SELECT id_tutor, COUNT(*) as total_pacientes
@@ -352,9 +370,9 @@ class TutorComponent:
 
             estadisticas_generales = DataBaseHandle.getRecords(query, size=1)
 
-            # Estadísticas por parentesco
+            # Estadisticas por parentesco
             query_parentesco = """
-            SELECT 
+            SELECT
                 parentesco,
                 COUNT(*) as total,
                 COUNT(CASE WHEN estado = 'activo' THEN 1 END) as activos
@@ -365,14 +383,20 @@ class TutorComponent:
 
             estadisticas_parentesco = DataBaseHandle.getRecords(query_parentesco)
 
+            # Convertir promedio Decimal a float para JSON
+            if estadisticas_generales and estadisticas_generales.get('promedio_pacientes_por_tutor') is not None:
+                estadisticas_generales['promedio_pacientes_por_tutor'] = float(
+                    estadisticas_generales['promedio_pacientes_por_tutor']
+                )
+
             resultado = {
                 "general": estadisticas_generales,
                 "por_parentesco": estadisticas_parentesco if estadisticas_parentesco else []
             }
 
             if estadisticas_generales is not None:
-                HandleLogs.write_log("TutorComponent.get_estadisticas_tutores - Estadísticas obtenidas")
-                return internal_response(True, resultado, "Estadísticas de tutores obtenidas")
+                HandleLogs.write_log("TutorComponent.get_estadisticas_tutores - Estadisticas obtenidas")
+                return internal_response(True, resultado, "Estadisticas de tutores obtenidas")
             else:
                 HandleLogs.write_error("TutorComponent.get_estadisticas_tutores - Error en consulta")
                 return internal_response(False, None, "Error ejecutando consulta")
@@ -383,10 +407,10 @@ class TutorComponent:
 
     @staticmethod
     def get_personas_disponibles_para_tutor():
-        """Obtener personas que no están registradas como tutores (usando cédula)"""
+        """Obtener personas que no estan registradas como tutores activos"""
         try:
             query = """
-            SELECT 
+            SELECT
                 p.id,
                 p.nombre,
                 p.apellido,
@@ -395,7 +419,7 @@ class TutorComponent:
                 p.telefono,
                 p.correo
             FROM persona p
-            LEFT JOIN tutor t ON p.id = t.id_persona
+            LEFT JOIN tutor t ON p.id = t.id_persona AND t.estado = 'activo'
             WHERE t.id IS NULL AND p.estado = 'activo'
             ORDER BY p.nombre, p.apellido
             """
@@ -419,7 +443,7 @@ class TutorComponent:
         """Obtener tutores filtrados por centro (basado en los pacientes que atienden)"""
         try:
             query = """
-            SELECT DISTINCT
+            SELECT
                 t.id,
                 t.id_persona,
                 p.nombre,
@@ -435,8 +459,8 @@ class TutorComponent:
                 t.telefono_empresa,
                 t.nombre_empresa,
                 t.estado,
-                t.fecha_creacion,
-                t.fecha_modificacion,
+                t.fecha_creacion::TEXT as fecha_creacion,
+                t.fecha_modificacion::TEXT as fecha_modificacion,
                 COUNT(pac.id) as total_pacientes,
                 COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
             FROM tutor t
@@ -468,10 +492,10 @@ class TutorComponent:
 
     @staticmethod
     def get_tutores_by_personal(personal_id, centro_id):
-        """Obtener tutores de pacientes asignados a un personal específico"""
+        """Obtener tutores de pacientes asignados a un personal especifico"""
         try:
             query = """
-            SELECT DISTINCT
+            SELECT
                 t.id,
                 t.id_persona,
                 p.nombre,
@@ -487,25 +511,32 @@ class TutorComponent:
                 t.telefono_empresa,
                 t.nombre_empresa,
                 t.estado,
-                t.fecha_creacion,
-                t.fecha_modificacion,
-                COUNT(pac.id) as total_pacientes,
-                COUNT(CASE WHEN pac.estado = 'activo' THEN 1 END) as pacientes_activos
+                t.fecha_creacion::TEXT as fecha_creacion,
+                t.fecha_modificacion::TEXT as fecha_modificacion,
+                COUNT(pac_all.id) as total_pacientes,
+                COUNT(CASE WHEN pac_all.estado = 'activo' THEN 1 END) as pacientes_activos
             FROM tutor t
             INNER JOIN persona p ON t.id_persona = p.id
-            LEFT JOIN paciente pac ON t.id = pac.id_tutor
+            LEFT JOIN paciente pac_all ON t.id = pac_all.id_tutor
             WHERE EXISTS (
-                SELECT 1 FROM sesion_terapia st
-                INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
-                WHERE sp.id_paciente = pac.id
-                AND st.id_terapeuta = %s
-                AND st.id_centro = %s
-                UNION
-                SELECT 1 FROM sesion_pedagogica sped
-                INNER JOIN sesion_estudiante se ON sped.id = se.id_sesion
-                WHERE se.id_paciente = pac.id
-                AND sped.id_educador = %s
-                AND sped.id_centro = %s
+                SELECT 1 FROM paciente pac2
+                WHERE pac2.id_tutor = t.id
+                AND (
+                    EXISTS (
+                        SELECT 1 FROM sesion_terapia st
+                        INNER JOIN sesion_paciente sp ON st.id = sp.id_sesion
+                        WHERE sp.id_paciente = pac2.id
+                        AND st.id_terapeuta = %s
+                        AND st.id_centro = %s
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM sesion_pedagogica sped
+                        INNER JOIN sesion_estudiante se ON sped.id = se.id_sesion
+                        WHERE se.id_paciente = pac2.id
+                        AND sped.id_educador = %s
+                        AND sped.id_centro = %s
+                    )
+                )
             )
             GROUP BY t.id, t.id_persona, p.nombre, p.apellido, p.cedula, p.telefono, p.correo,
                      p.direccion, t.parentesco, t.ocupacion, t.direccion_empresa,

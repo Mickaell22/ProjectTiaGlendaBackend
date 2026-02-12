@@ -42,6 +42,13 @@ def delete_tutor(tutor_id):
     return TutorService.delete_tutor(tutor_id)
 
 
+@tutor_bp.route('/tutores/<int:tutor_id>/reactivar', methods=['PATCH'])
+@admin_required
+def reactivate_tutor(tutor_id):
+    from src.api.Service.TutorService import TutorService
+    return TutorService.reactivate_tutor(tutor_id)
+
+
 @tutor_bp.route('/tutores/activos', methods=['GET'])
 @token_required
 def get_tutores_activos():

@@ -9,42 +9,36 @@ class TutorService:
 
     @staticmethod
     def get_tutores():
-        """Obtener lista de tutores filtrados según rol y centro del usuario"""
+        """Obtener lista de tutores filtrados segun rol y centro del usuario"""
         try:
             HandleLogs.write_log("TutorService.get_tutores - Iniciando")
 
-            # Obtener información del usuario actual
             current_user = getattr(request, 'current_user', {})
             user_role = current_user.get('rol', '').lower()
             user_centro_id = current_user.get('id_centro')
             personal_id = current_user.get('personal_id')
 
-            # Filtrado basado en rol
             if user_role == 'administrador':
-                # Administradores ven todos los tutores (sin filtrar por centro)
                 result = TutorComponent.get_all_tutores()
                 HandleLogs.write_log("TutorService.get_tutores - Admin obteniendo todos los tutores")
-            elif user_role in ['terapeuta', 'pedagógico', 'pedagogo']:
-                # Terapeutas y pedagogos ven solo tutores de pacientes de sus sesiones
+            elif user_role in ['terapeuta', 'pedagogico', 'pedagogo']:
                 if personal_id and user_centro_id:
                     result = TutorComponent.get_tutores_by_personal(personal_id, user_centro_id)
                     HandleLogs.write_log(f"TutorService.get_tutores - {user_role} obteniendo tutores de sus pacientes (personal_id: {personal_id}, centro: {user_centro_id})")
                 else:
-                    # Si no tiene personal_id, mostrar tutores del centro
                     if user_centro_id:
                         result = TutorComponent.get_tutores_by_centro(user_centro_id)
                         HandleLogs.write_log(f"TutorService.get_tutores - {user_role} obteniendo tutores del centro {user_centro_id} (fallback)")
                     else:
                         result = {'success': True, 'data': []}
-                        HandleLogs.write_log(f"TutorService.get_tutores - {user_role} sin centro asignado - lista vacía")
+                        HandleLogs.write_log(f"TutorService.get_tutores - {user_role} sin centro asignado - lista vacia")
             else:
-                # Otros roles - acceso limitado solo a su centro
                 if user_centro_id:
                     result = TutorComponent.get_tutores_by_centro(user_centro_id)
                     HandleLogs.write_log(f"TutorService.get_tutores - Rol {user_role} obteniendo tutores del centro {user_centro_id}")
                 else:
                     result = {'success': True, 'data': []}
-                    HandleLogs.write_log(f"TutorService.get_tutores - Rol {user_role} sin centro - lista vacía")
+                    HandleLogs.write_log(f"TutorService.get_tutores - Rol {user_role} sin centro - lista vacia")
 
             if result['success']:
                 HandleLogs.write_log("TutorService.get_tutores - Tutores obtenidos exitosamente")
@@ -89,12 +83,10 @@ class TutorService:
             data = request.get_json()
             HandleLogs.write_log("TutorService.create_tutor - Iniciando")
 
-            # Validar datos de tutor
             validation_result = Validators.validate_tutor_data(data, is_update=False)
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Preparar datos para inserción
             tutor_data = {
                 'id_persona': data['id_persona'],
                 'parentesco': data['parentesco'],
@@ -129,12 +121,10 @@ class TutorService:
             if not tutor_id or tutor_id <= 0:
                 return response_error("ID de tutor invalido", 400)
 
-            # Validar datos (para actualización)
             validation_result = Validators.validate_tutor_data(data, is_update=True)
             if not validation_result['valid']:
                 return response_error(validation_result['message'], 400)
 
-            # Agregar usuario que modifica
             data['usuario_modificacion'] = getattr(request, 'current_user', {}).get('id', 1)
 
             result = TutorComponent.update_tutor(tutor_id, data)
@@ -152,7 +142,7 @@ class TutorService:
 
     @staticmethod
     def delete_tutor(tutor_id):
-        """Desactivar tutor (eliminación lógica)"""
+        """Desactivar tutor (eliminacion logica)"""
         try:
             HandleLogs.write_log(f"TutorService.delete_tutor - ID: {tutor_id}")
 
@@ -163,13 +153,35 @@ class TutorService:
 
             if result['success']:
                 HandleLogs.write_log(f"TutorService.delete_tutor - Tutor {tutor_id} desactivado")
-                return response_success(None, "Tutor desactivado exitosamente")
+                return response_success(result['data'], "Tutor desactivado exitosamente")
             else:
                 HandleLogs.write_error(f"TutorService.delete_tutor - Error: {result['message']}")
                 return response_error(result['message'], 400)
 
         except Exception as e:
             HandleLogs.write_error(f"TutorService.delete_tutor - Error: {str(e)}")
+            return response_error(f"Error interno: {str(e)}", 500)
+
+    @staticmethod
+    def reactivate_tutor(tutor_id):
+        """Reactivar tutor previamente desactivado"""
+        try:
+            HandleLogs.write_log(f"TutorService.reactivate_tutor - ID: {tutor_id}")
+
+            if not tutor_id or tutor_id <= 0:
+                return response_error("ID de tutor invalido", 400)
+
+            result = TutorComponent.reactivate_tutor(tutor_id)
+
+            if result['success']:
+                HandleLogs.write_log(f"TutorService.reactivate_tutor - Tutor {tutor_id} reactivado")
+                return response_success(result['data'], "Tutor reactivado exitosamente")
+            else:
+                HandleLogs.write_error(f"TutorService.reactivate_tutor - Error: {result['message']}")
+                return response_error(result['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"TutorService.reactivate_tutor - Error: {str(e)}")
             return response_error(f"Error interno: {str(e)}", 500)
 
     @staticmethod
@@ -193,18 +205,18 @@ class TutorService:
 
     @staticmethod
     def get_estadisticas():
-        """Obtener estadísticas de tutores"""
+        """Obtener estadisticas de tutores"""
         try:
             HandleLogs.write_log("TutorService.get_estadisticas - Iniciando")
 
             result = TutorComponent.get_estadisticas_tutores()
 
             if result['success']:
-                HandleLogs.write_log("TutorService.get_estadisticas - Estadísticas obtenidas")
-                return response_success(result['data'], "Estadísticas de tutores obtenidas")
+                HandleLogs.write_log("TutorService.get_estadisticas - Estadisticas obtenidas")
+                return response_success(result['data'], "Estadisticas de tutores obtenidas")
             else:
                 HandleLogs.write_error(f"TutorService.get_estadisticas - Error: {result['message']}")
-                return response_error("Error obteniendo estadísticas", 500)
+                return response_error("Error obteniendo estadisticas", 500)
 
         except Exception as e:
             HandleLogs.write_error(f"TutorService.get_estadisticas - Error: {str(e)}")
