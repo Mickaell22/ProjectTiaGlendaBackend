@@ -60,7 +60,7 @@ def finalizar_sesion_pedagogica(sesion_id):
 
 
 # ============================================
-# DATOS AUXILIARES
+# DATOS AUXILIARES Y ESTADISTICAS
 # ============================================
 @sesion_pedagogica_bp.route('/sesiones-pedagogicas/estudiantes-disponibles', methods=['GET'])
 @token_required
@@ -74,6 +74,26 @@ def get_estudiantes_disponibles():
 def get_pedagogos_disponibles():
     from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
     return SesionPedagogicaService.get_pedagogos_disponibles()
+
+
+@sesion_pedagogica_bp.route('/sesiones-pedagogicas/estadisticas', methods=['GET'])
+@token_required
+def get_estadisticas_pedagogicas():
+    from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+    return SesionPedagogicaService.get_estadisticas()
+
+
+@sesion_pedagogica_bp.route('/sesiones-pedagogicas/cronograma-general', methods=['GET'])
+@token_required
+def get_cronograma_general_pedagogico():
+    from flask import request as req
+    from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+    filtros = {
+        'especialidad': req.args.get('especialidad'),
+        'pedagogo': req.args.get('pedagogo'),
+        'semana': req.args.get('semana')
+    }
+    return SesionPedagogicaService.get_cronograma_sesiones(filtros)
 
 
 # ============================================
@@ -205,3 +225,22 @@ def obtener_enlaces_publicos_pedagogico(sesion_id):
 def invalidar_enlace_publico_pedagogico(token):
     from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
     return SesionPedagogicaService.invalidar_enlace_publico(token)
+
+
+# ============================================
+# REACTIVAR SESION
+# ============================================
+@sesion_pedagogica_bp.route('/sesiones-pedagogicas/<int:sesion_id>/reactivar', methods=['PUT'])
+@token_required
+def reactivar_sesion_pedagogica(sesion_id):
+    from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+    return SesionPedagogicaService.reactivar_sesion(sesion_id)
+
+
+# ============================================
+# VISTA PUBLICA (sin autenticacion)
+# ============================================
+@sesion_pedagogica_bp.route('/sesion-pedagogica-publica/<string:token>', methods=['GET'])
+def ver_sesion_pedagogica_publica(token):
+    from src.api.Service.SesionPedagogicaService import SesionPedagogicaService
+    return SesionPedagogicaService.ver_sesion_publica(token)

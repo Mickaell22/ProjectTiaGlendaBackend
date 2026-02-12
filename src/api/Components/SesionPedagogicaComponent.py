@@ -2,7 +2,7 @@
 
 from src.utils.database.connection_db import DataBaseHandle
 from src.utils.general.logs import HandleLogs
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import json
 
 
@@ -126,7 +126,7 @@ class SesionPedagogicaComponent:
                     (sp.hora_inicio + (sp.duracion_minutos || ' minutes')::interval) as hora_fin,
                     sp.nivel_academico,
                     sp.capacidad_maxima,
-                    'presencial' as modalidad,
+                    COALESCE(sp.modalidad, 'presencial') as modalidad,
                     sp.estado,
                     sp.fecha_inicio,
                     sp.fecha_fin,
@@ -136,7 +136,7 @@ class SesionPedagogicaComponent:
                 JOIN persona p_ped ON per.id_persona = p_ped.id
                 JOIN especialidad e ON sp.id_especialidad = e.id
                 LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion AND se.estado = 'activo'
-                WHERE sp.estado IN ('en_curso', 'activa', 'activo')
+                WHERE sp.estado IN ('en_curso', 'planificada')
             """
             
             params = []
@@ -203,15 +203,23 @@ class SesionPedagogicaComponent:
     def create_sesion(sesion_data):
         """Crear nueva sesión pedagógica"""
         try:
-            # Primero insertar la sesión - usar campos correctos y estado 'en_curso'
+            # Primero insertar la sesion
+            # Calcular hora_fin a partir de hora_inicio + duracion
+            duracion = sesion_data.get('duracion_minutos', 60)
+            hora_inicio_val = sesion_data['hora_inicio']
+            if hora_inicio_val and duracion:
+                hora_fin_val = (datetime.combine(date.today(), hora_inicio_val) + timedelta(minutes=duracion)).time() if isinstance(hora_inicio_val, time) else None
+            else:
+                hora_fin_val = None
+
             insert_query = """
                 INSERT INTO sesion_pedagogica (
                     codigo_sesion, nombre_clase, id_educador, id_especialidad, fecha_inicio, fecha_fin,
-                    dias_semana, hora_inicio, duracion_minutos, nivel_academico,
-                    capacidad_maxima, costo_total, costo_por_clase, periodo_academico,
+                    dias_semana, hora_inicio, hora_fin, duracion_minutos, numero_clases_programadas,
+                    nivel_academico, capacidad_maxima, costo_total, costo_por_clase, periodo_academico,
                     adaptacion_curricular, estado, id_centro, usuario_creacion
                 ) VALUES (
-                    NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
             """
 
@@ -222,15 +230,17 @@ class SesionPedagogicaComponent:
                 sesion_data['fecha_inicio'],
                 sesion_data.get('fecha_fin'),  # puede ser None
                 sesion_data['dias_semana'],
-                sesion_data['hora_inicio'],
-                sesion_data.get('duracion_minutos', 60),
+                hora_inicio_val,
+                hora_fin_val,
+                duracion,
+                sesion_data.get('numero_clases_programadas', 20),
                 sesion_data.get('nivel_academico', 'primaria'),
                 sesion_data.get('capacidad_maxima', 10),
                 sesion_data.get('costo_total', 0),
                 sesion_data.get('costo_por_clase', 0),
                 sesion_data.get('periodo_academico', ''),
-                sesion_data.get('adaptacion_curricular', ''),  # Nuevo campo para adaptaciones curriculares
-                sesion_data.get('estado', 'en_curso'),  # Estado por defecto correcto
+                sesion_data.get('adaptacion_curricular', ''),
+                sesion_data.get('estado', 'en_curso'),
                 sesion_data.get('id_centro', 1),
                 sesion_data['usuario_creacion']
             )
@@ -276,6 +286,14 @@ class SesionPedagogicaComponent:
     def update_sesion(sesion_id, sesion_data):
         """Actualizar información de una sesión pedagógica"""
         try:
+            # Calcular hora_fin a partir de hora_inicio + duracion
+            hora_inicio_val = sesion_data.get('hora_inicio')
+            duracion = sesion_data.get('duracion_minutos', 60)
+            hora_fin_val = None
+            if hora_inicio_val and duracion:
+                if isinstance(hora_inicio_val, time):
+                    hora_fin_val = (datetime.combine(date.today(), hora_inicio_val) + timedelta(minutes=duracion)).time()
+
             query = """
                 UPDATE sesion_pedagogica SET
                     nombre_clase = %s,
@@ -285,6 +303,7 @@ class SesionPedagogicaComponent:
                     fecha_fin = %s,
                     dias_semana = %s,
                     hora_inicio = %s,
+                    hora_fin = %s,
                     duracion_minutos = %s,
                     nivel_academico = %s,
                     capacidad_maxima = %s,
@@ -304,14 +323,15 @@ class SesionPedagogicaComponent:
                 sesion_data['fecha_inicio'],
                 sesion_data['fecha_fin'],
                 sesion_data['dias_semana'],
-                sesion_data['hora_inicio'],
-                sesion_data.get('duracion_minutos', 60),
+                hora_inicio_val,
+                hora_fin_val,
+                duracion,
                 sesion_data.get('nivel_academico'),
                 sesion_data.get('capacidad_maxima'),
                 sesion_data.get('costo_total', 0),
                 sesion_data.get('costo_por_clase', 0),
                 sesion_data.get('periodo_academico', ''),
-                sesion_data.get('adaptacion_curricular', ''),  # Incluir adaptacion_curricular en UPDATE
+                sesion_data.get('adaptacion_curricular', ''),
                 sesion_data.get('estado'),
                 sesion_data['usuario_modificacion'],
                 sesion_id
@@ -338,7 +358,27 @@ class SesionPedagogicaComponent:
 
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaComponent.delete_sesion - Error: {str(e)}")
-            raise Exception(f"Error al cancelar sesión pedagógica: {str(e)}")
+            raise Exception(f"Error al cancelar sesion pedagogica: {str(e)}")
+
+    @staticmethod
+    def reactivar_sesion(sesion_id, usuario_id):
+        """Reactivar una sesion pedagogica cancelada"""
+        try:
+            query = """
+                UPDATE sesion_pedagogica
+                SET estado = 'en_curso',
+                    usuario_modificacion = %s,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE id = %s AND estado = 'cancelada'
+            """
+            params = (usuario_id, sesion_id)
+            DataBaseHandle.ExecuteNonQuery(query, params)
+            HandleLogs.write_log(f"SesionPedagogicaComponent.reactivar_sesion - Sesion {sesion_id} reactivada")
+            return True
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaComponent.reactivar_sesion - Error: {str(e)}")
+            raise Exception(f"Error al reactivar sesion pedagogica: {str(e)}")
 
     @staticmethod
     def generar_cronograma(sesion_id):
@@ -346,10 +386,11 @@ class SesionPedagogicaComponent:
         try:
             # Primero obtener la información de la sesión
             sesion_query = """
-                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio, 
-                       COALESCE(numero_clases_programadas, 20) as numero_clases_programadas, 
+                SELECT fecha_inicio, fecha_fin, dias_semana, hora_inicio,
+                       COALESCE(duracion_minutos, 60) as duracion_minutos,
+                       COALESCE(numero_clases_programadas, 20) as numero_clases_programadas,
                        usuario_creacion
-                FROM sesion_pedagogica 
+                FROM sesion_pedagogica
                 WHERE id = %s
             """
             sesion_data = DataBaseHandle.getRecords(sesion_query, (sesion_id,), size=1)
@@ -427,22 +468,29 @@ class SesionPedagogicaComponent:
             intentos_max = 1000  # Evitar bucles infinitos
             intentos = 0
             
+            duracion_real = sesion_data.get('duracion_minutos', 60)
+            semana_actual = 1
+            dia_anterior_semana = None
+
             while clases_creadas < max_clases and fecha_actual <= fecha_fin and intentos < intentos_max:
                 dia_semana = fecha_actual.weekday()  # 0=lunes, 6=domingo
                 intentos += 1
-                
+
                 if dia_semana in dias_numeros:
+                    # Calcular semana_numero
+                    if dia_anterior_semana is not None and dia_semana <= dia_anterior_semana:
+                        semana_actual += 1
+                    dia_anterior_semana = dia_semana
+
                     # Insertar clase en cronograma
                     insert_query = """
                         INSERT INTO cronograma_clases (
                             id_sesion, fecha_programada, hora_inicio, hora_fin,
-                            numero_clase_semanal, estado, usuario_creacion
-                        ) VALUES (%s, %s, %s, %s, %s, 'programada', %s)
+                            semana_numero, numero_clase_semanal, estado, usuario_creacion
+                        ) VALUES (%s, %s, %s, %s, %s, %s, 'programada', %s)
                     """
-                    # Calculate hora_fin based on duration (default 60 minutes)
-                    from datetime import timedelta
-                    hora_fin = (datetime.combine(fecha_actual, hora_inicio) + timedelta(minutes=60)).time()
-                    params = (sesion_id, fecha_actual, hora_inicio, hora_fin, numero_clase, sesion_data['usuario_creacion'])
+                    hora_fin_calc = (datetime.combine(fecha_actual, hora_inicio) + timedelta(minutes=duracion_real)).time()
+                    params = (sesion_id, fecha_actual, hora_inicio, hora_fin_calc, semana_actual, numero_clase, sesion_data['usuario_creacion'])
                     DataBaseHandle.ExecuteNonQuery(insert_query, params)
                     
                     numero_clase += 1
@@ -599,20 +647,41 @@ class SesionPedagogicaComponent:
 
     @staticmethod
     def add_estudiante_to_sesion(sesion_id, estudiante_data):
-        """Agregar un estudiante a una sesión pedagógica"""
+        """Agregar un estudiante a una sesion pedagogica"""
         try:
-            # Primero verificar si el estudiante ya está asignado a esta sesión
+            # Verificar si el estudiante ya existe en esta sesion (cualquier estado)
             check_query = """
-                SELECT id FROM sesion_estudiante 
-                WHERE id_sesion = %s AND id_paciente = %s AND estado = 'activo'
+                SELECT id, estado FROM sesion_estudiante
+                WHERE id_sesion = %s AND id_paciente = %s
             """
             check_params = (sesion_id, estudiante_data['paciente_id'])
-            existing = DataBaseHandle.getRecords(check_query, check_params)
-            
-            if existing and len(existing) > 0:
-                raise Exception("El estudiante ya está asignado a esta sesión pedagógica")
-            
-            # Usar ExecuteNonQuery para INSERT (según buenas prácticas de CLAUDE.md)
+            existing = DataBaseHandle.getRecords(check_query, check_params, size=1)
+
+            if existing and bool(existing):
+                if existing['estado'] == 'activo':
+                    raise Exception("El estudiante ya esta asignado a esta sesion pedagogica")
+                # Si esta retirado/inactivo, reactivar en vez de insertar
+                reactivar_query = """
+                    UPDATE sesion_estudiante
+                    SET estado = 'activo',
+                        fecha_inscripcion = %s,
+                        observaciones = %s,
+                        usuario_modificacion = %s,
+                        fecha_modificacion = CURRENT_TIMESTAMP
+                    WHERE id_sesion = %s AND id_paciente = %s
+                """
+                reactivar_params = (
+                    estudiante_data.get('fecha_incorporacion', datetime.now().date()),
+                    estudiante_data.get('observaciones_estudiante', ''),
+                    estudiante_data['usuario_creacion'],
+                    sesion_id,
+                    estudiante_data['paciente_id']
+                )
+                DataBaseHandle.ExecuteNonQuery(reactivar_query, reactivar_params)
+                HandleLogs.write_log(f"SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante reactivado en sesion {sesion_id}")
+                return existing['id']
+
+            # Insertar nuevo estudiante
             query = """
                 INSERT INTO sesion_estudiante (
                     id_sesion, id_paciente, fecha_inscripcion,
@@ -630,21 +699,19 @@ class SesionPedagogicaComponent:
                 estudiante_data['usuario_creacion']
             )
 
-            # Ejecutar el INSERT
             DataBaseHandle.ExecuteNonQuery(query, params)
-            
-            # Obtener el ID insertado con una consulta separada
+
+            # Obtener el ID insertado
             id_query = """
-                SELECT id FROM sesion_estudiante 
+                SELECT id FROM sesion_estudiante
                 WHERE id_sesion = %s AND id_paciente = %s
-                ORDER BY fecha_creacion DESC LIMIT 1
             """
             id_params = (sesion_id, estudiante_data['paciente_id'])
-            id_result = DataBaseHandle.getRecords(id_query, id_params)
-            
-            if id_result and len(id_result) > 0:
-                estudiante_id = id_result[0]['id']
-                HandleLogs.write_log(f"SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesión {sesion_id}")
+            id_result = DataBaseHandle.getRecords(id_query, id_params, size=1)
+
+            if id_result and bool(id_result):
+                estudiante_id = id_result['id']
+                HandleLogs.write_log(f"SesionPedagogicaComponent.add_estudiante_to_sesion - Estudiante agregado a sesion {sesion_id}")
                 return estudiante_id
             else:
                 raise Exception("No se pudo obtener el ID del estudiante agregado")
@@ -788,81 +855,17 @@ class SesionPedagogicaComponent:
             raise Exception(f"Error al obtener cronograma: {str(e)}")
 
     @staticmethod
-    def get_sesiones_by_pedagogo(pedagogo_id):
-        """Obtener sesiones pedagógicas de un pedagogo específico"""
-        try:
-            query = """
-                SELECT 
-                    sp.id,
-                    sp.codigo_sesion,
-                    sp.nombre_clase as titulo,
-                    sp.id_educador as pedagogo_id,
-                    CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
-                    sp.id_especialidad as especialidad_id,
-                    e.nombre as especialidad_nombre,
-                    e.area as especialidad_area,
-                    sp.fecha_inicio,
-                    sp.fecha_fin,
-                    sp.dias_semana,
-                    TO_CHAR(sp.hora_inicio, 'HH24:MI') as hora_inicio,
-                    TO_CHAR((sp.hora_inicio::time + (sp.duracion_minutos || ' minutes')::interval)::time, 'HH24:MI') as hora_fin,
-                    sp.duracion_minutos,
-                    COALESCE(sp.numero_clases_programadas, 20) as numero_clases_programadas,
-                    sp.nivel_academico,
-                    sp.capacidad_maxima,
-                    COALESCE(sp.modalidad, 'presencial') as modalidad,
-                    COALESCE(sp.costo_total, 0) as costo_total,
-                    COALESCE(sp.costo_por_clase, 0) as costo_por_clase,
-                    COALESCE(sp.periodo_academico, '') as periodo_academico,
-                    sp.estado,
-                    COALESCE(sp.observaciones, '') as observaciones,
-                    sp.fecha_creacion,
-                    sp.fecha_modificacion
-                FROM sesion_pedagogica sp
-                JOIN personal per ON sp.id_educador = per.id
-                JOIN persona p_ped ON per.id_persona = p_ped.id
-                JOIN especialidad e ON sp.id_especialidad = e.id
-                WHERE sp.id_educador = %s
-                ORDER BY sp.fecha_creacion DESC
-            """
-
-            params = (pedagogo_id,)
-            result = DataBaseHandle.getRecords(query, params)
-            
-            # Convert time objects to strings for JSON serialization
-            if result:
-                for sesion in result:
-                    if sesion.get('hora_inicio'):
-                        sesion['hora_inicio'] = str(sesion['hora_inicio'])
-                    if sesion.get('fecha_creacion'):
-                        sesion['fecha_creacion'] = sesion['fecha_creacion'].isoformat()
-                    if sesion.get('fecha_modificacion'):
-                        sesion['fecha_modificacion'] = sesion['fecha_modificacion'].isoformat()
-                    if sesion.get('fecha_inicio'):
-                        sesion['fecha_inicio'] = sesion['fecha_inicio'].isoformat() 
-                    if sesion.get('fecha_fin'):
-                        sesion['fecha_fin'] = sesion['fecha_fin'].isoformat()
-                        
-            HandleLogs.write_log(f"SesionPedagogicaComponent.get_sesiones_by_pedagogo - {len(result) if result else 0} sesiones encontradas para pedagogo {pedagogo_id}")
-            return result
-
-        except Exception as e:
-            HandleLogs.write_error(f"SesionPedagogicaComponent.get_sesiones_by_pedagogo - Error: {str(e)}")
-            raise Exception(f"Error al obtener sesiones del pedagogo: {str(e)}")
-
-    @staticmethod
     def get_estadisticas_sesiones():
         """Obtener estadísticas generales de sesiones pedagógicas"""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_sesiones,
-                    COUNT(CASE WHEN estado IN ('en_curso', 'activo', 'activa') THEN 1 END) as sesiones_activas,
-                    COUNT(CASE WHEN estado IN ('completada', 'completado') THEN 1 END) as sesiones_completadas,
-                    COUNT(CASE WHEN estado IN ('suspendida', 'suspendido') THEN 1 END) as sesiones_suspendidas,
-                    COUNT(CASE WHEN estado IN ('cancelada', 'cancelado') THEN 1 END) as sesiones_canceladas,
-                    0 as total_clases_programadas,
-                    0 as ingresos_totales,
+                    COUNT(CASE WHEN estado IN ('en_curso', 'planificada') THEN 1 END) as sesiones_activas,
+                    COUNT(CASE WHEN estado = 'finalizada' THEN 1 END) as sesiones_completadas,
+                    COUNT(CASE WHEN estado = 'pausada' THEN 1 END) as sesiones_suspendidas,
+                    COUNT(CASE WHEN estado = 'cancelada' THEN 1 END) as sesiones_canceladas,
+                    COALESCE(SUM(costo_total), 0) as ingresos_totales,
                     ROUND(AVG(duracion_minutos), 0) as duracion_promedio
                 FROM sesion_pedagogica
             """
@@ -1660,7 +1663,7 @@ class SesionPedagogicaComponent:
                     sp.id as sesion_id,
                     sp.codigo_sesion,
                     sp.nombre_clase as titulo,
-                    sp.competencias_objetivo as objetivo_general,
+                    COALESCE(sp.descripcion, '') as objetivo_general,
                     CONCAT(p_ped.nombre, ' ', p_ped.apellido) as pedagogo_nombre,
                     e.nombre as especialidad_nombre,
                     e.area as especialidad_area,
@@ -1690,9 +1693,9 @@ class SesionPedagogicaComponent:
                 LEFT JOIN cronograma_clases cc ON sp.id = cc.id_sesion
                 LEFT JOIN asistencia_clases ac ON cc.id = ac.id_cronograma
                 WHERE tps.token = %s
-                    AND tps.activo = true
+                    AND tps.estado = 'activo'
                     AND tps.fecha_expiracion > CURRENT_TIMESTAMP
-                GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.competencias_objetivo,
+                GROUP BY sp.id, sp.codigo_sesion, sp.nombre_clase, sp.descripcion,
                         p_ped.nombre, p_ped.apellido, e.nombre, e.area, sp.fecha_inicio,
                         sp.fecha_fin, sp.dias_semana, sp.hora_inicio, sp.hora_fin,
                         sp.duracion_minutos, sp.estado, tps.descripcion, tps.fecha_expiracion

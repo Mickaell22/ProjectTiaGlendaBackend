@@ -78,7 +78,8 @@ class SesionPedagogicaService:
                         'fecha_inicio': sesion['fecha_inicio'].isoformat() if hasattr(sesion['fecha_inicio'], 'isoformat') else sesion['fecha_inicio'],
                         'fecha_fin': sesion['fecha_fin'].isoformat() if hasattr(sesion['fecha_fin'], 'isoformat') else sesion['fecha_fin'],
                         'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
-                        'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion['hora_inicio'] else None,  # Solo HH:MM
+                        'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion.get('hora_inicio') else None,
+                        'hora_fin': str(sesion['hora_fin'])[0:5] if sesion.get('hora_fin') else None,
                         'duracion_minutos': sesion['duracion_minutos'],
                         'numero_clases_programadas': sesion.get('numero_clases_programadas', 20),
                         'nivel_academico': sesion['nivel_academico'],
@@ -208,8 +209,10 @@ class SesionPedagogicaService:
                     'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                     'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
                     'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
-                    'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion['hora_inicio'] else None,  # Solo HH:MM
+                    'hora_inicio': str(sesion['hora_inicio'])[0:5] if sesion['hora_inicio'] else None,
+                    'hora_fin': str(sesion['hora_fin'])[0:5] if sesion.get('hora_fin') else None,
                     'duracion_minutos': sesion['duracion_minutos'],
+                    'descripcion': sesion.get('descripcion', ''),
                     'numero_clases_programadas': sesion.get('numero_clases_programadas', 20),
                     'nivel_academico': sesion['nivel_academico'],
                     'capacidad_maxima': sesion['capacidad_maxima'],
@@ -378,6 +381,15 @@ class SesionPedagogicaService:
             # Agregar usuario de modificación
             data['usuario_modificacion'] = request.current_user['id']
 
+            # Convertir dias_semana a formato PostgreSQL array si viene del usuario
+            dias_semana_val = data.get('dias_semana', sesion_existente['dias_semana'])
+            if 'dias_semana' in data:
+                if isinstance(data['dias_semana'], list):
+                    dias_semana_val = '{' + ','.join(data['dias_semana']) + '}'
+                elif isinstance(data['dias_semana'], str) and not data['dias_semana'].startswith('{'):
+                    dias_list = [dia.strip().lower() for dia in data['dias_semana'].split(',')]
+                    dias_semana_val = '{' + ','.join(dias_list) + '}'
+
             # Merge partial data with existing session data
             update_data = {
                 'titulo': data.get('titulo', sesion_existente.get('titulo', sesion_existente.get('nombre_clase', ''))),
@@ -385,17 +397,20 @@ class SesionPedagogicaService:
                 'especialidad_id': data.get('especialidad_id', sesion_existente.get('especialidad_id', sesion_existente.get('id_especialidad'))),
                 'fecha_inicio': data.get('fecha_inicio', sesion_existente['fecha_inicio']),
                 'fecha_fin': data.get('fecha_fin', sesion_existente['fecha_fin']),
-                'dias_semana': data.get('dias_semana', sesion_existente['dias_semana']),
+                'dias_semana': dias_semana_val,
                 'hora_inicio': data.get('hora_inicio', sesion_existente['hora_inicio']),
                 'duracion_minutos': data.get('duracion_minutos', sesion_existente['duracion_minutos']),
                 'nivel_academico': data.get('nivel_academico', sesion_existente['nivel_academico']),
                 'capacidad_maxima': data.get('capacidad_maxima', sesion_existente['capacidad_maxima']),
+                'costo_total': data.get('costo_total', sesion_existente.get('costo_total', 0)),
+                'costo_por_clase': data.get('costo_por_clase', sesion_existente.get('costo_por_clase', 0)),
+                'periodo_academico': data.get('periodo_academico', sesion_existente.get('periodo_academico', '')),
                 'adaptacion_curricular': data.get('adaptacion_curricular', sesion_existente.get('adaptacion_curricular', '')),
                 'estado': data.get('estado', sesion_existente['estado']),
                 'usuario_modificacion': data['usuario_modificacion']
             }
 
-            # Actualizar sesión
+            # Actualizar sesion
             SesionPedagogicaComponent.update_sesion(sesion_id, update_data)
 
             HandleLogs.write_log(f"SesionPedagogicaService.update_sesion - Sesión {sesion_id} actualizada")
@@ -1358,3 +1373,35 @@ class SesionPedagogicaService:
         except Exception as e:
             HandleLogs.write_error(f"SesionPedagogicaService.finalizar_sesion - Error: {str(e)}")
             return response_error(f"Error al finalizar sesion: {str(e)}", 500)
+
+    @staticmethod
+    def reactivar_sesion(sesion_id):
+        """Reactivar una sesion pedagogica cancelada"""
+        try:
+            HandleLogs.write_log(f"SesionPedagogicaService.reactivar_sesion - Sesion ID: {sesion_id}")
+
+            if not isinstance(sesion_id, int) or sesion_id <= 0:
+                return response_error("ID de sesion debe ser un numero positivo", 400)
+
+            sesion = SesionPedagogicaComponent.get_sesion_by_id(sesion_id)
+            if not sesion:
+                return response_error("Sesion no encontrada", 404)
+
+            estado_actual = sesion.get('estado')
+            codigo_sesion = sesion.get('codigo_sesion')
+
+            if estado_actual != 'cancelada':
+                return response_error("Solo se pueden reactivar sesiones canceladas", 400)
+
+            current_user = request.current_user
+            SesionPedagogicaComponent.reactivar_sesion(sesion_id, current_user['id'])
+
+            HandleLogs.write_log(f"SesionPedagogicaService.reactivar_sesion - Sesion {codigo_sesion} (ID: {sesion_id}) reactivada")
+            return response_success({
+                'sesion_id': sesion_id,
+                'codigo_sesion': codigo_sesion
+            }, "Sesion reactivada exitosamente")
+
+        except Exception as e:
+            HandleLogs.write_error(f"SesionPedagogicaService.reactivar_sesion - Error: {str(e)}")
+            return response_error(f"Error al reactivar sesion: {str(e)}", 500)
