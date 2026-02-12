@@ -14,7 +14,9 @@ import uuid
 
 class FotoPerfilComponent:
     
-    UPLOAD_FOLDER = 'fotos_perfil'
+    # En Railway: STORAGE_BASE_PATH = /data/documentos (mount del volume)
+    STORAGE_BASE_PATH = os.environ.get('STORAGE_BASE_PATH', '')
+    UPLOAD_FOLDER = os.path.join(STORAGE_BASE_PATH, 'fotos_perfil') if STORAGE_BASE_PATH else 'fotos_perfil'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     MAX_IMAGE_SIZE = (800, 800)  # Tamaño máximo de imagen

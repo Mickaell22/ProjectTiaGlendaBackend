@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, date, time
 from src.utils.database.connection_db import DataBaseHandle
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import internal_response
@@ -9,12 +9,32 @@ from src.utils.general.response import internal_response
 class DocumentoPersonalComponent:
 
     @staticmethod
+    def _serialize_dates(record):
+        """Convertir campos date/time/datetime a string para JSON"""
+        if record is None:
+            return None
+        if isinstance(record, list):
+            return [DocumentoPersonalComponent._serialize_dates(r) for r in record]
+        if isinstance(record, dict):
+            serialized = {}
+            for key, value in record.items():
+                if isinstance(value, datetime):
+                    serialized[key] = value.isoformat()
+                elif isinstance(value, date):
+                    serialized[key] = value.isoformat()
+                elif isinstance(value, time):
+                    serialized[key] = str(value)
+                else:
+                    serialized[key] = value
+            return serialized
+        return record
+
+    @staticmethod
     def crear_documento_personal(personal_id, tipo_documento, nombre_documento, nombre_archivo,
                                 ruta_archivo, tamanio_archivo=None, tipo_mime=None, descripcion=None,
-                                fecha_documento=None, fecha_vencimiento=None, usuario_id=None):
+                                fecha_vencimiento=None, usuario_id=None):
         """Crear un nuevo documento para un miembro del personal"""
         try:
-            # INSERT sin nombre_original por compatibilidad
             insert_query = """
             INSERT INTO documentos_personal (
                 id_personal, tipo_documento, nombre_archivo,
@@ -30,28 +50,27 @@ class DocumentoPersonalComponent:
                  ruta_archivo, tamanio_archivo, tipo_mime, descripcion,
                  fecha_vencimiento, usuario_id)
             )
-            
+
             if success:
-                # Luego obtener el ID del documento recién insertado
                 select_query = """
-                SELECT id FROM documentos_personal 
+                SELECT id FROM documentos_personal
                 WHERE id_personal = %s AND nombre_archivo = %s AND ruta_archivo = %s
                 ORDER BY fecha_creacion DESC LIMIT 1
                 """
                 result = DataBaseHandle.getRecords(select_query, (personal_id, nombre_archivo, ruta_archivo))
-                
+
                 if result and len(result) > 0:
                     documento_id = result[0]['id']
                     HandleLogs.write_log(f"DocumentoPersonalComponent.crear_documento_personal - Documento creado para personal {personal_id} con ID {documento_id}")
                     return internal_response(True, {
                         "id": documento_id,
-                        "personal_id": personal_id, 
+                        "personal_id": personal_id,
                         "nombre_archivo": nombre_archivo,
                         "tipo_documento": tipo_documento,
                         "ruta_archivo": ruta_archivo
                     }, "Documento creado exitosamente")
                 else:
-                    HandleLogs.write_error(f"DocumentoPersonalComponent.crear_documento_personal - Error obteniendo ID del documento creado")
+                    HandleLogs.write_error("DocumentoPersonalComponent.crear_documento_personal - Error obteniendo ID del documento creado")
                     return internal_response(False, None, "Error obteniendo ID del documento creado")
             else:
                 HandleLogs.write_error(f"DocumentoPersonalComponent.crear_documento_personal - Error insertando documento para personal {personal_id}")
@@ -65,7 +84,6 @@ class DocumentoPersonalComponent:
     def get_documentos_personal(personal_id):
         """Obtener todos los documentos de un miembro del personal"""
         try:
-            # Query solo con campos que existen en la tabla
             query = """
             SELECT
                 dp.id,
@@ -77,13 +95,13 @@ class DocumentoPersonalComponent:
                 dp.tamaño_archivo,
                 dp.tipo_mime,
                 dp.descripcion,
-                dp.fecha_subida as fecha_creacion,
+                dp.es_obligatorio,
+                dp.fecha_subida,
                 dp.fecha_vencimiento,
                 dp.estado_validacion,
                 dp.observaciones_validacion,
                 dp.validado_por,
-                dp.fecha_validacion,
-                FALSE as es_confidencial
+                dp.fecha_validacion
             FROM documentos_personal dp
             WHERE dp.id_personal = %s
             ORDER BY dp.fecha_subida DESC
@@ -92,6 +110,7 @@ class DocumentoPersonalComponent:
             documentos = DataBaseHandle.getRecords(query, (personal_id,))
 
             if documentos is not None:
+                documentos = DocumentoPersonalComponent._serialize_dates(documentos)
                 HandleLogs.write_log(f"DocumentoPersonalComponent.get_documentos_personal - {len(documentos)} documentos encontrados para personal {personal_id}")
                 return internal_response(True, documentos, "Documentos obtenidos correctamente")
             else:
@@ -104,22 +123,39 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def get_documento_by_id(documento_id):
-        """Obtener un documento específico por ID"""
+        """Obtener un documento especifico por ID"""
         try:
             query = """
-            SELECT 
-                dp.*
+            SELECT
+                dp.id,
+                dp.id_personal,
+                dp.tipo_documento,
+                dp.nombre_archivo,
+                dp.ruta_archivo,
+                dp.tamaño_archivo,
+                dp.tipo_mime,
+                dp.descripcion,
+                dp.es_obligatorio,
+                dp.fecha_subida,
+                dp.fecha_vencimiento,
+                dp.estado_validacion,
+                dp.observaciones_validacion,
+                dp.validado_por,
+                dp.fecha_validacion,
+                dp.fecha_creacion,
+                dp.fecha_modificacion,
+                dp.usuario_creacion,
+                dp.usuario_modificacion
             FROM documentos_personal dp
             WHERE dp.id = %s
             """
 
-            HandleLogs.write_log(f"DocumentoPersonalComponent.get_documento_by_id - Ejecutando query para ID: {documento_id} (type: {type(documento_id)})")
             documento = DataBaseHandle.getRecords(query, (documento_id,))
-            HandleLogs.write_log(f"DocumentoPersonalComponent.get_documento_by_id - Query result: {documento}")
 
             if documento and len(documento) > 0:
+                documento_data = DocumentoPersonalComponent._serialize_dates(documento[0])
                 HandleLogs.write_log(f"DocumentoPersonalComponent.get_documento_by_id - Documento {documento_id} encontrado")
-                return internal_response(True, documento[0], "Documento encontrado")
+                return internal_response(True, documento_data, "Documento encontrado")
             else:
                 HandleLogs.write_log(f"DocumentoPersonalComponent.get_documento_by_id - Documento {documento_id} no encontrado")
                 return internal_response(False, None, "Documento no encontrado")
@@ -129,56 +165,51 @@ class DocumentoPersonalComponent:
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
-    def actualizar_documento_personal(documento_id, tipo_documento=None, nombre_documento=None, 
-                                     descripcion=None, observaciones=None, fecha_documento=None, 
+    def actualizar_documento_personal(documento_id, tipo_documento=None, nombre_documento=None,
+                                     descripcion=None, observaciones=None,
                                      fecha_vencimiento=None, usuario_id=None):
-        """Actualizar información de un documento"""
+        """Actualizar informacion de un documento"""
         try:
-            # Construir query dinámicamente solo con campos a actualizar
             campos_actualizar = []
             valores = []
-            
+
             if tipo_documento is not None:
                 campos_actualizar.append("tipo_documento = %s")
                 valores.append(tipo_documento)
-            
-            if nombre_documento is not None:
+
+            # nombre_documento se guarda en descripcion si no viene descripcion aparte
+            if nombre_documento is not None and descripcion is None:
                 campos_actualizar.append("descripcion = %s")
                 valores.append(nombre_documento)
-            
+
             if descripcion is not None:
                 campos_actualizar.append("descripcion = %s")
                 valores.append(descripcion)
-            
+
             if observaciones is not None:
                 campos_actualizar.append("observaciones_validacion = %s")
                 valores.append(observaciones)
-            
-            if fecha_documento is not None:
-                campos_actualizar.append("fecha_documento = %s")
-                valores.append(fecha_documento)
-            
+
             if fecha_vencimiento is not None:
                 campos_actualizar.append("fecha_vencimiento = %s")
                 valores.append(fecha_vencimiento)
-            
+
             if usuario_id is not None:
                 campos_actualizar.append("usuario_modificacion = %s")
                 valores.append(usuario_id)
-            
-            campos_actualizar.append("fecha_modificacion = CURRENT_TIMESTAMP")
-            
+
             if not campos_actualizar:
                 return internal_response(False, None, "No hay campos para actualizar")
-            
+
             query = f"""
-            UPDATE documentos_personal 
+            UPDATE documentos_personal
             SET {', '.join(campos_actualizar)}
-            WHERE id = %s            """
+            WHERE id = %s
+            """
             valores.append(documento_id)
-            
+
             success = DataBaseHandle.ExecuteNonQuery(query, tuple(valores))
-            
+
             if success:
                 HandleLogs.write_log(f"DocumentoPersonalComponent.actualizar_documento_personal - Documento {documento_id} actualizado")
                 return internal_response(True, {"documento_id": documento_id}, "Documento actualizado exitosamente")
@@ -192,11 +223,11 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def eliminar_documento_personal(documento_id):
-        """Eliminar un documento (elimina registro de BD y archivo físico)"""
+        """Eliminar un documento (elimina registro de BD y archivo fisico)"""
         try:
             import os
 
-            # Primero obtener la información del documento para obtener la ruta del archivo
+            # Primero obtener la ruta del archivo
             query_get = """
             SELECT ruta_archivo
             FROM documentos_personal
@@ -220,14 +251,13 @@ class DocumentoPersonalComponent:
             success = DataBaseHandle.ExecuteNonQuery(query_delete, (documento_id,))
 
             if success:
-                # Si se eliminó de BD, intentar eliminar archivo físico
+                # Si se elimino de BD, intentar eliminar archivo fisico
                 if ruta_archivo and os.path.exists(ruta_archivo):
                     try:
                         os.remove(ruta_archivo)
-                        HandleLogs.write_log(f"DocumentoPersonalComponent.eliminar_documento_personal - Archivo físico eliminado: {ruta_archivo}")
+                        HandleLogs.write_log(f"DocumentoPersonalComponent.eliminar_documento_personal - Archivo fisico eliminado: {ruta_archivo}")
                     except Exception as e:
-                        HandleLogs.write_error(f"DocumentoPersonalComponent.eliminar_documento_personal - Error eliminando archivo físico: {str(e)}")
-                        # No fallar si no se puede eliminar el archivo físico
+                        HandleLogs.write_error(f"DocumentoPersonalComponent.eliminar_documento_personal - Error eliminando archivo fisico: {str(e)}")
 
                 HandleLogs.write_log(f"DocumentoPersonalComponent.eliminar_documento_personal - Documento {documento_id} eliminado")
                 return internal_response(True, {"documento_id": documento_id}, "Documento eliminado exitosamente")
@@ -245,20 +275,19 @@ class DocumentoPersonalComponent:
         try:
             if centro_id:
                 query = """
-                SELECT 
+                SELECT
                     dp.id,
                     dp.id_personal,
                     dp.tipo_documento,
                     dp.descripcion,
-                    dp.fecha_documento,
+                    dp.fecha_subida,
                     dp.fecha_vencimiento,
-                    dp.estado,
+                    dp.estado_validacion,
                     CONCAT(pe.nombre, ' ', pe.apellido) as nombre_personal,
                     p.titulo_profesional,
                     c.nombre as centro_nombre,
-                    -- Estado de vencimiento
-                    CASE 
-                        WHEN dp.fecha_vencimiento IS NOT NULL AND dp.fecha_vencimiento < CURRENT_DATE 
+                    CASE
+                        WHEN dp.fecha_vencimiento IS NOT NULL AND dp.fecha_vencimiento < CURRENT_DATE
                         THEN 'vencido'
                         WHEN dp.fecha_vencimiento IS NOT NULL AND dp.fecha_vencimiento <= CURRENT_DATE + INTERVAL '30 days'
                         THEN 'por_vencer'
@@ -268,25 +297,25 @@ class DocumentoPersonalComponent:
                 INNER JOIN personal p ON dp.id_personal = p.id
                 INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
-                WHERE dp.tipo_documento = %s AND p.id_centro = %s                ORDER BY pe.nombre, pe.apellido
+                WHERE dp.tipo_documento = %s AND p.id_centro = %s
+                ORDER BY pe.nombre, pe.apellido
                 """
                 params = (tipo_documento, centro_id)
             else:
                 query = """
-                SELECT 
+                SELECT
                     dp.id,
                     dp.id_personal,
                     dp.tipo_documento,
                     dp.descripcion,
-                    dp.fecha_documento,
+                    dp.fecha_subida,
                     dp.fecha_vencimiento,
-                    dp.estado,
+                    dp.estado_validacion,
                     CONCAT(pe.nombre, ' ', pe.apellido) as nombre_personal,
                     p.titulo_profesional,
                     c.nombre as centro_nombre,
-                    -- Estado de vencimiento
-                    CASE 
-                        WHEN dp.fecha_vencimiento IS NOT NULL AND dp.fecha_vencimiento < CURRENT_DATE 
+                    CASE
+                        WHEN dp.fecha_vencimiento IS NOT NULL AND dp.fecha_vencimiento < CURRENT_DATE
                         THEN 'vencido'
                         WHEN dp.fecha_vencimiento IS NOT NULL AND dp.fecha_vencimiento <= CURRENT_DATE + INTERVAL '30 days'
                         THEN 'por_vencer'
@@ -296,13 +325,15 @@ class DocumentoPersonalComponent:
                 INNER JOIN personal p ON dp.id_personal = p.id
                 INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
-                WHERE dp.tipo_documento = %s                ORDER BY c.nombre, pe.nombre, pe.apellido
+                WHERE dp.tipo_documento = %s
+                ORDER BY c.nombre, pe.nombre, pe.apellido
                 """
                 params = (tipo_documento,)
 
             documentos = DataBaseHandle.getRecords(query, params)
 
             if documentos is not None:
+                documentos = DocumentoPersonalComponent._serialize_dates(documentos)
                 HandleLogs.write_log(f"DocumentoPersonalComponent.get_documentos_por_tipo - {len(documentos)} documentos tipo {tipo_documento} encontrados")
                 return internal_response(True, documentos, "Documentos obtenidos correctamente")
             else:
@@ -315,11 +346,11 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def get_documentos_por_vencer(dias_adelanto=30, centro_id=None):
-        """Obtener documentos que están por vencer en los próximos X días"""
+        """Obtener documentos que estan por vencer en los proximos X dias"""
         try:
             if centro_id:
                 query = """
-                SELECT 
+                SELECT
                     dp.id,
                     dp.id_personal,
                     dp.tipo_documento,
@@ -333,15 +364,15 @@ class DocumentoPersonalComponent:
                 INNER JOIN personal p ON dp.id_personal = p.id
                 INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
-                WHERE dp.fecha_vencimiento IS NOT NULL 
-                AND dp.fecha_vencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '%s days'
-                AND p.id_centro = %s 
-                               ORDER BY dp.fecha_vencimiento ASC
+                WHERE dp.fecha_vencimiento IS NOT NULL
+                AND dp.fecha_vencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + (%s * INTERVAL '1 day')
+                AND p.id_centro = %s
+                ORDER BY dp.fecha_vencimiento ASC
                 """
                 params = (dias_adelanto, centro_id)
             else:
                 query = """
-                SELECT 
+                SELECT
                     dp.id,
                     dp.id_personal,
                     dp.tipo_documento,
@@ -355,15 +386,16 @@ class DocumentoPersonalComponent:
                 INNER JOIN personal p ON dp.id_personal = p.id
                 INNER JOIN persona pe ON p.id_persona = pe.id
                 INNER JOIN centros c ON p.id_centro = c.id
-                WHERE dp.fecha_vencimiento IS NOT NULL 
-                AND dp.fecha_vencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '%s days'
-                               ORDER BY dp.fecha_vencimiento ASC
+                WHERE dp.fecha_vencimiento IS NOT NULL
+                AND dp.fecha_vencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + (%s * INTERVAL '1 day')
+                ORDER BY dp.fecha_vencimiento ASC
                 """
                 params = (dias_adelanto,)
 
             documentos = DataBaseHandle.getRecords(query, params)
 
             if documentos is not None:
+                documentos = DocumentoPersonalComponent._serialize_dates(documentos)
                 HandleLogs.write_log(f"DocumentoPersonalComponent.get_documentos_por_vencer - {len(documentos)} documentos por vencer encontrados")
                 return internal_response(True, documentos, "Documentos por vencer obtenidos correctamente")
             else:
@@ -376,11 +408,10 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def generar_nombre_archivo_unico(nombre_original):
-        """Generar un nombre de archivo único incluyendo el nombre original"""
+        """Generar un nombre de archivo unico incluyendo el nombre original"""
         try:
             nombre_base, extension = os.path.splitext(nombre_original)
             uuid_corto = str(uuid.uuid4())[:8].replace('-', '')
-            # Formato: uuid_nombreoriginal.ext
             nombre_unico = f"{uuid_corto}_{nombre_original}"
 
             HandleLogs.write_log(f"DocumentoPersonalComponent.generar_nombre_archivo_unico - Nombre generado: {nombre_unico}")
@@ -392,81 +423,102 @@ class DocumentoPersonalComponent:
 
     @staticmethod
     def obtener_documentos_vencimientos(dias_alerta=90):
-        """Obtener documentos próximos a vencer"""
+        """Obtener documentos proximos a vencer"""
         try:
             query = """
-            SELECT dp.*, p.nombre, p.apellido, p.cedula
+            SELECT
+                dp.id,
+                dp.id_personal,
+                dp.tipo_documento,
+                dp.nombre_archivo,
+                dp.descripcion,
+                dp.fecha_subida,
+                dp.fecha_vencimiento,
+                dp.estado_validacion,
+                p.nombre, p.apellido, p.cedula
             FROM documentos_personal dp
             JOIN personal per ON dp.id_personal = per.id
             JOIN persona p ON per.id_persona = p.id
-            WHERE dp.fecha_vencimiento IS NOT NULL 
-            AND dp.fecha_vencimiento <= CURRENT_DATE + INTERVAL '%s days'
+            WHERE dp.fecha_vencimiento IS NOT NULL
+            AND dp.fecha_vencimiento <= CURRENT_DATE + (%s * INTERVAL '1 day')
             ORDER BY dp.fecha_vencimiento ASC
             """
-            
+
             result = DataBaseHandle.getRecords(query, (dias_alerta,))
-            
+
             if result is not None:
-                HandleLogs.write_log(f"DocumentoPersonalComponent.obtener_documentos_vencimientos - {len(result)} documentos próximos a vencer")
-                return internal_response(True, result, "Documentos próximos a vencer obtenidos")
+                result = DocumentoPersonalComponent._serialize_dates(result)
+                HandleLogs.write_log(f"DocumentoPersonalComponent.obtener_documentos_vencimientos - {len(result)} documentos proximos a vencer")
+                return internal_response(True, result, "Documentos proximos a vencer obtenidos")
             else:
-                return internal_response(True, [], "No hay documentos próximos a vencer")
-                
+                return internal_response(True, [], "No hay documentos proximos a vencer")
+
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalComponent.obtener_documentos_vencimientos - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
     def obtener_documentos_pendientes_validacion():
-        """Obtener documentos pendientes de validación"""
+        """Obtener documentos pendientes de validacion"""
         try:
             query = """
-            SELECT dp.*, p.nombre, p.apellido, p.cedula
+            SELECT
+                dp.id,
+                dp.id_personal,
+                dp.tipo_documento,
+                dp.nombre_archivo,
+                dp.descripcion,
+                dp.fecha_subida,
+                dp.fecha_vencimiento,
+                dp.estado_validacion,
+                dp.fecha_creacion,
+                p.nombre, p.apellido, p.cedula
             FROM documentos_personal dp
             JOIN personal per ON dp.id_personal = per.id
             JOIN persona p ON per.id_persona = p.id
             WHERE (dp.estado_validacion IS NULL OR dp.estado_validacion = 'pendiente')
             ORDER BY dp.fecha_creacion ASC
             """
-            
+
             result = DataBaseHandle.getRecords(query)
-            
+
             if result is not None:
+                result = DocumentoPersonalComponent._serialize_dates(result)
                 HandleLogs.write_log(f"DocumentoPersonalComponent.obtener_documentos_pendientes_validacion - {len(result)} documentos pendientes")
-                return internal_response(True, result, "Documentos pendientes de validación obtenidos")
+                return internal_response(True, result, "Documentos pendientes de validacion obtenidos")
             else:
-                return internal_response(True, [], "No hay documentos pendientes de validación")
-                
+                return internal_response(True, [], "No hay documentos pendientes de validacion")
+
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalComponent.obtener_documentos_pendientes_validacion - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
 
     @staticmethod
     def obtener_estadisticas_documentos():
-        """Obtener estadísticas de documentos de personal"""
+        """Obtener estadisticas de documentos de personal"""
         try:
             query = """
-            SELECT 
+            SELECT
                 tipo_documento,
                 COUNT(*) as total,
                 COUNT(CASE WHEN estado_validacion = 'aprobado' THEN 1 END) as aprobados,
                 COUNT(CASE WHEN estado_validacion = 'rechazado' THEN 1 END) as rechazados,
                 COUNT(CASE WHEN estado_validacion IS NULL OR estado_validacion = 'pendiente' THEN 1 END) as pendientes,
                 COUNT(CASE WHEN fecha_vencimiento <= CURRENT_DATE + INTERVAL '90 days' THEN 1 END) as por_vencer
-            FROM documentos_personal 
+            FROM documentos_personal
             WHERE TRUE
             GROUP BY tipo_documento
             ORDER BY total DESC
             """
-            
+
             result = DataBaseHandle.getRecords(query)
-            
+
             if result is not None:
-                HandleLogs.write_log(f"DocumentoPersonalComponent.obtener_estadisticas_documentos - Estadísticas obtenidas")
-                return internal_response(True, result, "Estadísticas de documentos obtenidas")
+                HandleLogs.write_log("DocumentoPersonalComponent.obtener_estadisticas_documentos - Estadisticas obtenidas")
+                return internal_response(True, result, "Estadisticas de documentos obtenidas")
             else:
-                return internal_response(True, [], "No hay estadísticas disponibles")
-                
+                return internal_response(True, [], "No hay estadisticas disponibles")
+
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalComponent.obtener_estadisticas_documentos - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
@@ -476,40 +528,51 @@ class DocumentoPersonalComponent:
         """Buscar documentos con filtros avanzados"""
         try:
             query = """
-            SELECT dp.*, p.nombre, p.apellido, p.cedula
+            SELECT
+                dp.id,
+                dp.id_personal,
+                dp.tipo_documento,
+                dp.nombre_archivo,
+                dp.descripcion,
+                dp.fecha_subida,
+                dp.fecha_vencimiento,
+                dp.estado_validacion,
+                dp.fecha_creacion,
+                p.nombre, p.apellido, p.cedula
             FROM documentos_personal dp
             JOIN personal per ON dp.id_personal = per.id
             JOIN persona p ON per.id_persona = p.id
             WHERE TRUE
             """
             params = []
-            
+
             if tipo_documento:
                 query += " AND dp.tipo_documento = %s"
                 params.append(tipo_documento)
-            
+
             if estado_validacion:
                 if estado_validacion == 'pendiente':
                     query += " AND (dp.estado_validacion IS NULL OR dp.estado_validacion = 'pendiente')"
                 else:
                     query += " AND dp.estado_validacion = %s"
                     params.append(estado_validacion)
-            
+
             if texto_busqueda:
                 query += " AND (dp.descripcion ILIKE %s OR p.nombre ILIKE %s OR p.apellido ILIKE %s)"
                 like_param = f"%{texto_busqueda}%"
                 params.extend([like_param, like_param, like_param])
-            
+
             query += " ORDER BY dp.fecha_creacion DESC"
-            
+
             result = DataBaseHandle.getRecords(query, params if params else None)
-            
+
             if result is not None:
+                result = DocumentoPersonalComponent._serialize_dates(result)
                 HandleLogs.write_log(f"DocumentoPersonalComponent.buscar_documentos - {len(result)} documentos encontrados")
-                return internal_response(True, result, "Búsqueda completada")
+                return internal_response(True, result, "Busqueda completada")
             else:
                 return internal_response(True, [], "No se encontraron documentos")
-                
+
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalComponent.buscar_documentos - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
@@ -519,22 +582,20 @@ class DocumentoPersonalComponent:
         """Validar documento de personal"""
         try:
             query = """
-            UPDATE documentos_personal 
-            SET estado_validacion = %s, 
+            UPDATE documentos_personal
+            SET estado_validacion = %s,
                 observaciones_validacion = %s,
                 validado_por = %s,
-                fecha_validacion = CURRENT_TIMESTAMP,
-                fecha_modificacion = CURRENT_TIMESTAMP
+                fecha_validacion = CURRENT_TIMESTAMP
             WHERE id = %s
             """
-            
+
             success = DataBaseHandle.ExecuteNonQuery(
-                query, 
+                query,
                 (estado_validacion, observaciones_validacion, validado_por, documento_id)
             )
-            
+
             if success:
-                # Obtener el documento actualizado
                 result = DocumentoPersonalComponent.get_documento_by_id(documento_id)
                 if result['success']:
                     HandleLogs.write_log(f"DocumentoPersonalComponent.validar_documento - Documento {documento_id} validado como {estado_validacion}")
@@ -544,7 +605,7 @@ class DocumentoPersonalComponent:
             else:
                 HandleLogs.write_error(f"DocumentoPersonalComponent.validar_documento - Error validando documento {documento_id}")
                 return internal_response(False, None, "Error validando documento")
-                
+
         except Exception as e:
             HandleLogs.write_error(f"DocumentoPersonalComponent.validar_documento - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")

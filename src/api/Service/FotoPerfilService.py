@@ -153,7 +153,8 @@ class FotoPerfilService:
             # Validar que la ruta está dentro del directorio permitido
             # Normalizar separadores de ruta para compatibilidad Windows/Linux
             ruta_normalizada = ruta_foto.replace('\\', '/')
-            if not ruta_normalizada.startswith('fotos_perfil/'):
+            carpeta_fotos = FotoPerfilComponent.UPLOAD_FOLDER.replace('\\', '/')
+            if not ruta_normalizada.startswith(carpeta_fotos + '/') and not ruta_normalizada.startswith('fotos_perfil/'):
                 return {'success': False, 'message': 'Acceso a archivo no autorizado'}
             
             # TODO: Implementar validación de que el usuario tiene permisos para ver esta foto específica

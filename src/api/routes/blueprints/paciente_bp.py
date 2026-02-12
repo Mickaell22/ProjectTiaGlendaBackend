@@ -234,58 +234,51 @@ def get_estadisticas_pausas():
 @paciente_bp.route('/pacientes/<int:paciente_id>/documentos', methods=['POST'])
 @token_required
 def upload_documento_paciente(paciente_id):
-    from src.api.Service.PacienteService import PacienteService
-    return PacienteService.upload_documento(paciente_id)
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
+    return DocumentoPacienteService.upload_documento(paciente_id)
 
 
 @paciente_bp.route('/pacientes/<int:paciente_id>/documentos', methods=['GET'])
 @token_required
 def get_documentos_paciente(paciente_id):
-    from src.api.Service.PacienteService import PacienteService
-    return PacienteService.get_documentos(paciente_id)
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
+    return DocumentoPacienteService.get_documentos(paciente_id)
 
 
 @paciente_bp.route('/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['GET'])
 @token_required
 def download_documento_paciente(paciente_id, documento_id):
-    from src.api.Service.PacienteService import PacienteService
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
 
-    result = PacienteService.download_documento(paciente_id, documento_id)
+    result = DocumentoPacienteService.download_documento(paciente_id, documento_id)
 
     if result['success']:
         try:
             file_path = result['data']['ruta_archivo']
-            file_name = result['data']['nombre_original']
-            mime_type = result['data']['tipo_mime']
+            file_name = result['data']['nombre_archivo']
+            mime_type = result['data'].get('tipo_mime', 'application/pdf')
 
             if not os.path.exists(file_path):
                 HandleLogs.write_error(f"download_documento_paciente - File not found: {file_path}")
                 return response_error("Archivo no encontrado en el sistema", 404)
 
-            # Limpiar nombre de archivo
-            replacements = {
-                'a': 'a', 'e': 'e', 'i': 'i', 'o': 'o', 'u': 'u',
-                'A': 'A', 'E': 'E', 'I': 'I', 'O': 'O', 'U': 'U',
-                'n': 'n', 'N': 'N', 'u': 'u', 'U': 'U'
-            }
-
-            clean_filename = file_name
-            for original, replacement in replacements.items():
-                clean_filename = clean_filename.replace(original, replacement)
-            clean_filename = re.sub(r'[^\w\s\-\.\(\)]', '', clean_filename)
+            # Limpiar nombre de archivo para descarga segura
+            clean_filename = re.sub(r'[^\w\s\-\.\(\)]', '', file_name)
             clean_filename = re.sub(r'\s+', '_', clean_filename.strip())
-            if not clean_filename.lower().endswith('.pdf'):
+            if not clean_filename:
+                clean_filename = f"documento_{documento_id}.pdf"
+            elif not clean_filename.lower().endswith('.pdf'):
                 clean_filename += '.pdf'
 
             try:
-                response = send_file(file_path, as_attachment=True,
+                file_response = send_file(file_path, as_attachment=True,
                                    download_name=clean_filename, mimetype=mime_type)
             except TypeError:
-                response = send_file(file_path, as_attachment=True,
+                file_response = send_file(file_path, as_attachment=True,
                                    attachment_filename=clean_filename, mimetype=mime_type)
 
-            response.headers['Content-Disposition'] = f'attachment; filename="{clean_filename}"'
-            return response
+            file_response.headers['Content-Disposition'] = f'attachment; filename="{clean_filename}"'
+            return file_response
 
         except Exception as e:
             HandleLogs.write_error(f"download_documento_paciente - Error: {str(e)}")
@@ -300,43 +293,29 @@ def download_documento_paciente(paciente_id, documento_id):
 @paciente_bp.route('/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['PUT'])
 @token_required
 def update_documento_paciente(paciente_id, documento_id):
-    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
-    from src.utils.general.data_utils import DataUtils
-
-    try:
-        data = request.get_json()
-        current_user_id = getattr(request, 'current_user', {}).get('id')
-
-        if 'usuario_modificacion' not in data and current_user_id:
-            data['usuario_modificacion'] = current_user_id
-
-        prepared_data = DataUtils.prepare_update_data(data, current_user_id)
-        result = DocumentoPacienteComponent.update_documento(documento_id, paciente_id, prepared_data)
-
-        if result['success']:
-            return response_success(result['data'], result['message'])
-        return response_error(result['message'], 400)
-
-    except Exception as e:
-        HandleLogs.write_error(f"update_documento_paciente - Error: {str(e)}")
-        return response_error(f"Error interno: {str(e)}", 500)
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
+    return DocumentoPacienteService.update_documento(paciente_id, documento_id)
 
 
 @paciente_bp.route('/pacientes/<int:paciente_id>/documentos/<int:documento_id>', methods=['DELETE'])
 @token_required
 def delete_documento_paciente(paciente_id, documento_id):
-    from src.api.Service.PacienteService import PacienteService
-    return PacienteService.delete_documento(paciente_id, documento_id)
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
+    return DocumentoPacienteService.delete_documento(paciente_id, documento_id)
 
 
 @paciente_bp.route('/documentos/estadisticas', methods=['GET'])
 @token_required
 def get_estadisticas_documentos():
-    from src.api.Components.DocumentoPacienteComponent import DocumentoPacienteComponent
-    result = DocumentoPacienteComponent.get_estadisticas_documentos()
-    if result['success']:
-        return response_success(result['data'], result['message'])
-    return response_error(result['message'], 500)
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
+    return DocumentoPacienteService.get_estadisticas()
+
+
+@paciente_bp.route('/documentos/tipos', methods=['GET'])
+@token_required
+def get_tipos_documentos():
+    from src.api.Service.DocumentoPacienteService import DocumentoPacienteService
+    return DocumentoPacienteService.get_tipos_documentos()
 
 
 # ============================================

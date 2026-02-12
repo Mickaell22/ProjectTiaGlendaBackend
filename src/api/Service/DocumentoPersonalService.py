@@ -10,8 +10,11 @@ from src.api.Components.DocumentoPersonalComponent import DocumentoPersonalCompo
 
 class DocumentoPersonalService:
     
-    # Configuración de documentos
-    UPLOAD_FOLDER = 'documentos_personal'
+    # Configuracion de documentos
+    # En Railway: STORAGE_BASE_PATH = /data/documentos (mount del volume)
+    # En local: usa el directorio del proyecto (vacio = relativo)
+    STORAGE_BASE_PATH = os.environ.get('STORAGE_BASE_PATH', '')
+    UPLOAD_FOLDER = os.path.join(STORAGE_BASE_PATH, 'documentos_personal') if STORAGE_BASE_PATH else 'documentos_personal'
     ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'gif'}
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
     
@@ -110,7 +113,6 @@ class DocumentoPersonalService:
                 tamanio_archivo=tamanio_archivo,
                 tipo_mime=archivo.content_type,
                 descripcion=descripcion,
-                fecha_documento=fecha_documento if fecha_documento else None,
                 fecha_vencimiento=fecha_vencimiento if fecha_vencimiento else None,
                 usuario_id=usuario_id
             )
@@ -191,25 +193,23 @@ class DocumentoPersonalService:
             nombre_documento = data.get('nombre_documento')
             descripcion = data.get('descripcion')
             observaciones = data.get('observaciones')
-            fecha_documento = data.get('fecha_documento')
             fecha_vencimiento = data.get('fecha_vencimiento')
             usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
-            
+
             # Validar ID
             if not isinstance(documento_id, int) or documento_id <= 0:
-                return response_error("ID de documento inválido", 400)
-            
+                return response_error("ID de documento invalido", 400)
+
             # Validar tipo de documento si se proporciona
             if tipo_documento and tipo_documento not in DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS:
-                return response_error(f"Tipo de documento inválido. Debe ser uno de: {', '.join(DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS)}", 400)
-            
+                return response_error(f"Tipo de documento invalido. Debe ser uno de: {', '.join(DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS)}", 400)
+
             result = DocumentoPersonalComponent.actualizar_documento_personal(
                 documento_id=documento_id,
                 tipo_documento=tipo_documento,
                 nombre_documento=nombre_documento,
                 descripcion=descripcion,
                 observaciones=observaciones,
-                fecha_documento=fecha_documento,
                 fecha_vencimiento=fecha_vencimiento,
                 usuario_id=usuario_id
             )
@@ -237,23 +237,21 @@ class DocumentoPersonalService:
             
             descripcion = data.get('descripcion')
             observaciones = data.get('observaciones')
-            fecha_documento = data.get('fecha_documento')
             fecha_vencimiento = data.get('fecha_vencimiento')
             tipo_documento = data.get('tipo_documento')
             nombre_documento = data.get('nombre_documento')
             usuario_id = data.get('usuario_id', 1)  # TODO: Obtener del token
-            
+
             # Validar tipo de documento si se proporciona
             if tipo_documento and tipo_documento not in DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS:
-                return response_error(f"Tipo de documento inválido. Debe ser uno de: {', '.join(DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS)}", 400)
-            
+                return response_error(f"Tipo de documento invalido. Debe ser uno de: {', '.join(DocumentoPersonalService.TIPOS_DOCUMENTO_VALIDOS)}", 400)
+
             result = DocumentoPersonalComponent.actualizar_documento_personal(
                 documento_id=documento_id,
                 tipo_documento=tipo_documento,
                 nombre_documento=nombre_documento,
                 descripcion=descripcion,
                 observaciones=observaciones,
-                fecha_documento=fecha_documento,
                 fecha_vencimiento=fecha_vencimiento,
                 usuario_id=usuario_id
             )
@@ -487,8 +485,8 @@ class DocumentoPersonalService:
             except (ValueError, AttributeError):
                 validado_por = 25  # Usuario admin existente por defecto
             
-            if not estado_validacion or estado_validacion not in ['aprobado', 'rechazado', 'pendiente']:
-                return response_error("Estado de validación inválido", 400)
+            if not estado_validacion or estado_validacion not in ['aprobado', 'rechazado', 'pendiente', 'en_revision', 'vencido']:
+                return response_error("Estado de validacion invalido. Debe ser: pendiente, en_revision, aprobado, rechazado, vencido", 400)
             
             result = DocumentoPersonalComponent.validar_documento(
                 documento_id=documento_id,
