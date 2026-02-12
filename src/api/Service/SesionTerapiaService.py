@@ -170,7 +170,7 @@ class SesionTerapiaService:
                             'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
                             'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                             'estado': sesion_cronograma['estado'],
-                            'fecha_realizacion': None,  # Campo no existe en la BD, usar fecha_modificacion si es necesario
+                            'fecha_realizacion': DateHelpers.serialize_date(sesion_cronograma.get('fecha_realizacion')),
                             'observaciones_cronograma': sesion_cronograma.get('observaciones'),
                             'estado_actual': sesion_cronograma.get('estado_actual', sesion_cronograma['estado'])
                         }
@@ -180,23 +180,31 @@ class SesionTerapiaService:
                     'id': sesion['id'],
                     'codigo_sesion': sesion['codigo_sesion'],
                     'titulo': sesion['titulo'],
+                    'objetivo_general': sesion.get('objetivo_general'),
+                    'tipo_sesion': sesion.get('tipo_sesion', 'individual'),
+                    'observaciones': sesion.get('observaciones'),
                     'terapeuta': {
                         'id': sesion['terapeuta_id'],
                         'nombre': sesion['terapeuta_nombre']
                     },
+                    'terapeuta_id': sesion['terapeuta_id'],
+                    'terapeuta_nombre': sesion['terapeuta_nombre'],
                     'especialidad': {
                         'id': sesion['especialidad_id'],
                         'nombre': sesion['especialidad_nombre'],
                         'area': sesion['especialidad_area']
                     },
+                    'especialidad_id': sesion['especialidad_id'],
+                    'especialidad_nombre': sesion['especialidad_nombre'],
                     'fecha_inicio': sesion['fecha_inicio'].isoformat() if sesion['fecha_inicio'] else None,
                     'fecha_fin': sesion['fecha_fin'].isoformat() if sesion['fecha_fin'] else None,
                     'dias_semana': sesion['dias_semana'] if isinstance(sesion['dias_semana'], list) else (sesion['dias_semana'].split(',') if sesion['dias_semana'] else []),
                     'hora_inicio': str(sesion['hora_inicio']) if sesion['hora_inicio'] else None,
+                    'hora_fin': str(sesion['hora_fin']) if sesion.get('hora_fin') else None,
                     'duracion_minutos': sesion['duracion_minutos'],
                     'numero_sesiones_contratadas': sesion['numero_sesiones_contratadas'],
-                    'costo_total': float(sesion['costo_total']),
-                    'costo_por_sesion': float(sesion['costo_por_sesion']),
+                    'costo_total': float(sesion['costo_total']) if sesion.get('costo_total') else 0.0,
+                    'costo_por_sesion': float(sesion['costo_por_sesion']) if sesion.get('costo_por_sesion') else 0.0,
                     'meses_contrato': sesion['meses_contrato'],
                     'estado': sesion['estado'],
                     'pacientes': pacientes or [],
@@ -701,8 +709,9 @@ class SesionTerapiaService:
                 'costo_total': costo_total_calculado,  # CORREGIDO: Calculado correctamente
                 'costo_sesion': costo_por_sesion,      # CORREGIDO: Lógica consistente
                 'meses_contrato': data.get('meses_contrato', 3),
-                'tipo_sesion': data.get('tipo_sesion', 'individual'),  # Agregado campo faltante
+                'tipo_sesion': data.get('tipo_sesion', 'individual'),
                 'estado': data.get('estado', 'en_curso'),
+                'observaciones': data.get('observaciones'),
                 'usuario_modificacion': current_user['id']
             }
 
@@ -781,7 +790,7 @@ class SesionTerapiaService:
                         'fecha_programada': sesion_cronograma['fecha_programada'].isoformat() if sesion_cronograma['fecha_programada'] else None,
                         'hora_programada': str(sesion_cronograma['hora_inicio']) if sesion_cronograma['hora_inicio'] else None,
                         'estado': sesion_cronograma['estado'],
-                        'fecha_realizacion': None,  # Campo no existe en la BD, usar fecha_modificacion si es necesario
+                        'fecha_realizacion': DateHelpers.serialize_date(sesion_cronograma.get('fecha_realizacion')),
                         'observaciones_cronograma': sesion_cronograma.get('observaciones'),
                         'estado_actual': sesion_cronograma.get('estado_actual', sesion_cronograma['estado'])
                     }
@@ -1038,19 +1047,22 @@ class SesionTerapiaService:
             if len(motivo) < 10:
                 return response_error("El motivo debe tener al menos 10 caracteres", 400)
 
-            # Reprogramar sesión
-            result = SesionTerapiaComponent.reprogramar_sesion(cronograma_id, nueva_fecha, nueva_hora, motivo)
+            # Obtener usuario actual
+            current_user = getattr(request, 'current_user', {})
+            usuario_modificacion = current_user.get('id', 1)
+
+            # Reprogramar sesion
+            result = SesionTerapiaComponent.reprogramar_sesion(cronograma_id, nueva_fecha, nueva_hora, motivo, usuario_modificacion)
 
             if result:
-                HandleLogs.write_log(f"SesionTerapiaService.reprogramar_sesion - Sesión {cronograma_id} reprogramada")
+                HandleLogs.write_log(f"SesionTerapiaService.reprogramar_sesion - Sesion {cronograma_id} reprogramada")
                 return response_success({
                     'cronograma_original_id': cronograma_id,
-                    'cronograma_nuevo_id': result['id'],
                     'nueva_fecha': nueva_fecha.isoformat(),
                     'nueva_hora': str(nueva_hora)
-                }, "Sesión reprogramada exitosamente")
+                }, "Sesion reprogramada exitosamente")
             else:
-                return response_error("No se pudo reprogramar la sesión", 500)
+                return response_error("No se pudo reprogramar la sesion", 500)
 
         except Exception as e:
             HandleLogs.write_error(f"SesionTerapiaService.reprogramar_sesion - Error: {str(e)}")

@@ -160,13 +160,7 @@ class SesionTerapiaComponent:
 
                 HandleLogs.write_log(f"SesionTerapiaComponent.create_sesion - Sesión creada con ID: {sesion_id}, Código: {codigo_sesion}, Costo Total: {costo_total}")
 
-                # Generar cronograma automáticamente
-                try:
-                    SesionTerapiaComponent.generar_cronograma(sesion_id)
-                    HandleLogs.write_log(f"SesionTerapiaComponent.create_sesion - Cronograma generado para sesión {sesion_id}")
-                except Exception as cronograma_error:
-                    HandleLogs.write_error(f"SesionTerapiaComponent.create_sesion - Error generando cronograma: {str(cronograma_error)}")
-                    # No fallar el método completo si falla el cronograma
+                # NOTA: El cronograma se genera desde el Service para evitar doble generacion
 
                 return {
                     'id': sesion_id,
@@ -190,7 +184,8 @@ class SesionTerapiaComponent:
                     titulo = %s, objetivo_general = %s, id_terapeuta = %s, id_especialidad = %s,
                     fecha_inicio = %s, fecha_fin = %s, dias_semana = %s,
                     hora_inicio = %s, hora_fin = %s, duracion_minutos = %s,
-                    numero_sesiones_contratadas = %s, meses_contrato = %s, costo_sesion = %s,
+                    numero_sesiones_contratadas = %s, meses_contrato = %s,
+                    costo_total = %s, costo_sesion = %s,
                     tipo_sesion = %s, estado = %s, observaciones = %s,
                     usuario_modificacion = %s
                 WHERE id = %s
@@ -209,7 +204,8 @@ class SesionTerapiaComponent:
                 sesion_data.get('duracion_minutos', 45),
                 sesion_data.get('numero_sesiones_contratadas', 20),
                 sesion_data.get('meses_contrato', 3),
-                sesion_data.get('costo_sesion', 25000.0),
+                sesion_data.get('costo_total', 0),
+                sesion_data.get('costo_sesion', 0),
                 sesion_data.get('tipo_sesion', 'individual'),
                 sesion_data.get('estado', 'planificada'),
                 sesion_data.get('observaciones'),
@@ -229,7 +225,7 @@ class SesionTerapiaComponent:
     def delete_sesion(sesion_id):
         """Eliminar una sesión de terapia (eliminación lógica)"""
         try:
-            query = "UPDATE sesion_terapia SET estado = 'cancelado' WHERE id = %s"
+            query = "UPDATE sesion_terapia SET estado = 'cancelada' WHERE id = %s"
             params = (sesion_id,)
 
             DataBaseHandle.ExecuteNonQuery(query, params)
@@ -1125,52 +1121,7 @@ class SesionTerapiaComponent:
     # MÉTODOS DE CONSULTA Y ESTADÍSTICAS
     # ============================================
 
-    @staticmethod
-    def get_sesiones_by_terapeuta(terapeuta_id):
-        """Obtener sesiones de un terapeuta específico"""
-        try:
-            query = """
-                SELECT 
-                    st.id,
-                    st.codigo_sesion,
-                    st.titulo,
-                    st.objetivo_general,
-                    st.id_terapeuta as terapeuta_id,
-                    st.id_especialidad as especialidad_id,
-                    e.nombre as especialidad_nombre,
-                    st.fecha_inicio,
-                    st.fecha_fin,
-                    st.dias_semana,
-                    TO_CHAR(st.hora_inicio, 'HH24:MI') as hora_inicio,
-                    TO_CHAR(st.hora_fin, 'HH24:MI') as hora_fin,
-                    st.duracion_minutos,
-                    st.numero_sesiones_contratadas,
-                    st.costo_total,
-                    st.costo_sesion as costo_por_sesion,
-                    st.meses_contrato,
-                    st.tipo_sesion,
-                    st.estado,
-                    st.fecha_creacion,
-                    COUNT(sp.id_paciente) as total_pacientes
-                FROM sesion_terapia st
-                JOIN especialidad e ON st.id_especialidad = e.id
-                LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
-                WHERE st.id_terapeuta = %s 
-                    AND st.estado != 'cancelada'
-                    AND e.area = 'Especialidad terapéutica'
-                GROUP BY st.id, e.nombre
-                ORDER BY st.fecha_inicio DESC
-            """
-
-            params = (terapeuta_id,)
-            result = DataBaseHandle.getRecords(query, params)
-            HandleLogs.write_log(
-                f"SesionTerapiaComponent.get_sesiones_by_terapeuta - {len(result) if result else 0} sesiones encontradas")
-            return result
-
-        except Exception as e:
-            HandleLogs.write_error(f"SesionTerapiaComponent.get_sesiones_by_terapeuta - Error: {str(e)}")
-            raise Exception(f"Error al obtener sesiones del terapeuta: {str(e)}")
+    # NOTA: get_sesiones_by_terapeuta esta definido mas abajo con soporte opcional de centro_id
 
     @staticmethod
     def get_sesiones_activas_hoy():
@@ -1215,14 +1166,14 @@ class SesionTerapiaComponent:
         """Obtener estadísticas generales de sesiones"""
         try:
             query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_sesiones,
-                    COUNT(CASE WHEN estado = 'activo' THEN 1 END) as sesiones_activas,
-                    COUNT(CASE WHEN estado = 'completado' THEN 1 END) as sesiones_completadas,
-                    COUNT(CASE WHEN estado = 'suspendido' THEN 1 END) as sesiones_suspendidas,
-                    COUNT(CASE WHEN estado = 'cancelado' THEN 1 END) as sesiones_canceladas,
-                    COALESCE(COUNT(*) * 20, 0) as total_sesiones_contratadas,
-                    COALESCE(SUM(costo_sesion * 20), 0) as ingresos_totales,
+                    COUNT(CASE WHEN estado IN ('planificada', 'en_curso') THEN 1 END) as sesiones_activas,
+                    COUNT(CASE WHEN estado = 'finalizada' THEN 1 END) as sesiones_completadas,
+                    COUNT(CASE WHEN estado = 'pausada' THEN 1 END) as sesiones_suspendidas,
+                    COUNT(CASE WHEN estado = 'cancelada' THEN 1 END) as sesiones_canceladas,
+                    COALESCE(SUM(numero_sesiones_contratadas), 0) as total_sesiones_contratadas,
+                    COALESCE(SUM(costo_total), 0) as ingresos_totales,
                     COALESCE(AVG(duracion_minutos), 0) as duracion_promedio
                 FROM sesion_terapia
             """
@@ -1717,7 +1668,7 @@ class SesionTerapiaComponent:
                 LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
                 LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
                 LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
-                WHERE st.estado != 'eliminado' AND st.id_centro = %s
+                WHERE st.estado != 'cancelada' AND st.id_centro = %s
                 GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
                         st.id_terapeuta, p_ter.nombre, p_ter.apellido,
                         st.id_especialidad, e.nombre, e.area,
@@ -1743,8 +1694,8 @@ class SesionTerapiaComponent:
             return []
 
     @staticmethod
-    def get_sesiones_by_terapeuta(terapeuta_id, centro_id):
-        """Obtener sesiones de terapia asignadas a un terapeuta específico"""
+    def get_sesiones_by_terapeuta(terapeuta_id, centro_id=None):
+        """Obtener sesiones de terapia asignadas a un terapeuta especifico, opcionalmente filtrado por centro"""
         try:
             query = """
                 SELECT
@@ -1781,10 +1732,17 @@ class SesionTerapiaComponent:
                 LEFT JOIN sesion_paciente sp ON st.id = sp.id_sesion AND sp.estado = 'activo'
                 LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
                 LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
-                WHERE st.estado != 'eliminado'
+                WHERE st.estado != 'cancelada'
                     AND st.id_terapeuta = %s
-                    AND st.id_centro = %s
-                GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
+            """
+
+            params = [terapeuta_id]
+
+            if centro_id is not None:
+                query += "    AND st.id_centro = %s\n"
+                params.append(centro_id)
+
+            query += """                GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
                         st.id_terapeuta, p_ter.nombre, p_ter.apellido,
                         st.id_especialidad, e.nombre, e.area,
                         st.fecha_inicio, st.fecha_fin, st.dias_semana,
@@ -1795,10 +1753,10 @@ class SesionTerapiaComponent:
                 ORDER BY st.fecha_creacion DESC
             """
 
-            result = DataBaseHandle.getRecords(query, (terapeuta_id, centro_id))
+            result = DataBaseHandle.getRecords(query, tuple(params))
 
             if result is not None:
-                HandleLogs.write_log(f"SesionTerapiaComponent.get_sesiones_by_terapeuta - {len(result)} sesiones encontradas para terapeuta {terapeuta_id} en centro {centro_id}")
+                HandleLogs.write_log(f"SesionTerapiaComponent.get_sesiones_by_terapeuta - {len(result)} sesiones encontradas para terapeuta {terapeuta_id}")
                 return result
             else:
                 HandleLogs.write_error("SesionTerapiaComponent.get_sesiones_by_terapeuta - Error en consulta")
@@ -1921,8 +1879,8 @@ class SesionTerapiaComponent:
                 c.nombre as centro_nombre
             FROM paciente pac
             INNER JOIN persona p ON pac.id_persona = p.id
-            INNER JOIN tutor t ON pac.id_tutor = t.id
-            INNER JOIN persona pt ON t.id_persona = pt.id
+            LEFT JOIN tutor t ON pac.id_tutor = t.id
+            LEFT JOIN persona pt ON t.id_persona = pt.id
             LEFT JOIN centros c ON pac.id_centro = c.id
             WHERE pac.estado = 'activo'
             AND pac.id_centro = %s
@@ -2198,7 +2156,7 @@ class SesionTerapiaComponent:
                 LEFT JOIN cronograma_sesiones cs ON st.id = cs.id_sesion
                 LEFT JOIN asistencia_sesiones ass ON cs.id = ass.id_cronograma
                 WHERE tps.token = %s
-                    AND tps.activo = TRUE
+                    AND tps.estado = 'activo'
                     AND tps.fecha_expiracion > CURRENT_TIMESTAMP
                 GROUP BY st.id, st.codigo_sesion, st.titulo, st.objetivo_general,
                         p_ter.nombre, p_ter.apellido, e.nombre, e.area, st.fecha_inicio,
