@@ -45,8 +45,8 @@ class DashboardComponent:
                     
             except Exception as personal_error:
                 self.logger.error(f"Error contando personal: {personal_error}")
-                terapeutas = 2
-                pedagogos = 2
+                terapeutas = 0
+                pedagogos = 0
             
             return {
                 'usuarios_activos': usuarios_activos,
@@ -106,7 +106,7 @@ class DashboardComponent:
             
             # Actividad de usuarios (últimas conexiones)
             usuarios_result = DataBaseHandle.getRecords("""
-                SELECT u.email, u.fecha_ultimo_acceso, 'login' as tipo
+                SELECT u.usuario, u.fecha_ultimo_acceso, 'login' as tipo
                 FROM usuario u
                 WHERE u.fecha_ultimo_acceso IS NOT NULL
                 ORDER BY u.fecha_ultimo_acceso DESC
@@ -131,7 +131,7 @@ class DashboardComponent:
             pacientes_result = DataBaseHandle.getRecords("""
                 SELECT pe.nombre, p.fecha_creacion, 'paciente' as tipo
                 FROM paciente p
-                JOIN persona pe ON p.persona_id = pe.id
+                JOIN persona pe ON p.id_persona = pe.id
                 ORDER BY p.fecha_creacion DESC
                 LIMIT %s
             """, (limite//2,))
@@ -209,11 +209,13 @@ class DashboardComponent:
                     COUNT(*) as total_sesiones,
                     COUNT(CASE WHEN asistio = TRUE THEN 1 END) as asistencias
                 FROM (
-                    SELECT asistio FROM asistencia_sesiones
-                    WHERE fecha >= CURRENT_DATE - INTERVAL '30 days'
+                    SELECT a.asistio FROM asistencia_sesiones a
+                    JOIN cronograma_sesiones cs ON a.id_cronograma = cs.id
+                    WHERE cs.fecha_programada >= CURRENT_DATE - INTERVAL '30 days'
                     UNION ALL
-                    SELECT asistio FROM asistencia_clases
-                    WHERE fecha >= CURRENT_DATE - INTERVAL '30 days'
+                    SELECT a.asistio FROM asistencia_clases a
+                    JOIN cronograma_clases cc ON a.id_cronograma = cc.id
+                    WHERE cc.fecha_programada >= CURRENT_DATE - INTERVAL '30 days'
                 ) as todas_asistencias
             """)
 
@@ -223,11 +225,11 @@ class DashboardComponent:
                 promedio = (asistencias / total_sesiones) * 100
                 return {'promedio': round(promedio, 1)}
             else:
-                return {'promedio': 88.5}
-                
+                return {'promedio': 0}
+
         except Exception as e:
             self.logger.error(f"Error calculando métricas de asistencia: {e}")
-            return {'promedio': 88.5}
+            return {'promedio': 0}
 
     def get_rendimiento_semanal(self):
         """Obtiene datos de rendimiento de los últimos 7 días"""
@@ -251,11 +253,11 @@ class DashboardComponent:
                 porcentaje = min(100, (sesiones / 10) * 100) if sesiones > 0 else 0
                 rendimiento.append(int(porcentaje))
             
-            return rendimiento if any(rendimiento) else [85, 89, 92, 88, 94, 87, 91]
-                
+            return rendimiento
+
         except Exception as e:
             self.logger.error(f"Error obteniendo rendimiento semanal: {e}")
-            return [85, 89, 92, 88, 94, 87, 91]
+            return [0, 0, 0, 0, 0, 0, 0]
 
     def get_mis_sesiones_hoy(self, id_personal):
         """Obtiene las sesiones de hoy para un terapeuta específico"""
@@ -263,7 +265,7 @@ class DashboardComponent:
             hoy = datetime.now().date()
             
             sesiones_result = DataBaseHandle.getRecords("""
-                SELECT 
+                SELECT
                     cs.id,
                     cs.fecha_programada,
                     cs.hora_inicio,
@@ -273,19 +275,19 @@ class DashboardComponent:
                     st.codigo_sesion,
                     p.nombre || ' ' || p.apellido as paciente_nombre,
                     e.nombre as especialidad,
-                    cs.consultorio
+                    cs.observaciones
                 FROM cronograma_sesiones cs
                 JOIN sesion_terapia st ON cs.id_sesion = st.id
                 JOIN sesion_paciente sp ON st.id = sp.id_sesion
                 JOIN paciente pac ON sp.id_paciente = pac.id
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 JOIN especialidad e ON st.id_especialidad = e.id
-                WHERE st.id_terapeuta = %s 
+                WHERE st.id_terapeuta = %s
                 AND cs.fecha_programada = %s
                 AND cs.estado IN ('programada', 'confirmada')
                 ORDER BY cs.hora_inicio
             """, (id_personal, hoy))
-            
+
             sesiones = []
             for row in sesiones_result:
                 sesiones.append({
@@ -298,7 +300,7 @@ class DashboardComponent:
                     'codigo': row[6],
                     'paciente': row[7],
                     'especialidad': row[8],
-                    'consultorio': row[9] or 'Por asignar'
+                    'observaciones': row[9] or ''
                 })
             
             return {
@@ -321,7 +323,7 @@ class DashboardComponent:
             hoy = datetime.now().date()
             
             clases_result = DataBaseHandle.getRecords("""
-                SELECT 
+                SELECT
                     cc.id,
                     cc.fecha_programada,
                     cc.hora_inicio,
@@ -331,21 +333,21 @@ class DashboardComponent:
                     sp.nombre_clase,
                     sp.codigo_sesion,
                     e.nombre as especialidad,
-                    cc.aula,
-                    COUNT(se.id_estudiante) as total_estudiantes
+                    cc.observaciones,
+                    COUNT(se.id_paciente) as total_estudiantes
                 FROM cronograma_clases cc
                 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
                 JOIN especialidad e ON sp.id_especialidad = e.id
                 LEFT JOIN sesion_estudiante se ON sp.id = se.id_sesion
-                WHERE sp.id_educador = %s 
+                WHERE sp.id_educador = %s
                 AND cc.fecha_programada = %s
                 AND cc.estado IN ('programada', 'confirmada')
-                GROUP BY cc.id, cc.fecha_programada, cc.hora_inicio, cc.hora_fin, 
-                         cc.estado, cc.tema_clase, sp.nombre_clase, sp.codigo_sesion, 
-                         e.nombre, cc.aula
+                GROUP BY cc.id, cc.fecha_programada, cc.hora_inicio, cc.hora_fin,
+                         cc.estado, cc.tema_clase, sp.nombre_clase, sp.codigo_sesion,
+                         e.nombre, cc.observaciones
                 ORDER BY cc.hora_inicio
             """, (id_personal, hoy))
-            
+
             clases = []
             for row in clases_result:
                 clases.append({
@@ -358,7 +360,7 @@ class DashboardComponent:
                     'nombre_clase': row[6],
                     'codigo': row[7],
                     'especialidad': row[8],
-                    'aula': row[9] or 'Por asignar',
+                    'observaciones': row[9] or '',
                     'total_estudiantes': row[10]
                 })
             
@@ -389,11 +391,11 @@ class DashboardComponent:
                     pac.estado_tratamiento,
                     e.nombre as especialidad
                 FROM paciente pac
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 JOIN sesion_paciente sp ON pac.id = sp.id_paciente
                 JOIN sesion_terapia st ON sp.id_sesion = st.id
                 JOIN especialidad e ON st.id_especialidad = e.id
-                WHERE st.id_terapeuta = %s 
+                WHERE st.id_terapeuta = %s
                 AND pac.estado = 'activo'
                 ORDER BY p.nombre, p.apellido
             """, (id_personal,))
@@ -408,7 +410,7 @@ class DashboardComponent:
                     FROM cronograma_sesiones cs
                     JOIN sesion_terapia st ON cs.id_sesion = st.id
                     JOIN sesion_paciente sp ON st.id = sp.id_sesion
-                    LEFT JOIN asistencia_sesiones asist ON cs.id = asist.id_cronograma
+                    LEFT JOIN asistencia_sesiones asist ON cs.id = asist.id_cronograma AND asist.id_paciente = sp.id_paciente
                     WHERE sp.id_paciente = %s AND st.id_terapeuta = %s
                 """, (row[0], id_personal))
 
@@ -423,7 +425,7 @@ class DashboardComponent:
                     JOIN sesion_terapia st ON cs.id_sesion = st.id
                     JOIN sesion_paciente sp ON st.id = sp.id_sesion
                     WHERE sp.id_paciente = %s AND st.id_terapeuta = %s
-                    AND cs.estado = 'realizada'
+                    AND cs.estado = 'completada'
                 """, (row[0], id_personal))
 
                 ultima_sesion = ultima_sesion_result[0]['max_fecha'] if ultima_sesion_result and ultima_sesion_result[0] and ultima_sesion_result[0]['max_fecha'] else None
@@ -468,8 +470,8 @@ class DashboardComponent:
                     sp.nombre_clase,
                     e.nombre as especialidad
                 FROM paciente pac
-                JOIN persona p ON pac.persona_id = p.id
-                JOIN sesion_estudiante se ON pac.id = se.id_estudiante
+                JOIN persona p ON pac.id_persona = p.id
+                JOIN sesion_estudiante se ON pac.id = se.id_paciente
                 JOIN sesion_pedagogica sp ON se.id_sesion = sp.id
                 JOIN especialidad e ON sp.id_especialidad = e.id
                 WHERE sp.id_educador = %s
@@ -487,8 +489,8 @@ class DashboardComponent:
                     FROM cronograma_clases cc
                     JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
                     JOIN sesion_estudiante se ON sp.id = se.id_sesion
-                    LEFT JOIN asistencia_clases asist ON cc.id = asist.id_cronograma
-                    WHERE se.id_estudiante = %s AND sp.id_educador = %s
+                    LEFT JOIN asistencia_clases asist ON cc.id = asist.id_cronograma AND asist.id_paciente = se.id_paciente
+                    WHERE se.id_paciente = %s AND sp.id_educador = %s
                 """, (row[0], id_personal))
 
                 total_clases = clases_stats[0]['total_clases'] if clases_stats and clases_stats[0] else 0
@@ -501,7 +503,7 @@ class DashboardComponent:
                     FROM cronograma_clases cc
                     JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
                     JOIN sesion_estudiante se ON sp.id = se.id_sesion
-                    WHERE se.id_estudiante = %s AND sp.id_educador = %s
+                    WHERE se.id_paciente = %s AND sp.id_educador = %s
                     AND cc.estado = 'realizada'
                 """, (row[0], id_personal))
 
@@ -652,7 +654,7 @@ class DashboardComponent:
 
             sesiones_mes = DataBaseHandle.getRecords("""
                 SELECT
-                    COUNT(CASE WHEN estado = 'realizada' THEN 1 END) as completadas,
+                    COUNT(CASE WHEN estado IN ('completada', 'realizada') THEN 1 END) as completadas,
                     COUNT(CASE WHEN estado = 'cancelada' THEN 1 END) as canceladas
                 FROM (
                     SELECT estado FROM cronograma_sesiones
@@ -707,7 +709,7 @@ class DashboardComponent:
                 SELECT
                     COUNT(DISTINCT pac.id) as total,
                     COUNT(DISTINCT CASE WHEN pac.estado = 'activo' THEN pac.id END) as activos,
-                    COUNT(DISTINCT CASE WHEN pac.estado_tratamiento = 'dado_alta' THEN pac.id END) as dados_alta,
+                    COUNT(DISTINCT CASE WHEN pac.estado_tratamiento = 'finalizado' THEN pac.id END) as dados_alta,
                     COUNT(DISTINCT CASE WHEN pac.fecha_ingreso >= CURRENT_DATE - INTERVAL '30 days' THEN pac.id END) as nuevos_este_mes
                 FROM paciente pac
                 JOIN sesion_paciente sp ON pac.id = sp.id_paciente
@@ -728,7 +730,7 @@ class DashboardComponent:
                 SELECT
                     COUNT(CASE WHEN cs.fecha_programada = %s AND cs.estado IN ('programada', 'confirmada') THEN 1 END) as hoy,
                     COUNT(CASE WHEN cs.fecha_programada >= %s AND cs.fecha_programada <= %s THEN 1 END) as esta_semana,
-                    COUNT(CASE WHEN cs.estado = 'realizada' AND cs.fecha_programada >= %s THEN 1 END) as completadas_mes,
+                    COUNT(CASE WHEN cs.estado = 'completada' AND cs.fecha_programada >= %s THEN 1 END) as completadas_mes,
                     COUNT(CASE WHEN cs.estado IN ('programada', 'confirmada') THEN 1 END) as pendientes
                 FROM cronograma_sesiones cs
                 JOIN sesion_terapia st ON cs.id_sesion = st.id
@@ -754,7 +756,7 @@ class DashboardComponent:
                 JOIN cronograma_sesiones cs ON asist.id_cronograma = cs.id
                 JOIN sesion_terapia st ON cs.id_sesion = st.id
                 WHERE st.id_terapeuta = %s
-                AND asist.fecha >= CURRENT_DATE - INTERVAL '30 days'
+                AND cs.fecha_programada >= CURRENT_DATE - INTERVAL '30 days'
             """, (id_personal,))
 
             total_registros = asistencia_stats[0]['total_registros'] if asistencia_stats and asistencia_stats[0] else 0
@@ -763,9 +765,9 @@ class DashboardComponent:
 
             estadisticas = {
                 'asistencia_promedio': round(asistencia_promedio, 1),
-                'horas_trabajadas_mes': 85,  # Placeholder
-                'evaluaciones_pendientes': 3,  # Placeholder
-                'objetivos_cumplidos': 78  # Placeholder
+                'horas_trabajadas_mes': 0,
+                'evaluaciones_pendientes': 0,
+                'objetivos_cumplidos': 0
             }
 
             return {
@@ -792,10 +794,10 @@ class DashboardComponent:
                 SELECT
                     COUNT(DISTINCT pac.id) as total,
                     COUNT(DISTINCT CASE WHEN pac.estado = 'activo' THEN pac.id END) as activos,
-                    COUNT(DISTINCT CASE WHEN pac.estado_tratamiento = 'graduado' THEN pac.id END) as graduados,
+                    COUNT(DISTINCT CASE WHEN pac.estado_tratamiento = 'finalizado' THEN pac.id END) as graduados,
                     COUNT(DISTINCT CASE WHEN pac.fecha_ingreso >= CURRENT_DATE - INTERVAL '30 days' THEN pac.id END) as nuevos_este_mes
                 FROM paciente pac
-                JOIN sesion_estudiante se ON pac.id = se.id_estudiante
+                JOIN sesion_estudiante se ON pac.id = se.id_paciente
                 JOIN sesion_pedagogica sp ON se.id_sesion = sp.id
                 WHERE sp.id_educador = %s
             """, (id_personal,))
@@ -839,7 +841,7 @@ class DashboardComponent:
                 JOIN cronograma_clases cc ON asist.id_cronograma = cc.id
                 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id
                 WHERE sp.id_educador = %s
-                AND asist.fecha >= CURRENT_DATE - INTERVAL '30 days'
+                AND cc.fecha_programada >= CURRENT_DATE - INTERVAL '30 days'
             """, (id_personal,))
 
             total_registros = asistencia_stats[0]['total_registros'] if asistencia_stats and asistencia_stats[0] else 0
@@ -848,9 +850,9 @@ class DashboardComponent:
 
             estadisticas = {
                 'asistencia_promedio': round(asistencia_promedio, 1),
-                'horas_clase_mes': 92,  # Placeholder
-                'evaluaciones_pendientes': 5,  # Placeholder
-                'rendimiento_promedio': 85  # Placeholder
+                'horas_clase_mes': 0,
+                'evaluaciones_pendientes': 0,
+                'rendimiento_promedio': 0
             }
 
             return {
@@ -907,7 +909,7 @@ class DashboardComponent:
 
             actividades = []
 
-            # Buscar sesiones terapéuticas
+            # Buscar sesiones terapeuticas
             sesiones_terapia = DataBaseHandle.getRecords("""
                 SELECT
                     cs.id,
@@ -917,13 +919,13 @@ class DashboardComponent:
                     cs.hora_fin,
                     cs.estado,
                     p.nombre || ' ' || p.apellido as paciente_estudiante,
-                    COALESCE(cs.consultorio, 'Por asignar') as ubicacion,
+                    'Por asignar' as ubicacion,
                     cs.observaciones as notas
                 FROM cronograma_sesiones cs
                 JOIN sesion_terapia st ON cs.id_sesion = st.id
                 JOIN sesion_paciente sp ON st.id = sp.id_sesion
                 JOIN paciente pac ON sp.id_paciente = pac.id
-                JOIN persona p ON pac.persona_id = p.id
+                JOIN persona p ON pac.id_persona = p.id
                 JOIN especialidad e ON st.id_especialidad = e.id
                 WHERE st.id_terapeuta = %s
                 AND cs.fecha_programada = %s
@@ -943,7 +945,7 @@ class DashboardComponent:
                     'notas': row[8] or ''
                 })
 
-            # Buscar clases pedagógicas
+            # Buscar clases pedagogicas
             clases_pedagogicas = DataBaseHandle.getRecords("""
                 SELECT
                     cc.id,
@@ -953,7 +955,7 @@ class DashboardComponent:
                     cc.hora_fin,
                     cc.estado,
                     'Clase grupal' as paciente_estudiante,
-                    COALESCE(cc.aula, 'Por asignar') as ubicacion,
+                    'Por asignar' as ubicacion,
                     cc.tema_clase as notas
                 FROM cronograma_clases cc
                 JOIN sesion_pedagogica sp ON cc.id_sesion = sp.id

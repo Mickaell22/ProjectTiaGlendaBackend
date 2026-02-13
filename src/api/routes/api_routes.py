@@ -1054,43 +1054,17 @@ def _register_configuracion_routes(app):
         from src.api.Service.ConfiguracionService import ConfiguracionService
         return ConfiguracionService.update_configuracion_general()
 
-    @app.route('/api/configuracion/notificaciones/global', methods=['GET'])
-    @admin_required
-    def get_configuracion_notificaciones_global():
+    @app.route('/api/configuracion/notificaciones', methods=['GET'])
+    @token_required
+    def get_configuracion_notificaciones():
         from src.api.Service.ConfiguracionService import ConfiguracionService
         return ConfiguracionService.get_configuracion_notificaciones()
 
-    @app.route('/api/configuracion/notificaciones/global', methods=['PUT'])
+    @app.route('/api/configuracion/notificaciones', methods=['PUT'])
     @admin_required
-    def update_configuracion_notificaciones_global():
+    def update_configuracion_notificaciones():
         from src.api.Service.ConfiguracionService import ConfiguracionService
         return ConfiguracionService.update_configuracion_notificaciones()
-
-    @app.route('/api/configuracion/notificaciones/usuario', methods=['GET'])
-    @token_required
-    def get_configuracion_notificaciones_usuario():
-        from src.api.Service.ConfiguracionService import ConfiguracionService
-        user_id = request.current_user.get('id')
-        return ConfiguracionService.get_configuracion_notificaciones(user_id)
-
-    @app.route('/api/configuracion/notificaciones/usuario', methods=['PUT'])
-    @token_required
-    def update_configuracion_notificaciones_usuario():
-        from src.api.Service.ConfiguracionService import ConfiguracionService
-        user_id = request.current_user.get('id')
-        return ConfiguracionService.update_configuracion_notificaciones(user_id)
-
-    @app.route('/api/configuracion/notificaciones/usuario/<int:user_id>', methods=['GET'])
-    @admin_required
-    def get_configuracion_notificaciones_usuario_especifico(user_id):
-        from src.api.Service.ConfiguracionService import ConfiguracionService
-        return ConfiguracionService.get_configuracion_notificaciones(user_id)
-
-    @app.route('/api/configuracion/notificaciones/usuario/<int:user_id>', methods=['PUT'])
-    @admin_required
-    def update_configuracion_notificaciones_usuario_especifico(user_id):
-        from src.api.Service.ConfiguracionService import ConfiguracionService
-        return ConfiguracionService.update_configuracion_notificaciones(user_id)
 
     @app.route('/api/configuracion/resumen', methods=['GET'])
     @token_required
