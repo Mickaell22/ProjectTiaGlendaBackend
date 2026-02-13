@@ -258,6 +258,47 @@ class ChatService:
             return {'success': False, 'message': 'Error interno del servidor'}
     
     @staticmethod
+    def eliminar_mensaje(id_mensaje, usuario_autenticado):
+        """
+        Eliminar un mensaje (soft delete)
+        """
+        try:
+            if not isinstance(id_mensaje, int) or id_mensaje <= 0:
+                return {'success': False, 'message': 'ID de mensaje invalido'}
+
+            resultado = ChatComponent.eliminar_mensaje(
+                id_mensaje,
+                usuario_autenticado['id']
+            )
+
+            return resultado
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en eliminar_mensaje: {str(e)}")
+            return {'success': False, 'message': 'Error interno del servidor'}
+
+    @staticmethod
+    def eliminar_conversacion(id_contacto, usuario_autenticado):
+        """
+        Eliminar una conversacion completa (soft delete)
+        """
+        try:
+            if not isinstance(id_contacto, int) or id_contacto <= 0:
+                return {'success': False, 'message': 'ID de contacto invalido'}
+
+            resultado = ChatComponent.eliminar_conversacion(
+                usuario_autenticado['id'],
+                id_contacto,
+                usuario_autenticado['id_centro']
+            )
+
+            return resultado
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en eliminar_conversacion: {str(e)}")
+            return {'success': False, 'message': 'Error interno del servidor'}
+
+    @staticmethod
     def _sanitizar_mensaje(mensaje):
         """
         Sanitizar contenido del mensaje

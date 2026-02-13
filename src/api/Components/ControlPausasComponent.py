@@ -14,10 +14,25 @@ class ControlPausasComponent:
     """Componente para control y procesamiento de pausas de pacientes"""
 
     @staticmethod
+    def check_paciente_exists(paciente_id):
+        """Verificar si un paciente existe"""
+        try:
+            query = "SELECT id FROM paciente WHERE id = %s"
+            result = DataBaseHandle.getRecords(query, (paciente_id,), size=1)
+            return result is not None and bool(result)
+        except Exception as e:
+            HandleLogs.write_error(f"ControlPausasComponent.check_paciente_exists - Error: {str(e)}")
+            return False
+
+    @staticmethod
     def get_estado_pausas_paciente(paciente_id):
         """Obtener el estado completo de pausas de un paciente"""
         try:
             HandleLogs.write_log(f"ControlPausasComponent.get_estado_pausas_paciente - Paciente {paciente_id}")
+
+            # Verificar que el paciente existe
+            if not ControlPausasComponent.check_paciente_exists(paciente_id):
+                return internal_response(False, None, "Paciente no encontrado")
 
             # Obtener pausa general del paciente
             query_general = """
@@ -51,6 +66,7 @@ class ControlPausasComponent:
 
             resultado = {
                 "paciente_id": paciente_id,
+                "estado_tratamiento": pausa_general['estado_tratamiento'] if pausa_general else None,
                 "pausa_general": None,
                 "pausas_especialidades": []
             }
@@ -58,7 +74,7 @@ class ControlPausasComponent:
             # Procesar pausa general
             if pausa_general and pausa_general['fecha_inicio_pausa']:
                 resultado["pausa_general"] = {
-                    "activa": True,
+                    "activa": pausa_general['estado_tratamiento'] == 'pausado',
                     "fecha_inicio": pausa_general['fecha_inicio_pausa'].isoformat() if pausa_general['fecha_inicio_pausa'] else None,
                     "fecha_fin": pausa_general['fecha_fin_pausa'].isoformat() if pausa_general['fecha_fin_pausa'] else None,
                     "motivo": pausa_general['motivo_pausa']
@@ -89,17 +105,22 @@ class ControlPausasComponent:
 
             HandleLogs.write_log(f"ControlPausasComponent.verificar_pausa_activa - Paciente {paciente_id}")
 
+            # Verificar que el paciente existe
+            if not ControlPausasComponent.check_paciente_exists(paciente_id):
+                return internal_response(False, None, "Paciente no encontrado")
+
             # Verificar pausa general
             query_general = """
-            SELECT fecha_inicio_pausa, fecha_fin_pausa
+            SELECT fecha_inicio_pausa, fecha_fin_pausa, estado_tratamiento
             FROM paciente
             WHERE id = %s
+            AND estado_tratamiento = 'pausado'
             AND fecha_inicio_pausa IS NOT NULL
             """
             pausa_general = DataBaseHandle.getRecords(query_general, (paciente_id,), size=1)
 
             tiene_pausa_general = False
-            if pausa_general:
+            if pausa_general and bool(pausa_general):
                 if pausa_general['fecha_fin_pausa'] is None or pausa_general['fecha_fin_pausa'] >= date.today():
                     tiene_pausa_general = True
 
@@ -115,13 +136,13 @@ class ControlPausasComponent:
             """
             count_especialidades = DataBaseHandle.getRecords(query_especialidades, (paciente_id,), size=1)
 
-            tiene_pausas_especialidades = count_especialidades and count_especialidades['total'] > 0
+            tiene_pausas_especialidades = count_especialidades and bool(count_especialidades) and count_especialidades['total'] > 0
 
             resultado = {
                 "paciente_id": paciente_id,
                 "tiene_pausa_activa": tiene_pausa_general or tiene_pausas_especialidades,
                 "pausa_general_activa": tiene_pausa_general,
-                "pausas_especialidades_activas": count_especialidades['total'] if count_especialidades else 0
+                "pausas_especialidades_activas": count_especialidades['total'] if count_especialidades and bool(count_especialidades) else 0
             }
 
             return internal_response(True, resultado, "Verificacion completada")
@@ -135,6 +156,10 @@ class ControlPausasComponent:
         """Obtener historial completo de pausas de un paciente"""
         try:
             HandleLogs.write_log(f"ControlPausasComponent.get_historial_pausas - Paciente {paciente_id}")
+
+            # Verificar que el paciente existe
+            if not ControlPausasComponent.check_paciente_exists(paciente_id):
+                return internal_response(False, None, "Paciente no encontrado")
 
             query = """
             SELECT
@@ -208,6 +233,7 @@ class ControlPausasComponent:
             AND pac.fecha_fin_pausa IS NOT NULL
             AND pac.fecha_fin_pausa < CURRENT_DATE
             AND pac.estado = 'activo'
+            AND pac.estado_tratamiento = 'pausado'
             """
 
             pausas_generales = DataBaseHandle.getRecords(query_general, ())
@@ -298,6 +324,7 @@ class ControlPausasComponent:
             AND pac.fecha_fin_pausa >= CURRENT_DATE
             AND pac.fecha_fin_pausa <= %s
             AND pac.estado = 'activo'
+            AND pac.estado_tratamiento = 'pausado'
             """
 
             pausas_generales = DataBaseHandle.getRecords(query_general, (fecha_limite,))
@@ -379,62 +406,131 @@ class ControlPausasComponent:
                 "errores": []
             }
 
-            # Reactivar pausas generales vencidas
-            query_reactivar_general = """
-            UPDATE paciente
-            SET fecha_inicio_pausa = NULL,
-                fecha_fin_pausa = NULL,
-                motivo_pausa = NULL,
-                estado_tratamiento = 'activo',
-                fecha_modificacion = CURRENT_TIMESTAMP
+            # Contar pausas generales vencidas antes de reactivar
+            query_count_general = """
+            SELECT COUNT(*) as total
+            FROM paciente
             WHERE fecha_inicio_pausa IS NOT NULL
             AND fecha_fin_pausa IS NOT NULL
             AND fecha_fin_pausa < CURRENT_DATE
             AND estado = 'activo'
+            AND estado_tratamiento = 'pausado'
             """
+            count_general = DataBaseHandle.getRecords(query_count_general, (), size=1)
+            total_general = count_general['total'] if count_general and bool(count_general) else 0
 
-            success_general = DataBaseHandle.ExecuteNonQuery(query_reactivar_general, ())
-
-            if success_general:
-                # Contar cuantos se reactivaron
-                query_count = """
-                SELECT COUNT(*) as total
-                FROM historial_pausas
-                WHERE accion = 'reanudar'
-                AND tipo_pausa = 'general'
-                AND fecha_accion::date = CURRENT_DATE
+            if total_general > 0:
+                # Obtener IDs de pacientes a reactivar para registrar historial
+                query_ids_general = """
+                SELECT id, fecha_inicio_pausa, fecha_fin_pausa, motivo_pausa
+                FROM paciente
+                WHERE fecha_inicio_pausa IS NOT NULL
+                AND fecha_fin_pausa IS NOT NULL
+                AND fecha_fin_pausa < CURRENT_DATE
+                AND estado = 'activo'
+                AND estado_tratamiento = 'pausado'
                 """
-                # Por simplicidad, asumimos que se reactivaron
-                procesados["pausas_generales_reactivadas"] = 1
+                pacientes_a_reactivar = DataBaseHandle.getRecords(query_ids_general, ())
 
-            # Reactivar pausas de especialidades vencidas
-            query_reactivar_especialidades = """
-            UPDATE paciente_especialidades
-            SET estado_pausa = 'activo',
-                fecha_inicio_pausa_esp = NULL,
-                fecha_fin_pausa_esp = NULL,
-                motivo_pausa_esp = NULL,
-                fecha_modificacion = CURRENT_TIMESTAMP
+                # Reactivar pausas generales vencidas
+                query_reactivar_general = """
+                UPDATE paciente
+                SET fecha_inicio_pausa = NULL,
+                    fecha_fin_pausa = NULL,
+                    motivo_pausa = NULL,
+                    estado_tratamiento = 'activo',
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE fecha_inicio_pausa IS NOT NULL
+                AND fecha_fin_pausa IS NOT NULL
+                AND fecha_fin_pausa < CURRENT_DATE
+                AND estado = 'activo'
+                AND estado_tratamiento = 'pausado'
+                """
+
+                success_general = DataBaseHandle.ExecuteNonQuery(query_reactivar_general, ())
+
+                if success_general:
+                    procesados["pausas_generales_reactivadas"] = total_general
+
+                    # Registrar en historial de pausas
+                    if pacientes_a_reactivar:
+                        for pac in pacientes_a_reactivar:
+                            query_historial = """
+                            INSERT INTO historial_pausas (id_paciente, tipo_pausa, accion, fecha_inicio_pausa, fecha_fin_pausa, motivo, observaciones, fecha_accion)
+                            VALUES (%s, 'general', 'reanudar', %s, %s, %s, 'Reactivacion automatica por vencimiento de pausa', CURRENT_TIMESTAMP)
+                            """
+                            DataBaseHandle.ExecuteNonQuery(query_historial, (
+                                pac['id'],
+                                pac['fecha_inicio_pausa'],
+                                pac['fecha_fin_pausa'],
+                                pac['motivo_pausa']
+                            ))
+
+            # Contar pausas de especialidades vencidas antes de reactivar
+            query_count_esp = """
+            SELECT COUNT(*) as total
+            FROM paciente_especialidades
             WHERE fecha_inicio_pausa_esp IS NOT NULL
             AND fecha_fin_pausa_esp IS NOT NULL
             AND fecha_fin_pausa_esp < CURRENT_DATE
             AND estado = 'activo'
             AND estado_pausa = 'pausado_especialidad'
             """
+            count_esp = DataBaseHandle.getRecords(query_count_esp, (), size=1)
+            total_esp = count_esp['total'] if count_esp and bool(count_esp) else 0
 
-            success_esp = DataBaseHandle.ExecuteNonQuery(query_reactivar_especialidades, ())
+            if total_esp > 0:
+                # Obtener datos de especialidades a reactivar para registrar historial
+                query_ids_esp = """
+                SELECT id_paciente, id_especialidad, fecha_inicio_pausa_esp, fecha_fin_pausa_esp, motivo_pausa_esp
+                FROM paciente_especialidades
+                WHERE fecha_inicio_pausa_esp IS NOT NULL
+                AND fecha_fin_pausa_esp IS NOT NULL
+                AND fecha_fin_pausa_esp < CURRENT_DATE
+                AND estado = 'activo'
+                AND estado_pausa = 'pausado_especialidad'
+                """
+                especialidades_a_reactivar = DataBaseHandle.getRecords(query_ids_esp, ())
 
-            if success_esp:
-                procesados["pausas_especialidades_reactivadas"] = 1
+                # Reactivar pausas de especialidades vencidas
+                query_reactivar_especialidades = """
+                UPDATE paciente_especialidades
+                SET estado_pausa = 'activo',
+                    fecha_inicio_pausa_esp = NULL,
+                    fecha_fin_pausa_esp = NULL,
+                    motivo_pausa_esp = NULL,
+                    fecha_modificacion = CURRENT_TIMESTAMP
+                WHERE fecha_inicio_pausa_esp IS NOT NULL
+                AND fecha_fin_pausa_esp IS NOT NULL
+                AND fecha_fin_pausa_esp < CURRENT_DATE
+                AND estado = 'activo'
+                AND estado_pausa = 'pausado_especialidad'
+                """
 
-            # Reactivar sesiones que estaban pausadas
-            query_reactivar_sesiones = """
-            UPDATE cronograma_sesiones
-            SET estado = 'programada'
-            WHERE estado = 'pausada'
-            AND fecha_programada >= CURRENT_DATE
-            """
-            DataBaseHandle.ExecuteNonQuery(query_reactivar_sesiones, ())
+                success_esp = DataBaseHandle.ExecuteNonQuery(query_reactivar_especialidades, ())
+
+                if success_esp:
+                    procesados["pausas_especialidades_reactivadas"] = total_esp
+
+                    # Registrar en historial de pausas
+                    if especialidades_a_reactivar:
+                        for esp in especialidades_a_reactivar:
+                            query_historial = """
+                            INSERT INTO historial_pausas (id_paciente, id_especialidad, tipo_pausa, accion, fecha_inicio_pausa, fecha_fin_pausa, motivo, observaciones, fecha_accion)
+                            VALUES (%s, %s, 'especialidad', 'reanudar', %s, %s, %s, 'Reactivacion automatica por vencimiento de pausa de especialidad', CURRENT_TIMESTAMP)
+                            """
+                            DataBaseHandle.ExecuteNonQuery(query_historial, (
+                                esp['id_paciente'],
+                                esp['id_especialidad'],
+                                esp['fecha_inicio_pausa_esp'],
+                                esp['fecha_fin_pausa_esp'],
+                                esp['motivo_pausa_esp']
+                            ))
+
+            # Reactivar sesiones de cronograma que estaban canceladas por pausa
+            # Nota: cronograma_sesiones no tiene estado 'pausada' en su CHECK constraint,
+            # por lo que las sesiones pausadas se marcan como 'cancelada' con motivo.
+            # No se reactivan automaticamente para evitar conflictos de horario.
 
             total_procesados = procesados["pausas_generales_reactivadas"] + procesados["pausas_especialidades_reactivadas"]
 
@@ -457,6 +553,7 @@ class ControlPausasComponent:
             SELECT COUNT(*) as total
             FROM paciente
             WHERE fecha_inicio_pausa IS NOT NULL
+            AND estado_tratamiento = 'pausado'
             AND (fecha_fin_pausa IS NULL OR fecha_fin_pausa >= CURRENT_DATE)
             AND estado = 'activo'
             """
@@ -499,9 +596,9 @@ class ControlPausasComponent:
             tendencia = DataBaseHandle.getRecords(query_tendencia, ())
 
             resultado = {
-                "pausas_generales_activas": general_activas['total'] if general_activas else 0,
-                "pausas_especialidades_activas": esp_activas['total'] if esp_activas else 0,
-                "total_pausas_activas": (general_activas['total'] if general_activas else 0) + (esp_activas['total'] if esp_activas else 0),
+                "pausas_generales_activas": general_activas['total'] if general_activas and bool(general_activas) else 0,
+                "pausas_especialidades_activas": esp_activas['total'] if esp_activas and bool(esp_activas) else 0,
+                "total_pausas_activas": (general_activas['total'] if general_activas and bool(general_activas) else 0) + (esp_activas['total'] if esp_activas and bool(esp_activas) else 0),
                 "motivos_mas_comunes": [],
                 "tendencia_mensual": []
             }

@@ -19,16 +19,16 @@ class ControlPausasService:
         try:
             HandleLogs.write_log(f"ControlPausasService.get_estado_pausas_paciente - Paciente {paciente_id}")
 
-            # Validar que paciente_id sea valido
             if not paciente_id or paciente_id <= 0:
                 return response_error("ID de paciente invalido", 400)
 
-            # Obtener estado de pausas
             result = ControlPausasComponent.get_estado_pausas_paciente(paciente_id)
 
             if result['success']:
                 return response_success(result['data'], result['message'])
             else:
+                if "no encontrado" in result['message'].lower():
+                    return response_error(result['message'], 404)
                 return response_error(result['message'], 400)
 
         except Exception as e:
@@ -41,16 +41,16 @@ class ControlPausasService:
         try:
             HandleLogs.write_log(f"ControlPausasService.verificar_pausa_activa - Paciente {paciente_id}")
 
-            # Validar que paciente_id sea valido
             if not paciente_id or paciente_id <= 0:
                 return response_error("ID de paciente invalido", 400)
 
-            # Verificar pausa activa
             result = ControlPausasComponent.verificar_pausa_activa(paciente_id)
 
             if result['success']:
                 return response_success(result['data'], result['message'])
             else:
+                if "no encontrado" in result['message'].lower():
+                    return response_error(result['message'], 404)
                 return response_error(result['message'], 400)
 
         except Exception as e:
@@ -63,16 +63,16 @@ class ControlPausasService:
         try:
             HandleLogs.write_log(f"ControlPausasService.get_historial_pausas - Paciente {paciente_id}")
 
-            # Validar que paciente_id sea valido
             if not paciente_id or paciente_id <= 0:
                 return response_error("ID de paciente invalido", 400)
 
-            # Obtener historial
             result = ControlPausasComponent.get_historial_pausas(paciente_id)
 
             if result['success']:
                 return response_success(result['data'], result['message'])
             else:
+                if "no encontrado" in result['message'].lower():
+                    return response_error(result['message'], 404)
                 return response_error(result['message'], 400)
 
         except Exception as e:
@@ -85,7 +85,6 @@ class ControlPausasService:
         try:
             HandleLogs.write_log("ControlPausasService.get_pausas_vencidas - Iniciando")
 
-            # Obtener pausas vencidas
             result = ControlPausasComponent.get_pausas_vencidas()
 
             if result['success']:
@@ -103,11 +102,9 @@ class ControlPausasService:
         try:
             HandleLogs.write_log(f"ControlPausasService.get_pausas_proximas_vencer - Proximos {dias} dias")
 
-            # Validar que dias sea un numero positivo
             if dias <= 0:
                 dias = 7
 
-            # Obtener pausas proximas a vencer
             result = ControlPausasComponent.get_pausas_proximas_vencer(dias)
 
             if result['success']:
@@ -125,7 +122,6 @@ class ControlPausasService:
         try:
             HandleLogs.write_log("ControlPausasService.procesar_pausas_automaticas - Iniciando")
 
-            # Procesar pausas automaticas
             result = ControlPausasComponent.procesar_pausas_automaticas()
 
             if result['success']:
@@ -143,7 +139,6 @@ class ControlPausasService:
         try:
             HandleLogs.write_log("ControlPausasService.get_estadisticas_pausas - Iniciando")
 
-            # Obtener estadisticas
             result = ControlPausasComponent.get_estadisticas_pausas()
 
             if result['success']:

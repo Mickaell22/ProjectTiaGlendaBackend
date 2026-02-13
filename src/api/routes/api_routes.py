@@ -253,6 +253,48 @@ def _register_chat_routes(app):
             HandleLogs.write_error(f"Error en buscar_mensajes_chat: {str(e)}")
             return response_error("Error interno del servidor", 500)
 
+    @app.route('/api/chat/mensaje/<int:id_mensaje>', methods=['DELETE'])
+    @token_required
+    def eliminar_mensaje_chat(id_mensaje):
+        try:
+            from src.api.Service.ChatService import ChatService
+
+            permisos = ChatService.validar_permisos_chat(request.current_user)
+            if not permisos['success']:
+                return response_error(permisos['message'], 403)
+
+            resultado = ChatService.eliminar_mensaje(id_mensaje, request.current_user)
+
+            if resultado['success']:
+                return response_success({}, resultado['message'])
+            else:
+                return response_error(resultado['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en eliminar_mensaje_chat: {str(e)}")
+            return response_error("Error interno del servidor", 500)
+
+    @app.route('/api/chat/conversacion/<int:id_contacto>', methods=['DELETE'])
+    @token_required
+    def eliminar_conversacion_chat(id_contacto):
+        try:
+            from src.api.Service.ChatService import ChatService
+
+            permisos = ChatService.validar_permisos_chat(request.current_user)
+            if not permisos['success']:
+                return response_error(permisos['message'], 403)
+
+            resultado = ChatService.eliminar_conversacion(id_contacto, request.current_user)
+
+            if resultado['success']:
+                return response_success({}, resultado['message'])
+            else:
+                return response_error(resultado['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en eliminar_conversacion_chat: {str(e)}")
+            return response_error("Error interno del servidor", 500)
+
 
 # ============================================
 # FOTOS DE PERFIL

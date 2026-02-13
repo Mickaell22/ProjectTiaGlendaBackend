@@ -200,14 +200,14 @@ def get_historial_pausas(paciente_id):
 
 
 @paciente_bp.route('/control-pausas/vencidas', methods=['GET'])
-@token_required
+@admin_required
 def get_pausas_vencidas():
     from src.api.Service.ControlPausasService import ControlPausasService
     return ControlPausasService.get_pausas_vencidas()
 
 
 @paciente_bp.route('/control-pausas/proximas-vencer', methods=['GET'])
-@token_required
+@admin_required
 def get_pausas_proximas_vencer():
     from src.api.Service.ControlPausasService import ControlPausasService
     dias = request.args.get('dias', default=7, type=int)
@@ -215,14 +215,14 @@ def get_pausas_proximas_vencer():
 
 
 @paciente_bp.route('/control-pausas/procesar-automaticas', methods=['POST'])
-@token_required
+@admin_required
 def procesar_pausas_automaticas():
     from src.api.Service.ControlPausasService import ControlPausasService
     return ControlPausasService.procesar_pausas_automaticas()
 
 
 @paciente_bp.route('/control-pausas/estadisticas', methods=['GET'])
-@token_required
+@admin_required
 def get_estadisticas_pausas():
     from src.api.Service.ControlPausasService import ControlPausasService
     return ControlPausasService.get_estadisticas_pausas()
