@@ -1178,6 +1178,75 @@ def _register_notificaciones_routes(app):
             HandleLogs.write_error(f"Error en obtener_estadisticas_notificaciones: {str(e)}")
             return response_error("Error interno del servidor", 500)
 
+    @app.route('/api/notificaciones/no-leidas', methods=['GET'])
+    @token_required
+    def contar_notificaciones_no_leidas():
+        try:
+            from src.api.Service.NotificacionesService import NotificacionesService
+
+            permisos = NotificacionesService.validar_permisos_notificaciones(request.current_user)
+            if not permisos['success']:
+                return response_error(permisos['message'], 403)
+
+            resultado = NotificacionesService.contar_no_leidas(request.current_user)
+
+            if resultado['success']:
+                return response_success({
+                    'no_leidas': resultado['no_leidas']
+                }, "Conteo obtenido exitosamente")
+            else:
+                return response_error(resultado['message'], 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en contar_notificaciones_no_leidas: {str(e)}")
+            return response_error("Error interno del servidor", 500)
+
+    @app.route('/api/notificaciones/leer-todas', methods=['PUT'])
+    @token_required
+    def marcar_todas_notificaciones_leidas():
+        try:
+            from src.api.Service.NotificacionesService import NotificacionesService
+
+            permisos = NotificacionesService.validar_permisos_notificaciones(request.current_user)
+            if not permisos['success']:
+                return response_error(permisos['message'], 403)
+
+            resultado = NotificacionesService.marcar_todas_leidas(request.current_user)
+
+            if resultado['success']:
+                return response_success({
+                    'total_marcadas': resultado['total_marcadas']
+                }, resultado['message'])
+            else:
+                return response_error(resultado['message'], 500)
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en marcar_todas_notificaciones_leidas: {str(e)}")
+            return response_error("Error interno del servidor", 500)
+
+    @app.route('/api/notificaciones/<int:id_notificacion>', methods=['DELETE'])
+    @token_required
+    def eliminar_notificacion_usuario(id_notificacion):
+        try:
+            from src.api.Service.NotificacionesService import NotificacionesService
+
+            permisos = NotificacionesService.validar_permisos_notificaciones(request.current_user)
+            if not permisos['success']:
+                return response_error(permisos['message'], 403)
+
+            resultado = NotificacionesService.eliminar_notificacion(
+                id_notificacion, request.current_user
+            )
+
+            if resultado['success']:
+                return response_success({}, resultado['message'])
+            else:
+                return response_error(resultado['message'], 400)
+
+        except Exception as e:
+            HandleLogs.write_error(f"Error en eliminar_notificacion_usuario: {str(e)}")
+            return response_error("Error interno del servidor", 500)
+
 
 # ============================================
 # ADMIN SCHEDULER
