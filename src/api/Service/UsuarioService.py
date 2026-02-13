@@ -4,7 +4,6 @@ from src.utils.general.response import response_success, response_error, respons
 from src.utils.general.validators import Validators
 from src.utils.general.security import SecurityUtils
 from src.api.Components.UsuarioComponent import UsuarioComponent
-from src.api.Components.UsuarioCentrosComponent import UsuarioCentrosComponent
 
 
 class UsuarioService:

@@ -276,7 +276,7 @@ def _register_foto_perfil_routes(app):
             if resultado['success']:
                 return response_success({
                     'ruta_foto': resultado['ruta_foto']
-                }, resultado['mensaje'])
+                }, resultado['message'])
             else:
                 return response_error(resultado['message'], 400)
 
@@ -351,7 +351,7 @@ def _register_foto_perfil_routes(app):
             if resultado['success']:
                 return response_success({
                     'ruta_foto': resultado['ruta_foto']
-                }, resultado['mensaje'])
+                }, resultado['message'])
             else:
                 return response_error(resultado['message'], 400)
 
@@ -388,8 +388,7 @@ def _register_foto_perfil_routes(app):
                 return send_file(
                     resultado['ruta_archivo'],
                     mimetype='image/jpeg',
-                    as_attachment=False,
-                    download_name=f"perfil_{request.current_user['id']}.jpg"
+                    as_attachment=False
                 )
             else:
                 return response_error(resultado['message'], 404)

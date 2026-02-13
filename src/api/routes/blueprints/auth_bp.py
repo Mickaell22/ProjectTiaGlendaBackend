@@ -1,7 +1,7 @@
 """
 Blueprint para rutas de autenticacion y manejo de centros del usuario.
 """
-from flask import Blueprint, request
+from flask import Blueprint
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import response_success
 from src.utils.general.auth_middleware import token_required
@@ -39,8 +39,8 @@ def logout():
 @auth_bp.route('/me', methods=['GET'])
 @token_required
 def get_current_user():
-    HandleLogs.write_log(f"Informacion solicitada para usuario: {request.current_user['usuario']}")
-    return response_success(request.current_user, "Informacion del usuario actual")
+    from src.api.Service.AuthService import AuthService
+    return AuthService.get_me()
 
 
 @auth_bp.route('/seleccionar-centro', methods=['POST'])

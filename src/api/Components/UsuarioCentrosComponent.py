@@ -86,11 +86,17 @@ class UsuarioCentrosComponent:
             LIMIT 1
             """
 
-            centro = DataBaseHandle.getRecords(query, (id_usuario,), size=1)
+            result = DataBaseHandle.getRecordsWithStatus(query, (id_usuario,), size=1)
 
-            if centro is None:
+            if not result['success']:
+                HandleLogs.write_error(f"UsuarioCentrosComponent.get_centro_predeterminado - Error en consulta para usuario {id_usuario}")
+                return internal_response(False, None, "Error obteniendo centro predeterminado")
+
+            centro = result['data']
+
+            if not centro or not bool(centro):
                 HandleLogs.write_log(f"UsuarioCentrosComponent.get_centro_predeterminado - No se encontro centro predeterminado para usuario {id_usuario}")
-                return internal_response(False, None, "No se encontro centro predeterminado")
+                return internal_response(True, None, "No se encontro centro predeterminado")
 
             HandleLogs.write_log(f"UsuarioCentrosComponent.get_centro_predeterminado - Centro predeterminado obtenido para usuario {id_usuario}")
             return internal_response(True, centro, "Centro predeterminado obtenido")
@@ -182,11 +188,25 @@ class UsuarioCentrosComponent:
             """
 
             count_result = DataBaseHandle.getRecords(query_count, (id_usuario,), size=1)
-            total_centros = count_result.get('total_centros', 0) if isinstance(count_result, dict) else 0
+
+            if count_result is None or not isinstance(count_result, dict):
+                HandleLogs.write_error(f"UsuarioCentrosComponent.remover_centro_usuario - Error contando centros para usuario {id_usuario}")
+                return internal_response(False, None, "Error verificando centros del usuario")
+
+            total_centros = count_result.get('total_centros', 0)
 
             if total_centros <= 1:
                 HandleLogs.write_log(f"UsuarioCentrosComponent.remover_centro_usuario - No se puede remover el unico centro del usuario {id_usuario}")
                 return internal_response(False, None, "No se puede remover el unico centro del usuario")
+
+            # Verificar si el centro a remover es el predeterminado
+            query_es_predeterminado = """
+            SELECT es_centro_predeterminado
+            FROM usuario_centros
+            WHERE id_usuario = %s AND id_centro = %s
+            """
+            pred_result = DataBaseHandle.getRecords(query_es_predeterminado, (id_usuario, id_centro), size=1)
+            era_predeterminado = pred_result.get('es_centro_predeterminado', False) if isinstance(pred_result, dict) else False
 
             # Remover el centro
             query_delete = """
@@ -198,6 +218,22 @@ class UsuarioCentrosComponent:
             success = DataBaseHandle.ExecuteNonQuery(query_delete, (id_usuario, id_centro))
 
             if success:
+                # Si era el predeterminado, reasignar al primer centro restante
+                if era_predeterminado:
+                    query_reasignar = """
+                    UPDATE usuario_centros
+                    SET es_centro_predeterminado = TRUE
+                    WHERE id_usuario = %s
+                    AND id = (
+                        SELECT id FROM usuario_centros
+                        WHERE id_usuario = %s
+                        ORDER BY id ASC
+                        LIMIT 1
+                    )
+                    """
+                    DataBaseHandle.ExecuteNonQuery(query_reasignar, (id_usuario, id_usuario))
+                    HandleLogs.write_log(f"UsuarioCentrosComponent.remover_centro_usuario - Centro predeterminado reasignado para usuario {id_usuario}")
+
                 HandleLogs.write_log(f"UsuarioCentrosComponent.remover_centro_usuario - Centro {id_centro} removido del usuario {id_usuario}")
                 return internal_response(True, True, "Centro removido correctamente")
             else:
