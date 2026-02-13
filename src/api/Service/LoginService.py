@@ -138,32 +138,23 @@ class LoginService:
 
     @staticmethod
     def verify_token():
-        """Verificar token JWT"""
+        """Verificar token JWT (el middleware @token_required ya valido el token)"""
         try:
-            # Obtener token del header Authorization
-            auth_header = request.headers.get('Authorization')
+            user = request.current_user
 
-            if not auth_header:
-                return response_error("Token de acceso requerido", 401)
+            response_data = {
+                'id': user['id'],
+                'usuario': user['usuario'],
+                'nombre_completo': user['nombre_completo'],
+                'rol': user['rol'],
+                'rol_id': user['rol_id'],
+                'id_centro': user.get('id_centro'),
+                'centros_disponibles': user.get('centros_disponibles', []),
+                'centro': user.get('centro')
+            }
 
-            # Formato esperado: "Bearer <token>"
-            try:
-                token = auth_header.split(' ')[1]
-            except IndexError:
-                return response_error("Formato de token invalido", 401)
-
-            # Verificar token
-            token_result = SecurityUtils.verify_token(token)
-
-            if not token_result['success']:
-                return response_error(token_result['message'], 401)
-
-            # Token válido
-            HandleLogs.write_log("LoginService.verify_token - Token verificado correctamente")
-            return response_success(
-                token_result['data'],
-                "Token valido"
-            )
+            HandleLogs.write_log(f"LoginService.verify_token - Token verificado para usuario: {user['usuario']}")
+            return response_success(response_data, "Token valido")
 
         except Exception as e:
             HandleLogs.write_error(f"LoginService.verify_token - Error: {str(e)}")

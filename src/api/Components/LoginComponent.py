@@ -10,12 +10,13 @@ class LoginComponent:
         """Obtener datos de usuario para autenticación"""
         try:
             query = """
-            SELECT 
+            SELECT
                 u.id,
                 u.usuario,
                 u.contrasenia,
                 u.estado,
                 u.id_centro,
+                u.id_persona,
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.correo,
                 r.nombre as rol,

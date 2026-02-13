@@ -1,3 +1,4 @@
+import traceback
 from functools import wraps
 from flask import request
 from src.utils.general.security import SecurityUtils
@@ -67,8 +68,6 @@ def token_required(f):
                     
             except Exception as token_err:
                 HandleLogs.write_error(f"auth_middleware.token_required - Token verification error: {str(token_err)}")
-                # También registrar el stack trace para debugging
-                import traceback
                 HandleLogs.write_error(f"auth_middleware.token_required - Token verification traceback: {traceback.format_exc()}")
                 return response_error("Error verificando token", 401)
             
@@ -220,8 +219,6 @@ def token_required(f):
 
         except Exception as e:
             HandleLogs.write_error(f"auth_middleware.token_required - Error: {str(e)}")
-            # Añadir traceback detallado para debugging
-            import traceback
             HandleLogs.write_error(f"auth_middleware.token_required - Full traceback: {traceback.format_exc()}")
             return response_error("Error verificando autenticacion", 500)
 
@@ -299,7 +296,7 @@ def therapist_or_admin_required(f):
 
 
 def session_owner_required(f):
-    """Decorador para verificar que el usuario sea propietario de la sesión o administrador"""
+    """Decorador para verificar que el usuario sea propietario de la sesion (terapia o pedagogica) o administrador"""
 
     @wraps(f)
     @token_required
@@ -311,37 +308,56 @@ def session_owner_required(f):
             if user['rol'].lower() == 'administrador':
                 return f(*args, **kwargs)
 
-            # Para terapeutas, verificar que sean propietarios de la sesión
+            # Para terapeutas/pedagogos, verificar que sean propietarios de la sesion
             if user['rol'].lower() in ['terapeuta', 'pedagógico', 'pedagogo']:
                 # Obtener sesion_id de los argumentos
                 sesion_id = None
                 if 'sesion_id' in kwargs:
                     sesion_id = kwargs['sesion_id']
                 elif args:
-                    # Asumir que el primer argumento es sesion_id en rutas que lo usan
                     sesion_id = args[0]
 
                 if not sesion_id:
-                    HandleLogs.write_error(f"auth_middleware.session_owner_required - No se pudo obtener sesion_id")
-                    return response_error("Error verificando permisos de sesión", 500)
+                    HandleLogs.write_error("auth_middleware.session_owner_required - No se pudo obtener sesion_id")
+                    return response_error("Error verificando permisos de sesion", 500)
 
-                # Verificar que el usuario sea el terapeuta asignado a la sesión
+                # Determinar tipo de sesion basado en la URL de la request
+                request_path = request.path.lower()
+                es_pedagogica = 'pedagogica' in request_path or 'pedagogia' in request_path
+
                 try:
-                    from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
-                    sesion = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
-
-                    if not sesion:
-                        return response_error("Sesión no encontrada", 404)
-
                     personal_id = user.get('personal_id')
-                    if not personal_id or sesion.get('terapeuta_id') != personal_id:
+                    if not personal_id:
                         HandleLogs.write_log(
-                            f"auth_middleware.session_owner_required - Usuario {user['usuario']} no es propietario de sesión {sesion_id}")
-                        return response_error("No tiene permisos para acceder a esta sesión", 403)
+                            f"auth_middleware.session_owner_required - Usuario {user['usuario']} no tiene personal_id asignado")
+                        return response_error("No tiene permisos para acceder a esta sesion", 403)
+
+                    if es_pedagogica:
+                        from src.api.Components.SesionPedagogicaComponent import SesionPedagogicaComponent
+                        sesion = SesionPedagogicaComponent.get_sesion_by_id(sesion_id)
+
+                        if not sesion:
+                            return response_error("Sesion pedagogica no encontrada", 404)
+
+                        if sesion.get('pedagogo_id') != personal_id:
+                            HandleLogs.write_log(
+                                f"auth_middleware.session_owner_required - Usuario {user['usuario']} no es educador de sesion pedagogica {sesion_id}")
+                            return response_error("No tiene permisos para acceder a esta sesion", 403)
+                    else:
+                        from src.api.Components.SesionTerapiaComponent import SesionTerapiaComponent
+                        sesion = SesionTerapiaComponent.get_sesion_by_id(sesion_id)
+
+                        if not sesion:
+                            return response_error("Sesion de terapia no encontrada", 404)
+
+                        if sesion.get('terapeuta_id') != personal_id:
+                            HandleLogs.write_log(
+                                f"auth_middleware.session_owner_required - Usuario {user['usuario']} no es terapeuta de sesion {sesion_id}")
+                            return response_error("No tiene permisos para acceder a esta sesion", 403)
 
                 except Exception as verify_err:
                     HandleLogs.write_error(f"auth_middleware.session_owner_required - Error verificando propietario: {str(verify_err)}")
-                    return response_error("Error verificando permisos de sesión", 500)
+                    return response_error("Error verificando permisos de sesion", 500)
 
             return f(*args, **kwargs)
 
