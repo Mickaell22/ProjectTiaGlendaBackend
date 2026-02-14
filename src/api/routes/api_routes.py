@@ -29,7 +29,7 @@ Modulos pendientes de migracion (se registran directamente):
 - Admin scheduler
 - Fotos de asistencia
 """
-from flask import request, send_file
+from flask import request, send_file, after_this_request
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import response_success, response_error
 from src.utils.general.auth_middleware import token_required, admin_required
@@ -997,8 +997,15 @@ def _register_reportes_routes(app):
             resultado = ExportService.export_to_pdf(data['data'], data['metadata'], formato)
 
             if resultado['success']:
+                file_path = resultado['file_path']
+
+                @after_this_request
+                def cleanup_pdf(response):
+                    ExportService.cleanup_temp_file(file_path)
+                    return response
+
                 return send_file(
-                    resultado['file_path'],
+                    file_path,
                     as_attachment=True,
                     download_name=resultado['filename'],
                     mimetype='application/pdf'
@@ -1022,8 +1029,15 @@ def _register_reportes_routes(app):
             resultado = ExportService.export_to_excel(data['data'], data['metadata'])
 
             if resultado['success']:
+                file_path = resultado['file_path']
+
+                @after_this_request
+                def cleanup_excel(response):
+                    ExportService.cleanup_temp_file(file_path)
+                    return response
+
                 return send_file(
-                    resultado['file_path'],
+                    file_path,
                     as_attachment=True,
                     download_name=resultado['filename'],
                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
