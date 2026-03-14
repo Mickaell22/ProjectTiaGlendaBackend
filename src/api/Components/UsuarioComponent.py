@@ -1,6 +1,7 @@
 from src.utils.database.connection_db import DataBaseHandle
 from src.utils.general.logs import HandleLogs
 from src.utils.general.response import internal_response
+from src.api.Components.UsuarioCentrosComponent import UsuarioCentrosComponent
 
 
 class UsuarioComponent:
@@ -49,6 +50,41 @@ class UsuarioComponent:
             usuarios = DataBaseHandle.getRecords(query)
 
             if usuarios is not None:
+                # Obtener todos los centros de todos los usuarios en una sola query
+                centros_query = """
+                SELECT
+                    uc.id_usuario,
+                    c.id,
+                    c.nombre,
+                    c.codigo,
+                    c.turno_principal as turno,
+                    uc.es_centro_predeterminado as es_predeterminado
+                FROM usuario_centros uc
+                INNER JOIN centros c ON uc.id_centro = c.id
+                WHERE c.estado = 'activo'
+                ORDER BY uc.id_usuario, uc.es_centro_predeterminado DESC, c.nombre ASC
+                """
+                todos_centros = DataBaseHandle.getRecords(centros_query)
+
+                # Agrupar centros por id_usuario
+                centros_por_usuario = {}
+                if todos_centros:
+                    for row in todos_centros:
+                        uid = row['id_usuario']
+                        if uid not in centros_por_usuario:
+                            centros_por_usuario[uid] = []
+                        centros_por_usuario[uid].append({
+                            'id': row['id'],
+                            'nombre': row['nombre'],
+                            'codigo': row['codigo'],
+                            'turno': row['turno'],
+                            'es_predeterminado': row['es_predeterminado']
+                        })
+
+                # Adjuntar centros a cada usuario
+                for u in usuarios:
+                    u['centros'] = centros_por_usuario.get(u['id'], [])
+
                 HandleLogs.write_log(f"UsuarioComponent.get_all_usuarios - {len(usuarios)} usuarios encontrados")
                 return internal_response(True, usuarios, "Usuarios obtenidos correctamente")
             else:
@@ -103,6 +139,8 @@ class UsuarioComponent:
             usuario = DataBaseHandle.getRecords(query, (usuario_id,), size=1)
 
             if usuario is not None:
+                centros_result = UsuarioCentrosComponent.get_centros_usuario(usuario_id)
+                usuario['centros'] = centros_result['data'] if centros_result['success'] else []
                 HandleLogs.write_log(f"UsuarioComponent.get_usuario_by_id - Usuario {usuario_id} encontrado")
                 return internal_response(True, usuario, "Usuario encontrado")
             else:

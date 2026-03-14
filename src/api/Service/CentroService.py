@@ -258,13 +258,15 @@ class CentroService:
                     "message": "Centro creado exitosamente"
                 }
             else:
+                print(f"[CentroService.create_centro] Fallo en componente: {result['message']}")
                 return {
                     "success": False,
                     "data": None,
-                    "message": "Error al crear el centro"
+                    "message": result["message"]
                 }
 
         except Exception as e:
+            print(f"[CentroService.create_centro] Excepcion: {str(e)}")
             HandleLogs.write_error(f"CentroService.create_centro - Error: {str(e)}")
             return {
                 "success": False,

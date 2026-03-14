@@ -338,13 +338,10 @@ class ChatService:
             
             if not usuario_autenticado:
                 return {'success': False, 'message': 'Usuario no autenticado'}
-            
+
             if usuario_autenticado.get('estado') != 'activo':
                 return {'success': False, 'message': 'Usuario inactivo'}
-            
-            if not usuario_autenticado.get('id_centro'):
-                return {'success': False, 'message': 'Usuario sin centro asignado'}
-            
+
             return {'success': True, 'message': 'Permisos validados'}
             
         except Exception as e:

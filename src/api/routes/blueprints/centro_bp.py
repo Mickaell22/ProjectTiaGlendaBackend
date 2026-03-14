@@ -2,7 +2,7 @@
 Blueprint para rutas de gestion de centros.
 """
 from flask import Blueprint, request
-from src.utils.general.response import response_success, response_error
+from src.utils.general.response import response_success, response_error, response_inserted
 from src.utils.general.auth_middleware import token_required, admin_required
 
 centro_bp = Blueprint('centro', __name__, url_prefix='/api')
@@ -62,7 +62,7 @@ def create_centro():
         return response_error("Datos requeridos", 400)
     result = CentroService.create_centro(data)
     if result["success"]:
-        return response_success(result["data"], result["message"], 201)
+        return response_inserted(result["data"], result["message"])
     return response_error(result["message"], 400)
 
 

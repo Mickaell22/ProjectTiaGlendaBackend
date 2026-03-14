@@ -25,7 +25,8 @@
       "Bash(timeout:*)",
       "Bash(ping:*)",
       "Bash(del \"C:\\\\Users\\\\ASUS\\\\Desktop\\\\Proyecto Tia Glenda\\\\Project B\\\\src\\\\api\\\\Service\\\\ConfiguracionService_backup.py\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": [],

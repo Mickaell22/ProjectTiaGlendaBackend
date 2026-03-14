@@ -417,6 +417,18 @@ class PacienteComponent:
             success = DataBaseHandle.ExecuteNonQuery(update_query, params)
 
             if success:
+                # Actualizar especialidades si vienen en el body
+                especialidades = data.get('especialidades', [])
+                if especialidades:
+                    usuario_mod = data.get('usuario_modificacion', 1)
+                    for esp in especialidades:
+                        id_especialidad = esp.get('id_especialidad')
+                        if not id_especialidad:
+                            continue
+                        PacienteComponent._update_especialidad_paciente(
+                            paciente_id, id_especialidad, esp, usuario_mod
+                        )
+
                 # Obtener datos actualizados
                 updated_paciente = PacienteComponent.get_paciente_by_id(paciente_id)
                 HandleLogs.write_log(f"PacienteComponent.update_paciente - Paciente {paciente_id} actualizado")
@@ -428,6 +440,45 @@ class PacienteComponent:
         except Exception as e:
             HandleLogs.write_error(f"PacienteComponent.update_paciente - Error: {str(e)}")
             return internal_response(False, None, f"Error: {str(e)}")
+
+    @staticmethod
+    def _update_especialidad_paciente(paciente_id, id_especialidad, data, usuario_modificacion=1):
+        """Actualizar campos de una especialidad ya asignada al paciente"""
+        try:
+            fields = []
+            params = []
+
+            if 'observaciones' in data and data['observaciones'] is not None:
+                fields.append("observaciones = %s")
+                params.append(data['observaciones'])
+            if 'prioridad' in data and data['prioridad'] is not None:
+                fields.append("prioridad = %s")
+                params.append(data['prioridad'])
+            if 'fecha_inicio_tratamiento' in data and data['fecha_inicio_tratamiento'] is not None:
+                fields.append("fecha_inicio_tratamiento = %s")
+                params.append(data['fecha_inicio_tratamiento'])
+            if 'fecha_fin_tratamiento' in data and data['fecha_fin_tratamiento'] is not None:
+                fields.append("fecha_fin_tratamiento = %s")
+                params.append(data['fecha_fin_tratamiento'])
+
+            if not fields:
+                return
+
+            fields.append("fecha_modificacion = CURRENT_TIMESTAMP")
+            fields.append("usuario_modificacion = %s")
+            params.append(usuario_modificacion)
+            params.extend([paciente_id, id_especialidad])
+
+            query = f"""
+                UPDATE paciente_especialidades
+                SET {', '.join(fields)}
+                WHERE id_paciente = %s AND id_especialidad = %s AND estado = 'activo'
+            """
+            DataBaseHandle.ExecuteNonQuery(query, params)
+            HandleLogs.write_log(f"PacienteComponent._update_especialidad_paciente - Especialidad {id_especialidad} actualizada para paciente {paciente_id}")
+
+        except Exception as e:
+            HandleLogs.write_error(f"PacienteComponent._update_especialidad_paciente - Error: {str(e)}")
 
     @staticmethod
     def change_estado_paciente(paciente_id, nuevo_estado):

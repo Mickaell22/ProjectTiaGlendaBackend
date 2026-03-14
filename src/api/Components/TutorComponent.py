@@ -328,6 +328,7 @@ class TutorComponent:
                 CONCAT(p.nombre, ' ', p.apellido) as nombre_completo,
                 p.nombre,
                 p.apellido,
+                p.cedula,
                 t.parentesco,
                 p.telefono,
                 p.correo as email

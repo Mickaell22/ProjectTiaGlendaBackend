@@ -115,16 +115,16 @@ class DashboardComponent:
 
             if usuarios_result:
                 for row in usuarios_result:
-                    tiempo_diff = datetime.now() - row[1] if row[1] else timedelta(hours=1)
+                    tiempo_diff = datetime.now() - row['fecha_ultimo_acceso'] if row['fecha_ultimo_acceso'] else timedelta(hours=1)
                     minutos = int(tiempo_diff.total_seconds() / 60)
                     tiempo_texto = f"{minutos} min" if minutos < 60 else f"{minutos//60} hora(s)"
 
                     actividades.append({
                         'tipo': 'usuario',
-                        'usuario': row[0],
-                        'accion': 'accedió al sistema',
+                        'usuario': row['usuario'],
+                        'accion': 'accedio al sistema',
                         'tiempo': tiempo_texto,
-                        'avatar': row[0][:2].upper() if row[0] else 'U'
+                        'avatar': row['usuario'][:2].upper() if row['usuario'] else 'U'
                     })
 
             # Actividad de pacientes (registros recientes)
@@ -138,14 +138,14 @@ class DashboardComponent:
 
             if pacientes_result:
                 for row in pacientes_result:
-                    tiempo_diff = datetime.now() - row[1] if row[1] else timedelta(hours=1)
+                    tiempo_diff = datetime.now() - row['fecha_creacion'] if row['fecha_creacion'] else timedelta(hours=1)
                     minutos = int(tiempo_diff.total_seconds() / 60)
                     tiempo_texto = f"{minutos} min" if minutos < 60 else f"{minutos//60} hora(s)"
 
                     actividades.append({
                         'tipo': 'paciente',
                         'usuario': 'Sistema',
-                        'accion': f'registró paciente: {row[0]}',
+                        'accion': f'registro paciente: {row["nombre"]}',
                         'tiempo': tiempo_texto,
                         'avatar': 'SIS'
                     })
