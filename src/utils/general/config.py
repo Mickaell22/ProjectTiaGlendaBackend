@@ -24,8 +24,8 @@ def get_config():
         'db_port': '5432',
         'db_name': 'tia_glenda_db',
         'db_user': 'tia_glenda_user',
-        'db_pass': 'tia_glenda_password',
-        'secret_jwt': 'tia-glenda-jwt-secret-key-very-secure-2024',
+        'db_pass': 'change-this-password',
+        'secret_jwt': 'change-this-jwt-secret',
         'api_base_url': 'http://localhost:5000'
     }
 

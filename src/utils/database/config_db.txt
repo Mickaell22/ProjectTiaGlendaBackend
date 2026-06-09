@@ -10,4 +10,4 @@ HOST=localhost
 PORT=5432
 DATABASE=centro_tia_glenda
 USER=postgres
-PASSWORD=1234
+PASSWORD=your_password_here
