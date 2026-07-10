@@ -438,10 +438,10 @@ class ChatComponent:
             # Query para contar mensajes no leídos
             query = """
                 SELECT COUNT(*) as count
-                FROM mensaje_chat mc
+                FROM mensajes_chat mc
                 WHERE mc.id_destinatario = %s
                 AND mc.leido = false
-                AND mc.estado = 'activo'
+                AND mc.eliminado_destinatario = false
             """
 
             resultado = db.getRecords(query, (id_usuario,), size=1)

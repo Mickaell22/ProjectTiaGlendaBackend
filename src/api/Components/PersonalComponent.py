@@ -111,8 +111,9 @@ class PersonalComponent:
         try:
             # Obtener información básica del personal
             query_personal = """
-            SELECT 
+            SELECT
                 p.id,
+                p.id_centro,
                 p.cargo as titulo_profesional,
                 p.estado,
                 p.fecha_creacion,

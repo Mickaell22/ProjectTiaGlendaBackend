@@ -48,6 +48,14 @@ class PersonalService:
 
             if result['success']:
                 if result['data']:
+                    # Aislamiento multi-centro: un no-admin solo puede ver
+                    # personal de su propio centro. Sin esto, cualquier
+                    # autenticado leia personal de otro centro enumerando IDs.
+                    current_user = getattr(request, 'current_user', {})
+                    es_admin = current_user.get('rol', '').lower() == 'administrador'
+                    if not es_admin and current_user.get('id_centro'):
+                        if result['data'].get('id_centro') != current_user.get('id_centro'):
+                            return response_error("No tiene acceso a este personal", 403)
                     HandleLogs.write_log(f"PersonalService.get_personal_by_id - Personal {personal_id} encontrado")
                     return response_success(result['data'], "Personal encontrado")
                 else:

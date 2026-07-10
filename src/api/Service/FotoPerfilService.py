@@ -143,21 +143,25 @@ class FotoPerfilService:
             # Validar que la ruta existe
             if not ruta_foto:
                 return {'success': False, 'message': 'Ruta de foto no proporcionada'}
-            
-            ruta_completa = os.path.join(os.getcwd(), ruta_foto)
-            
+
+            # Proteccion contra path traversal: resolvemos la ruta absoluta y
+            # exigimos que quede DENTRO del directorio permitido. El check por
+            # startswith('fotos_perfil/') era burlable con 'fotos_perfil/../../etc/passwd'.
+            base_dir = os.path.realpath(os.path.join(os.getcwd(), 'fotos_perfil'))
+            ruta_completa = os.path.realpath(os.path.join(os.getcwd(), ruta_foto))
+
+            if os.path.commonpath([base_dir, ruta_completa]) != base_dir:
+                return {'success': False, 'message': 'Acceso a archivo no autorizado'}
+
             # Validar que el archivo existe
-            if not os.path.exists(ruta_completa):
+            if not os.path.isfile(ruta_completa):
                 return {'success': False, 'message': 'Archivo de foto no encontrado'}
             
-            # Validar que la ruta está dentro del directorio permitido
-            # Normalizar separadores de ruta para compatibilidad Windows/Linux
-            ruta_normalizada = ruta_foto.replace('\\', '/')
-            if not ruta_normalizada.startswith('fotos_perfil/'):
-                return {'success': False, 'message': 'Acceso a archivo no autorizado'}
-            
-            # TODO: Implementar validación de que el usuario tiene permisos para ver esta foto específica
-            # Esto requeriría una consulta adicional para verificar ownership
+            # ponytail: las fotos de perfil se tratan como recurso interno visible
+            # entre usuarios autenticados (los listados del front muestran fotos de
+            # companeros). El vector grave (path traversal) ya quedo cerrado arriba;
+            # el ownership por-foto no se exige a proposito. Si en el futuro se
+            # requiere aislar por centro, hay que consultar el dueno de la foto.
             
             return {
                 'success': True,

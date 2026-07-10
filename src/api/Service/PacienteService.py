@@ -80,6 +80,16 @@ class PacienteService:
 
             if result['success']:
                 if result['data']:
+                    # Aislamiento multi-centro: un usuario no-admin solo puede
+                    # leer pacientes de su propio centro. Sin este filtro,
+                    # cualquiera leia un paciente (dato clinico) de otro centro
+                    # enumerando IDs (IDOR cross-centro).
+                    current_user = getattr(request, 'current_user', {})
+                    es_admin = current_user.get('rol', '').lower() == 'administrador'
+                    user_centro_id = current_user.get('id_centro')
+                    if not es_admin and user_centro_id:
+                        if result['data'].get('id_centro') != user_centro_id:
+                            return response_error("No tiene acceso a este paciente", 403)
                     HandleLogs.write_log(f"PacienteService.get_paciente_by_id - Paciente {paciente_id} encontrado")
                     return response_success(result['data'], "Paciente encontrado")
                 else:

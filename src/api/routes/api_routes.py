@@ -653,6 +653,17 @@ def register_routes(app):
         try:
             from flask import request
             from src.api.Service.UsuarioService import UsuarioService
+            from src.utils.general.response import response_error
+
+            # Control de acceso: solo un administrador o el propio dueño de la
+            # cuenta pueden cambiar la contrasenia. Sin esto, cualquier usuario
+            # autenticado podria tomar el control de otra cuenta (IDOR).
+            current_user = request.current_user
+            es_admin = current_user.get('rol', '').lower() == 'administrador'
+            es_dueno = current_user.get('id') == usuario_id
+            if not es_admin and not es_dueno:
+                return response_error("No tiene permisos para cambiar la contrasenia de otro usuario", 403)
+
             return UsuarioService.change_password(usuario_id, request.json)
         except Exception as e:
             from src.utils.general.response import response_error

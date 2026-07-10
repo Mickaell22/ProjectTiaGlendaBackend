@@ -41,6 +41,16 @@ class UsuarioService:
 
             if result['success']:
                 if result['data']:
+                    # Aislamiento multi-centro: un no-admin solo puede ver su
+                    # propio usuario o usuarios de su centro. Sin esto, cualquier
+                    # autenticado leia usuarios de otro centro enumerando IDs.
+                    current_user = getattr(request, 'current_user', {})
+                    es_admin = current_user.get('rol', '').lower() == 'administrador'
+                    if not es_admin:
+                        es_propio = current_user.get('id') == usuario_id
+                        mismo_centro = result['data'].get('centro_id') == current_user.get('id_centro')
+                        if not es_propio and not mismo_centro:
+                            return response_error("No tiene acceso a este usuario", 403)
                     HandleLogs.write_log(f"UsuarioService.get_usuario - Usuario {usuario_id} encontrado")
                     return response_success(result['data'], "Usuario encontrado")
                 else:

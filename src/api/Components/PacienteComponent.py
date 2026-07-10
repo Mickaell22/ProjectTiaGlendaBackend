@@ -118,6 +118,7 @@ class PacienteComponent:
             query_paciente = """
             SELECT
                 pac.id,
+                pac.id_centro,
                 pac.fecha_ingreso::DATE as fecha_ingreso,
                 pac.estado_tratamiento,
                 pac.observaciones,
@@ -798,8 +799,8 @@ class PacienteComponent:
                 pt.cedula as cedula_tutor,
                 pt.telefono as telefono_tutor,
                 pt.correo as correo_tutor,
-                pt.direccion as direccion_tutor
-                -- Sin especialidad directa (se maneja por tabla paciente_especialidades),
+                pt.direccion as direccion_tutor,
+                -- Las especialidades se manejan en la tabla paciente_especialidades
                 -- Información del centro
                 c.nombre as centro_nombre,
                 c.codigo as centro_codigo
@@ -814,21 +815,11 @@ class PacienteComponent:
             paciente = DataBaseHandle.getRecords(query, (paciente_id, centro_id), size=1)
 
             if paciente:
-                if paciente['especialidad_id']:
-                    paciente['especialidades'] = [{
-                        'id': paciente['especialidad_id'],
-                        'nombre': paciente['especialidad_nombre'],
-                        'area': paciente['especialidad_area'],
-                        'estado_tratamiento': paciente['estado_tratamiento'],
-                        'fecha_inicio': paciente['fecha_inicio_tratamiento'],
-                        'fecha_fin': paciente['fecha_fin_tratamiento']
-                    }]
-                    paciente['total_especialidades'] = 1
-                    paciente['especialidades_activas'] = 1 if paciente['estado_tratamiento'] == 'activo' else 0
-                else:
-                    paciente['especialidades'] = []
-                    paciente['total_especialidades'] = 0
-                    paciente['especialidades_activas'] = 0
+                # Este query no trae especialidades (van en paciente_especialidades);
+                # se exponen listas vacias para no romper el contrato de respuesta.
+                paciente['especialidades'] = []
+                paciente['total_especialidades'] = 0
+                paciente['especialidades_activas'] = 0
 
                 HandleLogs.write_log(f"PacienteComponent.get_paciente_by_id_and_centro - Paciente {paciente_id} encontrado en centro {centro_id}")
                 return internal_response(True, paciente, "Paciente encontrado")

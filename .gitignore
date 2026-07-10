@@ -169,3 +169,6 @@ documentos_personal/
 fotos_perfil/
 src/utils/database/config_db.txt
 migrations_historicas
+
+# Config con posibles secretos locales (usar variables de entorno / .env)
+src/utils/general/config.cfg
