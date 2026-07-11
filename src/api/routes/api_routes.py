@@ -2701,19 +2701,13 @@ def register_routes(app):
                 from src.api.Service.DashboardService import DashboardService
                 from flask import request
 
-                # Verificar que el usuario es terapeuta específicamente
-                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                # current_user es un dict armado por auth_middleware:
+                # trae 'rol' (de la DB) y 'personal_id' (resuelto para terapeutas/pedagogos)
+                personal_id = request.current_user.get('personal_id')
+                rol_usuario = request.current_user.get('rol')
+
+                if not personal_id or rol_usuario != 'Terapeuta':
                     return response_error("Solo terapeutas pueden acceder a esta información", 403)
-
-                # Verificar que el personal es realmente terapeuta
-                from src.api.Components.PersonalComponent import PersonalComponent
-                personal_component = PersonalComponent()
-                personal_info = personal_component.getPersonal(request.current_user.personal_id)
-
-                if not personal_info or personal_info.get('rol') != 'Terapeuta':
-                    return response_error("Solo terapeutas pueden acceder a esta información", 403)
-
-                personal_id = request.current_user.personal_id
 
                 dashboard_service = DashboardService()
                 resultado = dashboard_service.get_dashboard_therapist(personal_id)
@@ -2732,19 +2726,13 @@ def register_routes(app):
                 from src.api.Service.DashboardService import DashboardService
                 from flask import request
 
-                # Verificar que el usuario es pedagogo específicamente
-                if not hasattr(request.current_user, 'personal_id') or not request.current_user.personal_id:
+                # current_user es un dict armado por auth_middleware:
+                # trae 'rol' (de la DB) y 'personal_id' (resuelto para terapeutas/pedagogos)
+                personal_id = request.current_user.get('personal_id')
+                rol_usuario = request.current_user.get('rol')
+
+                if not personal_id or rol_usuario not in ('Pedagogo', 'Pedagógico'):
                     return response_error("Solo pedagogos pueden acceder a esta información", 403)
-
-                # Verificar que el personal es realmente pedagogo
-                from src.api.Components.PersonalComponent import PersonalComponent
-                personal_component = PersonalComponent()
-                personal_info = personal_component.getPersonal(request.current_user.personal_id)
-
-                if not personal_info or personal_info.get('rol') != 'Pedagogo':
-                    return response_error("Solo pedagogos pueden acceder a esta información", 403)
-
-                personal_id = request.current_user.personal_id
 
                 dashboard_service = DashboardService()
                 resultado = dashboard_service.get_dashboard_pedagogue(personal_id)
