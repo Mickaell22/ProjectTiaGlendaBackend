@@ -169,3 +169,6 @@ documentos_personal/
 fotos_perfil/
 src/utils/database/config_db.txt
 migrations_historicas
+
+# Configuracion local y variables de entorno reales
+.claude/
